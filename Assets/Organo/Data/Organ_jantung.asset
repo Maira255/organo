@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_jantung
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: jantung
+  displayName: Jantung
+  system: 2
+  region: 2
+  cardNumber: 7
+  season: 3
+  about: Jantung adalah otot sebesar kepalan tanganmu. Ia memompa darah ke seluruh
+    tubuh tanpa henti. Darah membawa oksigen dan makanan ke semua bagian tubuh. Kamu
+    bisa merasakan detaknya di dada.
+  funFact: Jantungmu berdetak sekitar seratus ribu kali setiap hari!
+  shortDescription: Otot yang memompa darah ke seluruh tubuh
+  function: Jantung memompa darah ke seluruh tubuh tanpa henti, siang dan malam.
+  tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
+  ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
+  accent: {r: 0.9372549, g: 0.2784314, b: 0.43529412, a: 1}
+  modelPrefab: {fileID: 0}
+  modelEuler: {x: 8, y: -20, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Bilik jantung
+    description: Memompa darah
+    localPosition: {x: 0.1, y: -0.15, z: 0.3}
+  - title: Pembuluh darah
+    description: Jalan darah keluar-masuk
+    localPosition: {x: -0.1, y: 0.42, z: 0.1}
+  narration: {fileID: 0}
+  cardImage: {fileID: 0}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

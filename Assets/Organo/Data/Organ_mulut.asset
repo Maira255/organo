@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_mulut
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: mulut
+  displayName: Mulut
+  system: 0
+  region: 0
+  cardNumber: 1
+  season: 1
+  about: Mulut adalah pintu masuk makanan. Gigi mengunyah makanan menjadi potongan
+    kecil. Lidah membantumu merasakan manis, asin, dan asam. Air liur mulai melunakkan
+    makanan sebelum ditelan.
+  funFact: Air liurmu bisa mencapai hampir satu liter dalam sehari!
+  shortDescription: Tempat makanan dikunyah dan dicampur air liur
+  function: Mulut mengunyah makanan dan mencampurnya dengan air liur.
+  tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
+  ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
+  accent: {r: 0.9372549, g: 0.2784314, b: 0.43529412, a: 1}
+  modelPrefab: {fileID: 0}
+  modelEuler: {x: 8, y: -20, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Gigi
+    description: Memotong & mengunyah makanan
+    localPosition: {x: 0, y: 0.12, z: 0.3}
+  - title: Lidah
+    description: Merasakan manis, asin, asam
+    localPosition: {x: 0.1, y: -0.08, z: 0.25}
+  - title: Air liur
+    description: Melunakkan makanan
+    localPosition: {x: -0.25, y: 0, z: 0.15}
+  narration: {fileID: 0}
+  cardImage: {fileID: 0}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

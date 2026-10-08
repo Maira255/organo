@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_lambung
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: lambung
+  displayName: Lambung
+  system: 0
+  region: 3
+  cardNumber: 3
+  season: 1
+  about: Lambung adalah kantong lentur yang bisa melar. Di sini, makanan diaduk bersama
+    asam lambung dan enzim. Sedikit demi sedikit, makanan berubah menjadi bubur halus.
+  funFact: Asam lambung cukup kuat untuk melarutkan logam, tetapi lapisan lambung
+    melindungi dirinya sendiri!
+  shortDescription: Kantong elastis yang mencerna makanan dengan asam dan enzim
+  function: Lambung mengaduk makanan bersama asam lambung sampai jadi bubur halus.
+  tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
+  ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
+  accent: {r: 0.9607843, g: 0.54901963, b: 0.6392157, a: 1}
+  modelPrefab: {fileID: 7575355878282450983, guid: ece0546e84b4b9447ac29e0f06765456, type: 3}
+  modelEuler: {x: 4, y: -12, z: 0}
+  modelScale: 1.05
+  hotspots:
+  - title: Asam Lambung
+    description: Membantu hancurkan makanan
+    localPosition: {x: 0.1, y: -0.05, z: 0.3}
+  - title: Otot lambung
+    description: Mengaduk makanan
+    localPosition: {x: 0.3, y: 0.1, z: 0.15}
+  - title: Pintu masuk
+    description: Dari kerongkongan
+    localPosition: {x: -0.2, y: 0.4, z: 0.05}
+  narration: {fileID: 0}
+  cardImage: {fileID: 0}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08
