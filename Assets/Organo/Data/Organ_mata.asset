@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_mata
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: mata
+  displayName: Mata
+  system: 5
+  region: 0
+  cardNumber: 14
+  season: 5
+  about: Mata adalah alat indera untuk melihat. Cahaya masuk lewat kornea yang bening,
+    lalu melewati pupil, lubang hitam di tengah iris. Lensa memfokuskan cahaya ke
+    retina di bagian belakang mata. Retina mengubah cahaya menjadi pesan, lalu saraf
+    mata mengirimnya ke otak. Barulah kamu bisa melihat!
+  funFact: Pupilmu mengecil saat terang dan membesar saat gelap supaya cahaya yang
+    masuk pas!
+  shortDescription: Alat indera untuk melihat
+  function: Mata menangkap cahaya dan mengirim gambarnya ke otak.
+  tint: {r: 0.93333334, g: 0.9607843, b: 1, a: 1}
+  ring: {r: 0.72156864, g: 0.83137256, b: 0.9607843, a: 1}
+  accent: {r: 0.3019608, g: 0.6156863, b: 0.8784314, a: 1}
+  modelPrefab: {fileID: 6005927386832523690, guid: b8f6098ac031d5047a34f47046697a0e, type: 3}
+  modelEuler: {x: 8, y: -28, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Kornea
+    description: Jendela bening di depan mata
+    localPosition: {x: 0, y: 0, z: -0.45}
+  - title: Iris
+    description: Bagian berwarna
+    localPosition: {x: 0.12, y: 0, z: -0.42}
+  lowModelPrefab: {fileID: 289977886783602254, guid: 4e4798695c15e3a48915f5e1e67bafdb, type: 3}
+  insidePrefab: {fileID: 7767040233518179179, guid: 5b750a1f7d7a04443a23ddbceac1dae1, type: 3}
+  insideEuler: {x: 6, y: 70, z: 0}
+  heroImage: {fileID: 2800000, guid: b81de004a575917498203764c5863f7c, type: 3}
+  partVisuals:
+  - id: kornea
+    image: {fileID: 2800000, guid: 80f6ea9f021ae404aad34f50ee93837b, type: 3}
+    microPrefab: {fileID: 0}
+  - id: iris
+    image: {fileID: 2800000, guid: bb4534184f3705c4ca75caa4570e15fa, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pupil
+    image: {fileID: 2800000, guid: 8a9c561db28b6e344a90737a662c8d40, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sklera
+    image: {fileID: 2800000, guid: 8f92c8771f7a0ba4f87ccaf1bcca873f, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lensa
+    image: {fileID: 2800000, guid: dc5675ad1d8fb814d95fff5455ea86c4, type: 3}
+    microPrefab: {fileID: 0}
+  - id: badankaca
+    image: {fileID: 2800000, guid: 8dd68d9804f654f4593ec3279db8e479, type: 3}
+    microPrefab: {fileID: 0}
+  - id: retina
+    image: {fileID: 2800000, guid: 7f8b5db9aea1d3c429109d98d2cf4b17, type: 3}
+    microPrefab: {fileID: 0}
+  - id: saraf
+    image: {fileID: 2800000, guid: fd21302bd77e215498968d7ba66528f7, type: 3}
+    microPrefab: {fileID: 0}
+  - id: otot
+    image: {fileID: 2800000, guid: 884e1948910a7044f88ac421bcaaca7b, type: 3}
+    microPrefab: {fileID: 0}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 0375bda827b65bc4a8e7e69cbd6896b9, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

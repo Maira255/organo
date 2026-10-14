@@ -19,6 +19,8 @@ namespace Organo
         public virtual NavTab Tab => NavTab.None;
         /// <summary>Layar AR: latar transparan supaya feed kamera terlihat.</summary>
         public virtual bool UsesCamera => false;
+        /// <summary>Layar sampai tepi bawah layar (tanpa jarak area aman bawah); layar sendiri yang memberi jarak pada isinya.</summary>
+        public virtual bool FullBleedBottom => false;
 
         internal void Init(OrganoApp app)
         {
@@ -34,6 +36,26 @@ namespace Organo
             Root.Clear();
             Root.EnableInClassList("transparent", UsesCamera);
             Build(arg);
+            KeepBarsFixed(Root);
+        }
+
+        /// <summary>
+        /// Hanya area gulir (ScrollView) dan elemen yang sengaja Grow yang boleh mengecil. Bar atas/bawah, judul, kotak tetap,
+        /// tidak pernah dimampatkan: tanpa ini, isi yang panjang membuat bar bawah ikut mengecil sehingga tombolnya keluar
+        /// layar dan teks keluar dari kotaknya (mis. tombol "Mulai Quiz" di detail organ, kotak "Benar! Hebat!" di kuis).
+        /// </summary>
+        static void KeepBarsFixed(VisualElement root)
+        {
+            foreach (var child in root.Children())
+            {
+                if (child is ScrollView || child.ClassListContains("fill") || child.ClassListContains("grow") || child.ClassListContains("scroll")) continue;
+                var pos = child.style.position;
+                if (pos.keyword == StyleKeyword.Undefined && pos.value == Position.Absolute) continue;
+                if (child.style.flexShrink.keyword == StyleKeyword.Undefined) continue; // sudah diatur sendiri
+                var grow = child.style.flexGrow;
+                if (grow.keyword == StyleKeyword.Undefined && grow.value > 0f) continue;
+                child.style.flexShrink = 0f;
+            }
         }
 
         protected abstract void Build(object arg);

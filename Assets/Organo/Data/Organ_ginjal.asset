@@ -1,0 +1,82 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_ginjal
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: ginjal
+  displayName: Ginjal
+  system: 4
+  region: 3
+  cardNumber: 8
+  season: 4
+  about: Kamu punya dua ginjal yang bentuknya seperti kacang merah. Letaknya di perut
+    bagian belakang, dekat punggung. Ginjal menyaring darah dan membuang sisa yang
+    tidak dibutuhkan tubuh. Sisa itu keluar bersama air sebagai urine atau air seni.
+  funFact: Ginjal orang dewasa menyaring sekitar 180 liter cairan darah setiap hari,
+    kira-kira sebanyak satu bak mandi!
+  shortDescription: Sepasang organ penyaring darah
+  function: Ginjal menyaring darah dan membuang sisanya lewat urine.
+  tint: {r: 1, g: 0.92941177, b: 0.9372549, a: 1}
+  ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
+  accent: {r: 0.8784314, g: 0.41568628, b: 0.49411765, a: 1}
+  modelPrefab: {fileID: 1922153086019790693, guid: c968293faa1939341b2cd4df3d523402, type: 3}
+  modelEuler: {x: 4, y: 0, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Penyaring darah
+    description: Membersihkan darah
+    localPosition: {x: -0.15, y: 0.05, z: -0.3}
+  - title: Pembuluh darah
+    description: Darah masuk dan keluar
+    localPosition: {x: 0.3, y: 0.12, z: -0.12}
+  - title: Ureter
+    description: Saluran urine ke kandung kemih
+    localPosition: {x: 0.22, y: -0.38, z: -0.08}
+  lowModelPrefab: {fileID: 771913774226699170, guid: a5176f0f3e56d2c468b217b299d11965, type: 3}
+  insidePrefab: {fileID: 7405195919956445306, guid: e5a15bc38c8c3b54f89e8a345b0048ef, type: 3}
+  insideEuler: {x: 4, y: 0, z: 0}
+  heroImage: {fileID: 2800000, guid: e6069ae770f480c499eeb67be24aa453, type: 3}
+  partVisuals:
+  - id: ginjal
+    image: {fileID: 2800000, guid: ebf8c155e4da2ec488f477d23d5ddd27, type: 3}
+    microPrefab: {fileID: 0}
+  - id: arteri
+    image: {fileID: 2800000, guid: cc8f5927d3310584ba14c72278d2d485, type: 3}
+    microPrefab: {fileID: 0}
+  - id: vena
+    image: {fileID: 2800000, guid: 42ed836925de25248859fb54106881bb, type: 3}
+    microPrefab: {fileID: 0}
+  - id: ureter
+    image: {fileID: 2800000, guid: 949b3971fe808144a9194807fd31d5c0, type: 3}
+    microPrefab: {fileID: 0}
+  - id: adrenal
+    image: {fileID: 2800000, guid: c1b30a78c271d0a42a7e7a1d1e6797db, type: 3}
+    microPrefab: {fileID: 0}
+  - id: korteks
+    image: {fileID: 2800000, guid: d6c3a70eae9bc4e47a3e5523b398f81b, type: 3}
+    microPrefab: {fileID: 0}
+  - id: medula
+    image: {fileID: 2800000, guid: 249793779b02c8d44977d29e66ce42f2, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pelvis
+    image: {fileID: 2800000, guid: 00995c7a5be36bc428200b6f623f98b6, type: 3}
+    microPrefab: {fileID: 0}
+  - id: nefron
+    image: {fileID: 2800000, guid: 7e37c4dc61b528c41b65a9dfe5ff615f, type: 3}
+    microPrefab: {fileID: 5313921967014706465, guid: d2af73b072edc9d47a02707998b1eb19, type: 3}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 79efc3ffb4117a1458d0ee3ef98fd1ac, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

@@ -1,0 +1,13 @@
+# Salin berkas ini menjadi kunci.txt (di folder yang sama), lalu isi SALAH SATU layanan.
+# kunci.txt tidak ikut git, jadi kunci API tidak tersebar.
+
+# --- ElevenLabs (elevenlabs.io > Profile > API Keys) ---
+# ELEVENLABS_API_KEY=
+# Opsional: suara lain dari Voice Library (cari suara berbahasa Indonesia), salin Voice ID-nya:
+# ELEVENLABS_VOICE_ID=
+
+# --- Microsoft Azure Speech (portal.azure.com > Speech service > Keys and Endpoint) ---
+# AZURE_SPEECH_KEY=
+# AZURE_SPEECH_REGION=southeastasia
+# Opsional: id-ID-GadisNeural (perempuan) atau id-ID-ArdiNeural (laki-laki)
+# AZURE_VOICE=id-ID-GadisNeural

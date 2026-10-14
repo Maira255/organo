@@ -1,0 +1,117 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_rangka
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: rangka
+  displayName: Rangka
+  system: 7
+  region: 5
+  cardNumber: 15
+  season: 6
+  about: Rangka adalah susunan tulang yang menjadi kerangka tubuhmu. Rangka memberi
+    bentuk tubuh, membuatmu bisa berdiri tegak, dan bersama otot membuatmu bisa bergerak.
+    Tengkorak melindungi otak, tulang rusuk melindungi jantung dan paru-paru, dan
+    tulang panggul menopang tubuh bagian atas. Di dalam tulang ada sumsum merah yang
+    membuat sel-sel darah.
+  funFact: Orang dewasa punya 206 tulang, dan lebih dari separuhnya ada di tangan
+    dan kaki!
+  shortDescription: Kerangka penyangga & pelindung tubuh
+  function: Rangka menegakkan tubuh, melindungi organ, dan membantu tubuh bergerak.
+  tint: {r: 0.9843137, g: 0.9647059, b: 0.91764706, a: 1}
+  ring: {r: 0.9098039, g: 0.8509804, b: 0.70980394, a: 1}
+  accent: {r: 0.78039217, g: 0.6039216, b: 0.29411766, a: 1}
+  modelPrefab: {fileID: 3895499352117195887, guid: 27d15102b705b4848898081ca8354867, type: 3}
+  modelEuler: {x: 4, y: -16, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Tengkorak
+    description: Melindungi otak
+    localPosition: {x: 0, y: 1.2, z: -0.09}
+  - title: Tulang rusuk
+    description: Melindungi jantung & paru-paru
+    localPosition: {x: 0.13, y: 0.8, z: -0.06}
+  lowModelPrefab: {fileID: 3877327593789478061, guid: dcfc0ee78c87bb047a428c95ab58425e, type: 3}
+  insidePrefab: {fileID: 8734015180085460221, guid: 53b485b87b9e0cb48a0ec473d00f0b70, type: 3}
+  insideEuler: {x: 4, y: -8, z: 0}
+  heroImage: {fileID: 2800000, guid: 11462169d1cb42f44900a6fe71530653, type: 3}
+  partVisuals:
+  - id: tengkorak
+    image: {fileID: 2800000, guid: c3dfd431b10416047b871ef6f35adbc8, type: 3}
+    microPrefab: {fileID: 0}
+  - id: belakang
+    image: {fileID: 2800000, guid: 5dc95c0d889b5d7408b1d61e02b6e58a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: rusuk
+    image: {fileID: 2800000, guid: 672b2251c52a9eb4482a6962ac81896e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: dada
+    image: {fileID: 2800000, guid: dd77e9f61b3567c4ab9e636291a6909f, type: 3}
+    microPrefab: {fileID: 0}
+  - id: bahu
+    image: {fileID: 2800000, guid: c7e9bd20ec589a84e80aff47cdd4d26a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lenganatas
+    image: {fileID: 2800000, guid: 8714f85f141cf504aaef18940a9d28c0, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lenganbawah
+    image: {fileID: 2800000, guid: b854e8852275a64458995d83d4f98b09, type: 3}
+    microPrefab: {fileID: 0}
+  - id: tangan
+    image: {fileID: 2800000, guid: dbfee603863a7e24a9cb7b462d62db01, type: 3}
+    microPrefab: {fileID: 0}
+  - id: panggul
+    image: {fileID: 2800000, guid: ce62f349e4438fe429e0e6eb14aea579, type: 3}
+    microPrefab: {fileID: 0}
+  - id: paha
+    image: {fileID: 2800000, guid: da0ad14ee9276ff4192128fa7eaf47e9, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lutut
+    image: {fileID: 2800000, guid: 3f9b18998f76ab84fb11c40b4ea5f40f, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kering
+    image: {fileID: 2800000, guid: d04ee63e6bbe48d41813e4e0a259e561, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kaki
+    image: {fileID: 2800000, guid: 4098765f7a4078c459553a43b7b5f4f0, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sendi
+    image: {fileID: 2800000, guid: 7a0a1e8507ce4f9488b32caf934fc38d, type: 3}
+    microPrefab: {fileID: 0}
+  - id: keras
+    image: {fileID: 2800000, guid: 6cc1a367a7d41334a931e3ee1045ca81, type: 3}
+    microPrefab: {fileID: 0}
+  - id: spons
+    image: {fileID: 2800000, guid: 753734f6174410b4fb746557c688a088, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pipa
+    image: {fileID: 2800000, guid: 6bd3d43f8a1510c409cb496b0cf66a80, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pipih
+    image: {fileID: 2800000, guid: b29badae9ebee194690040e8e388216c, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pendek
+    image: {fileID: 2800000, guid: b7113947603651d4f811ec4c7fbaa00b, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sumsummerah
+    image: {fileID: 2800000, guid: afcd027c1a3735445b2f834fb4d9ecca, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sumsumkuning
+    image: {fileID: 2800000, guid: 010e19b8939b2ed46ade9c0806e0da23, type: 3}
+    microPrefab: {fileID: 0}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 5fb038ee11b19c040a09fc08d1b3c7f9, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

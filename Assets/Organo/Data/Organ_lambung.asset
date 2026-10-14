@@ -20,8 +20,8 @@ MonoBehaviour:
   season: 1
   about: Lambung adalah kantong lentur yang bisa melar. Di sini, makanan diaduk bersama
     asam lambung dan enzim. Sedikit demi sedikit, makanan berubah menjadi bubur halus.
-  funFact: Asam lambung cukup kuat untuk melarutkan logam, tetapi lapisan lambung
-    melindungi dirinya sendiri!
+  funFact: Asam lambung sangat kuat, tetapi lapisan lendir di dinding lambung melindunginya
+    supaya lambung tidak ikut tercerna!
   shortDescription: Kantong elastis yang mencerna makanan dengan asam dan enzim
   function: Lambung mengaduk makanan bersama asam lambung sampai jadi bubur halus.
   tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
@@ -40,8 +40,39 @@ MonoBehaviour:
   - title: Pintu masuk
     description: Dari kerongkongan
     localPosition: {x: -0.2, y: 0.4, z: 0.05}
+  lowModelPrefab: {fileID: 398464708488033042, guid: 34b5dda6a171447419fc863725f9ea39, type: 3}
+  insidePrefab: {fileID: 1482389913041066508, guid: ef8bfcebf8f2e7d488c027691c29ca04, type: 3}
+  insideEuler: {x: 4, y: -10, z: 0}
+  heroImage: {fileID: 2800000, guid: ab8f518fde8797449b8097fba6436ff8, type: 3}
+  partVisuals:
+  - id: kardia
+    image: {fileID: 2800000, guid: c545a55db96549e4b9b94a5530f5ef1e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: fundus
+    image: {fileID: 2800000, guid: 3ea286ac7bc1187438e066385cb5870d, type: 3}
+    microPrefab: {fileID: 0}
+  - id: badan
+    image: {fileID: 2800000, guid: e5600664f6e73234ca8d3deefc334381, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pilorus
+    image: {fileID: 2800000, guid: f7bbf9dab63529049a62783761e4aadd, type: 3}
+    microPrefab: {fileID: 0}
+  - id: duodenum
+    image: {fileID: 2800000, guid: dd71dc81b83aca04689c3289754a17ce, type: 3}
+    microPrefab: {fileID: 0}
+  - id: rugae
+    image: {fileID: 2800000, guid: 3eb6e43727b8f7645bb27edf611b7845, type: 3}
+    microPrefab: {fileID: 0}
+  - id: dinding
+    image: {fileID: 2800000, guid: 17ec23b8847ef104abc9dc009b71f149, type: 3}
+    microPrefab: {fileID: 0}
+  - id: bubur
+    image: {fileID: 2800000, guid: 8e52ecfffa06c834dabfd2cfb92468be, type: 3}
+    microPrefab: {fileID: 0}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 141efa4b68804de40ba026e7a2890326, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

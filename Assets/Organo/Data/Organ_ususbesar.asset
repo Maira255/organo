@@ -26,8 +26,8 @@ MonoBehaviour:
   tint: {r: 1, g: 0.9764706, b: 0.8901961, a: 1}
   ring: {r: 0.94509804, g: 0.84313726, b: 0.47843137, a: 1}
   accent: {r: 0.9490196, g: 0.7176471, b: 0.019607844, a: 1}
-  modelPrefab: {fileID: 0}
-  modelEuler: {x: 8, y: -20, z: 0}
+  modelPrefab: {fileID: 7455719199479963452, guid: c1669475c62d1a6418eb6c471abd1617, type: 3}
+  modelEuler: {x: 4, y: -6, z: 0}
   modelScale: 1
   hotspots:
   - title: Penyerap air
@@ -36,8 +36,36 @@ MonoBehaviour:
   - title: Bakteri baik
     description: Membantu tubuhmu
     localPosition: {x: -0.3, y: 0.25, z: 0.15}
+  lowModelPrefab: {fileID: 6189536768408921243, guid: 3d88c52614468254cac8d62d1fbaa5a4, type: 3}
+  insidePrefab: {fileID: 2646481265838918115, guid: fc2fd823971c29848b11b410e1c0ffc4, type: 3}
+  insideEuler: {x: 4, y: -6, z: 0}
+  heroImage: {fileID: 2800000, guid: b342a63a0e3c6dc468799168d6cf0298, type: 3}
+  partVisuals:
+  - id: sekum
+    image: {fileID: 2800000, guid: c1d9159c0c86b8748a8062c6a83cd696, type: 3}
+    microPrefab: {fileID: 0}
+  - id: apendiks
+    image: {fileID: 2800000, guid: 441fe158efc90154c89d44739a8a1465, type: 3}
+    microPrefab: {fileID: 0}
+  - id: naik
+    image: {fileID: 2800000, guid: ff324a85fd69e6f4abaec900e5e2a0c8, type: 3}
+    microPrefab: {fileID: 0}
+  - id: melintang
+    image: {fileID: 2800000, guid: 7d3e9cfa78898a645a947cdbe20327ef, type: 3}
+    microPrefab: {fileID: 0}
+  - id: turun
+    image: {fileID: 2800000, guid: a9ae91ab09cb2b145be796b9ad127622, type: 3}
+    microPrefab: {fileID: 0}
+  - id: rektum
+    image: {fileID: 2800000, guid: a5e11d406669f804b9f1e5da63c17152, type: 3}
+    microPrefab: {fileID: 0}
+  - id: dalam
+    image: {fileID: 2800000, guid: 2e801b922e8b3594283ef4ce8480f36c, type: 3}
+    microPrefab: {fileID: 0}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 50a4dff72bc9d244ebb307107ca3789e, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

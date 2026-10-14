@@ -34,7 +34,38 @@ namespace Organo.Screens
             var vignette = U.Div("fill").Bg(U.C("#140E08", 0.18f));
             vignette.pickingMode = PickingMode.Ignore;
             bg.Add(vignette);
+
+            // gambar kamera asli (webcam / kamera biasa) menutupi latar dekorasi kalau tersedia
+            var feed = U.Div("fill");
+            feed.pickingMode = PickingMode.Ignore;
+            feed.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Cover);
+            feed.style.display = DisplayStyle.None;
+            bg.Add(feed);
+            bg.schedule.Execute(() =>
+            {
+                var ar = OrganoApp.Instance != null ? OrganoApp.Instance.ar : null;
+                var tex = ar != null ? ar.WebcamImage : null;
+                feed.style.display = tex != null ? DisplayStyle.Flex : DisplayStyle.None;
+                if (tex == null) return;
+                if (feed.resolvedStyle.backgroundImage.renderTexture != tex) feed.style.backgroundImage = Background.FromRenderTexture(tex);
+                int rot = ((ar.WebcamRotation % 360) + 360) % 360;
+                bool sideways = rot == 90 || rot == 270;
+                float w = Mathf.Max(1f, bg.layout.width), h = Mathf.Max(1f, bg.layout.height);
+                float s = sideways ? Mathf.Max(h / w, w / h) : 1f;
+                feed.style.rotate = new Rotate(-rot);
+                feed.style.scale = new Scale(new Vector3(s * (ar.WebcamMirrored ? -1f : 1f), s * (ar.WebcamFlipped ? -1f : 1f), 1f));
+            }).Every(0);
             return bg;
+        }
+
+        /// <summary>Keterangan kecil tentang kamera yang dipakai (AR / kamera biasa / tidak ada kamera).</summary>
+        public static string CameraNote(ARScanController ar)
+        {
+            if (ar == null) return null;
+            if (ar.NoCamera) return "Kamera tidak ditemukan di perangkat ini";
+            if (!ar.UsingWebcam) return null;
+            if (ar.ArUnsupported) return "HP ini belum mendukung AR · kamera biasa menyala";
+            return "Kamera laptop (Editor) · ketuk bingkai untuk mencoba";
         }
 
         public static VisualElement GlassButton(string icon, System.Action tap, string tip)
@@ -53,6 +84,241 @@ namespace Organo.Screens
             b.Add(label);
             return b;
         }
+
+        /// <summary>Petunjuk ARCore saat sesi AR belum siap melacak (kartu belum bisa dikenali).</summary>
+        public static string NotReadyHint(ARScanController ar)
+        {
+            switch (UnityEngine.XR.ARFoundation.ARSession.notTrackingReason)
+            {
+                case UnityEngine.XR.ARSubsystems.NotTrackingReason.InsufficientLight: return "Terlalu gelap. Cari tempat yang lebih terang.";
+                case UnityEngine.XR.ARSubsystems.NotTrackingReason.ExcessiveMotion: return "Pelan-pelan saja, jangan digerakkan terlalu cepat.";
+                case UnityEngine.XR.ARSubsystems.NotTrackingReason.InsufficientFeatures: return "Arahkan ke kartu di atas meja, bukan ke dinding polos.";
+                default: return "Kamera AR sedang bersiap. Gerakkan HP pelan ke kiri dan kanan.";
+            }
+        }
+    }
+
+    /// <summary>
+    /// Bingkai scan berbentuk kartu Organo (63 x 88 mm) yang BESAR. ARCore baru bisa mengenali gambar kalau gambar itu
+    /// memenuhi minimal 25% gambar kamera (developers.google.com/ar/develop/augmented-images). Bingkai lama (persegi kecil)
+    /// membuat kartu hanya ±8% gambar kamera sehingga hampir tidak pernah terdeteksi. Bingkai ini ±88% lebar layar, jadi
+    /// kartu yang mengisinya menutupi ±30–40% gambar kamera. Bagian di luar bingkai digelapkan supaya anak mendekatkan HP.
+    /// </summary>
+    public class CardFrame : VisualElement
+    {
+        public const float CardAspect = 88f / 63f;
+        public const float WidthFraction = 0.88f;
+        /// <summary>Batas bawah yang dijaga uji otomatis (ARCore: minimal 25% gambar kamera).</summary>
+        public const float MinCoverage = 0.25f;
+
+        /// <summary>Elemen di atas/bawah bingkai (bingkai mengisi ruang di antaranya).</summary>
+        public VisualElement TopAnchor, BottomAnchor;
+        public VisualElement Box { get; }
+        /// <summary>Pil petunjuk kecil di dalam bingkai (atas); tidak memakan ruang layout. Kosong = tersembunyi.</summary>
+        public string Hint
+        {
+            set
+            {
+                m_HintLabel.text = value ?? "";
+                m_HintPill.Visible(!string.IsNullOrEmpty(value));
+            }
+        }
+        readonly VisualElement m_HintPill;
+        readonly Label m_HintLabel;
+        readonly VisualElement[] m_Corners = new VisualElement[4];
+        readonly VisualElement[] m_Shade = new VisualElement[4];
+        readonly VisualElement m_Outline, m_Sweep;
+        float m_SweepT;
+
+        public CardFrame()
+        {
+            AddToClassList("fill");
+            pickingMode = PickingMode.Ignore;
+            for (int i = 0; i < 4; i++)
+            {
+                m_Shade[i] = new VisualElement { pickingMode = PickingMode.Ignore };
+                m_Shade[i].style.position = Position.Absolute;
+                m_Shade[i].style.backgroundColor = U.C("#0A0814", 0.32f);
+                Add(m_Shade[i]);
+            }
+            Box = new VisualElement { name = "card-frame" };
+            Box.style.position = Position.Absolute;
+            Add(Box);
+            m_Outline = U.Div("fill").Radius(16);
+            m_Outline.pickingMode = PickingMode.Ignore;
+            SetBorder(m_Outline, 1.5f, U.C("#FFFFFF", 0.55f));
+            Box.Add(m_Outline);
+            m_Sweep = U.Div().Abs(18, 20, 18).H(3).Radius(2).Bg(U.Teal);
+            m_Sweep.pickingMode = PickingMode.Ignore;
+            Box.Add(m_Sweep);
+            for (int i = 0; i < 4; i++)
+            {
+                var c = new VisualElement { pickingMode = PickingMode.Ignore };
+                c.style.position = Position.Absolute;
+                c.style.width = 48; c.style.height = 48;
+                bool left = i == 0 || i == 3, top = i < 2;
+                if (left) c.style.left = -3; else c.style.right = -3;
+                if (top) c.style.top = -3; else c.style.bottom = -3;
+                const float w = 5f, r = 20f;
+                if (top) c.style.borderTopWidth = w; else c.style.borderBottomWidth = w;
+                if (left) c.style.borderLeftWidth = w; else c.style.borderRightWidth = w;
+                if (top && left) c.style.borderTopLeftRadius = r;
+                if (top && !left) c.style.borderTopRightRadius = r;
+                if (!top && !left) c.style.borderBottomRightRadius = r;
+                if (!top && left) c.style.borderBottomLeftRadius = r;
+                m_Corners[i] = c;
+                Box.Add(c);
+            }
+            m_HintPill = U.Div().Abs(12, 14, 12);
+            m_HintPill.style.alignItems = Align.Center;
+            m_HintPill.pickingMode = PickingMode.Ignore;
+            var pill = U.Div().Pad(5, 12).Radius(999).Bg(U.C("#141220", 0.62f));
+            pill.pickingMode = PickingMode.Ignore;
+            m_HintLabel = U.Text("").FontSize(12).Fg("#FFFFFF").TextCenter();
+            m_HintLabel.style.whiteSpace = WhiteSpace.Normal;
+            pill.Add(m_HintLabel);
+            m_HintPill.Add(pill);
+            m_HintPill.Visible(false);
+            Box.Add(m_HintPill);
+            Tint = U.C(U.Teal);
+            RegisterCallback<GeometryChangedEvent>(_ => Relayout());
+            RegisterCallback<AttachToPanelEvent>(_ =>
+            {
+                TopAnchor?.RegisterCallback<GeometryChangedEvent>(__ => Relayout());
+                BottomAnchor?.RegisterCallback<GeometryChangedEvent>(__ => Relayout());
+            });
+        }
+
+        static void SetBorder(VisualElement e, float w, Color c)
+        {
+            e.style.borderTopWidth = w; e.style.borderBottomWidth = w; e.style.borderLeftWidth = w; e.style.borderRightWidth = w;
+            e.style.borderTopColor = c; e.style.borderBottomColor = c; e.style.borderLeftColor = c; e.style.borderRightColor = c;
+        }
+
+        public Color Tint
+        {
+            set
+            {
+                foreach (var c in m_Corners)
+                {
+                    c.style.borderTopColor = value; c.style.borderBottomColor = value;
+                    c.style.borderLeftColor = value; c.style.borderRightColor = value;
+                }
+                m_Sweep.style.backgroundColor = value;
+            }
+        }
+
+        public bool SweepVisible { set => m_Sweep.Visible(value); }
+
+        public void Tick(float dt)
+        {
+            m_SweepT = Mathf.Repeat(m_SweepT + dt / 1.8f, 1f);
+            float h = Box.resolvedStyle.height;
+            if (float.IsNaN(h) || h <= 0) return;
+            m_Sweep.style.top = 20 + Mathf.PingPong(m_SweepT * 2f, 1f) * Mathf.Max(0f, h - 40f);
+        }
+
+        /// <summary>Ukuran bingkai (lebar, tinggi) untuk ruang yang tersedia.</summary>
+        public static Vector2 FitSize(float availW, float availH)
+        {
+            float w = Mathf.Min(availW * WidthFraction, availH / CardAspect);
+            return new Vector2(w, w * CardAspect);
+        }
+
+        /// <summary>
+        /// Bagian gambar kamera yang tertutup kartu bila kartu pas mengisi bingkai. Gambar CPU ARCore umumnya 4:3 lanskap;
+        /// di HP potret ia ditampilkan memenuhi seluruh layar (terpotong kiri-kanan), jadi ukurannya dihitung dari layar penuh.
+        /// </summary>
+        public static float CameraCoverage(Vector2 screen, Vector2 card, float cameraAspect = 4f / 3f)
+        {
+            float camH = screen.y, camW = screen.y / cameraAspect;
+            if (camW < screen.x) { camW = screen.x; camH = screen.x * cameraAspect; }
+            return card.x * card.y / Mathf.Max(1f, camW * camH);
+        }
+
+        void Relayout()
+        {
+            float w = resolvedStyle.width, h = resolvedStyle.height;
+            if (float.IsNaN(w) || float.IsNaN(h) || w <= 0 || h <= 0) return;
+            var me = worldBound;
+            float top = 0f, bottom = h;
+            if (TopAnchor != null && TopAnchor.panel != null && TopAnchor.worldBound.height > 0) top = Mathf.Clamp(TopAnchor.worldBound.yMax - me.yMin + 10f, 0f, h);
+            if (BottomAnchor != null && BottomAnchor.panel != null && BottomAnchor.worldBound.height > 0) bottom = Mathf.Clamp(BottomAnchor.worldBound.yMin - me.yMin - 10f, top, h);
+            var size = FitSize(w, Mathf.Max(0f, bottom - top));
+            float x = (w - size.x) * 0.5f, y = top + (bottom - top - size.y) * 0.5f;
+            Box.style.left = x; Box.style.top = y; Box.style.width = size.x; Box.style.height = size.y;
+            Place(m_Shade[0], 0, 0, w, y);                              // atas
+            Place(m_Shade[1], 0, y + size.y, w, h - y - size.y);        // bawah
+            Place(m_Shade[2], 0, y, x, size.y);                         // kiri
+            Place(m_Shade[3], x + size.x, y, w - x - size.x, size.y);   // kanan
+        }
+
+        static void Place(VisualElement e, float x, float y, float w, float h)
+        {
+            e.style.left = x; e.style.top = y; e.style.width = Mathf.Max(0f, w); e.style.height = Mathf.Max(0f, h);
+        }
+    }
+
+    /// <summary>
+    /// "Kartunya dari mana?": kartu dicetak guru/orang tua dari situs kartu Organo (Web/kartu-guru),
+    /// lalu dibagikan setelah murid belajar di Library.
+    /// </summary>
+    public static class CardSource
+    {
+        public static void Show(OrganoApp app)
+        {
+            var c = U.Col(14);
+            var head = U.Col(4);
+            head.Add(U.Text("Kartunya dari mana?", "t-h2"));
+            head.Add(U.Text("Kartu Organo dicetak oleh guru atau orang tuamu, lalu dibagikan setelah kamu belajar.", "t-small", "t-muted"));
+            c.Add(head);
+
+            var steps = U.Col(10);
+            string[] lines =
+            {
+                "Pelajari dulu organnya di Library",
+                "Minta kartunya ke guru atau orang tua",
+                "Scan kartunya untuk membuka organ & kuis",
+            };
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var r = U.Row(10);
+                r.Add(U.Div().Size(26, 26).Radius(13).Bg(U.TealSoft).Center().Kids(U.Text((i + 1).ToString()).FontSize(12).Bold().Fg(U.TealDark)));
+                r.Add(U.Text(lines[i], "t-small").Fg(U.Ink).Grow());
+                steps.Add(r);
+            }
+            c.Add(steps);
+
+            var adult = U.Col(6).Bg("#F6F5F9").Radius(14).Pad(12, 14);
+            adult.Add(U.Text("Untuk guru & orang tua", "t-caption").Bold().Fg(U.Ink));
+            string url = app.cardsWebsiteUrl != null ? app.cardsWebsiteUrl.Trim() : "";
+            if (url.Length > 0)
+            {
+                adult.Add(U.Text("Unduh kartu siap cetak (A4) dari:", "t-caption", "t-muted"));
+                adult.Add(U.Text(url, "t-caption").Bold().Fg(U.TealDark));
+                var links = U.Row(14);
+                links.Add(U.Text("Salin tautan").FontSize(12).Bold().Fg(U.TealDark).Pad(4, 0).Tap(() =>
+                {
+                    GUIUtility.systemCopyBuffer = url;
+                    app.Toast("Tautan disalin");
+                }));
+                links.Add(U.Text("Buka situs").FontSize(12).Bold().Fg(U.TealDark).Pad(4, 0).Tap(() => Application.OpenURL(url)));
+                adult.Add(links);
+                adult.Add(U.Text("Belum sempat mencetak? Buka situs ini di laptop, tablet, atau HP lain, pilih \"Scan dari layar\", lalu scan kartunya langsung dari layar.", "t-caption", "t-muted"));
+            }
+            else
+            {
+                adult.Add(U.Text("File kartu siap cetak (A4, 15 kartu) tersedia di situs kartu Organo. Cetak dengan skala 100%.", "t-caption", "t-muted"));
+            }
+            c.Add(adult);
+
+            OrganoApp.Overlay sheet = null;
+            var actions = U.Col(8);
+            actions.Add(U.Button("Belajar di Library", () => { sheet.Close(); app.GoTab(NavTab.Library); }, "btn-primary"));
+            actions.Add(U.Button("Tutup", () => sheet.Close(), "btn-ghost"));
+            c.Add(actions);
+            sheet = app.ShowSheet(c);
+        }
     }
 
     // ==================================================================== Scan kartu
@@ -67,11 +333,16 @@ namespace Organo.Screens
         Phase m_Phase;
         string m_DemoOrgan;
         bool m_Torch;
-        float m_ScanTime, m_Sweep;
-        VisualElement m_StandIn, m_Dim, m_Frame, m_SweepLine, m_Card, m_StatusIcon, m_Actions, m_Tips, m_Torch_, m_Banner, m_MascotRow;
-        Label m_BannerLabel, m_Title, m_Desc;
-        SvgImage m_FrameSvg;
+        float m_ScanTime;
+        VisualElement m_StandIn, m_Dim, m_StatusIcon, m_Actions, m_Tips, m_Torch_, m_StatusWrap;
+        Label m_Title, m_Desc, m_Hint;
+        CardFrame m_Frame;
         OrganoApp.Overlay m_PermDialog;
+        VisualElement m_CamNote;
+        Label m_CamNoteText;
+
+        /// <summary>Bingkai scan (untuk uji otomatis ukuran bingkai vs gambar kamera).</summary>
+        public CardFrame Frame => m_Frame;
 
         ARScanController Ar => App.ar;
 
@@ -90,53 +361,50 @@ namespace Organo.Screens
             m_Dim.pickingMode = PickingMode.Ignore;
             Root.Add(m_Dim);
 
+            // Bingkai besar berbentuk kartu (lihat CardFrame: ARCore butuh kartu >= 25% gambar kamera)
+            m_Frame = new CardFrame();
+            Root.Add(m_Frame);
+            m_Frame.Box.tooltip = "Bingkai scan";
+            m_Frame.Box.Tap(() =>
+            {
+                // Demo: ketuk bingkai = kartu terdeteksi (berguna di Editor & sebelum gambar kartu dipasang)
+                if (OrganoApp.DevTools && m_Phase == Phase.Scanning && (Ar == null || !Ar.IsCameraLive || !Ar.HasCardLibrary))
+                    OnCard(Db.Get(m_DemoOrgan));
+            });
+
             var top = U.Row().Justify(Justify.SpaceBetween).Pad(16 + App.TopInset, 20, 0, 20);
             m_Torch_ = ScanParts.GlassButton("torch", () => SetTorch(!m_Torch), "Senter");
             top.Add(m_Torch_);
-            top.Add(ScanParts.GlassButton("help", ShowPermission, "Bantuan"));
+            top.Add(ScanParts.GlassButton("help", ShowHelp, "Bantuan"));
             Root.Add(top);
 
-            m_Banner = ScanParts.Banner("Arahkan kamera ke kartu organ", U.TealDark, out m_BannerLabel);
-            m_Banner.style.marginTop = 16;
-            Root.Add(m_Banner);
+            var hintWrap = U.Div().AlignSelf(Align.Center).Pad(6, 14).Radius(12).Bg(U.C("#141220", 0.62f));
+            hintWrap.style.marginTop = 10;
+            hintWrap.style.maxWidth = 330;
+            m_Hint = U.Text("Dekatkan HP sampai kartu memenuhi bingkai").FontSize(12).Fg("#FFFFFF").TextCenter();
+            m_Hint.style.whiteSpace = WhiteSpace.Normal;
+            hintWrap.Add(m_Hint);
+            hintWrap.pickingMode = PickingMode.Ignore;
+            Root.Add(hintWrap);
+            m_CamNote = U.Div().AlignSelf(Align.Center).Pad(4, 12).Radius(999).Bg(U.C("#141220", 0.6f));
+            m_CamNote.style.marginTop = 6;
+            m_CamNoteText = U.Text("").FontSize(11).Fg("#FFFFFF");
+            m_CamNote.Add(m_CamNoteText);
+            m_CamNote.pickingMode = PickingMode.Ignore;
+            Root.Add(m_CamNote);
+            m_Frame.TopAnchor = hintWrap;
 
-            // Reticle
-            var stage = U.Div().Grow().Center();
-            m_Frame = U.Div().Size(256, 256);
-            m_FrameSvg = U.Icon("scan_frame", 256);
-            m_FrameSvg.AddToClassList("fill");
-            m_Card = U.Col(10).Abs(68, 58).Size(120, 140).Radius(14).Bg("#FFFFFF").Center().Opacity(0.92f);
-            m_Card.style.rotate = new Rotate(-4);
-            var demo = Db.Get(m_DemoOrgan) ?? Db.Get("lambung");
-            m_Card.Add(U.Icon(demo.IconKey, 56, 50));
-            m_Card.Add(U.Div().Size(60, 5).Radius(3).Bg("#D9D7E3"));
-            m_Frame.Add(m_Card);
-            m_SweepLine = U.Div().Abs(22, 30, 22).H(3).Radius(2).Bg(U.Teal);
-            m_SweepLine.pickingMode = PickingMode.Ignore;
-            m_Frame.Add(m_SweepLine);
-            m_Frame.Add(m_FrameSvg);
-            m_Frame.tooltip = "Bingkai scan";
-            m_Frame.Tap(() =>
-            {
-                // Demo: ketuk bingkai = kartu terdeteksi (berguna di Editor & sebelum gambar kartu dipasang)
-                if (m_Phase == Phase.Scanning && (Ar == null || !Ar.IsCameraLive || !Ar.HasCardLibrary))
-                    OnCard(Db.Get(m_DemoOrgan));
-            });
-            stage.Add(m_Frame);
+            var stage = U.Div().Grow();
+            stage.pickingMode = PickingMode.Ignore;
             Root.Add(stage);
 
-            // Mascot hint (idle)
-            m_MascotRow = U.Row(0).Align(Align.FlexStart).Pad(0, 20, 8, 20);
-            m_MascotRow.Add(U.Icon("mascot_scan", 72));
-            var bubble = U.Div().Bg("#FFFFFF").Radius(16).Pad(10, 14);
-            bubble.style.marginLeft = -4;
-            bubble.style.marginTop = 8;
-            bubble.Add(U.Text("Yuk, coba scan kartumu!", "t-small").Bold());
-            m_MascotRow.Add(bubble);
-
-            // Status card
-            var statusWrap = U.Col(0).Pad(0, 20, 12, 20);
+            // Status card (hanya saat terlalu gelap / belum dikenali), melayang di atas bagian bawah bingkai
+            var statusWrap = U.Col(0).Pad(0, 20, 8, 20);
+            statusWrap.style.position = Position.Absolute;
+            statusWrap.style.left = 0; statusWrap.style.right = 0; statusWrap.style.bottom = 58;
+            m_StatusWrap = statusWrap;
             var status = U.Col(10).Bg("#FFFFFF").Radius(18).Pad(14, 16);
+            status.Elev(Elevation.Dark);
             var head = U.Row(12);
             m_StatusIcon = U.Div().Size(40, 40).Radius(20).Center();
             head.Add(m_StatusIcon);
@@ -147,11 +415,13 @@ namespace Organo.Screens
             head.Add(ht);
             status.Add(head);
             m_Tips = U.Col(6).Bg("#F6F5F9").Radius(12).Pad(10, 12);
-            foreach (var t in new[] { "Pakai kartu Organo, bukan gambar lain", "Seluruh kartu masuk ke dalam bingkai", "Hindari pantulan cahaya di kartu" })
+            foreach (var t in ScanTips)
             {
                 var r = U.Row(8);
-                r.Add(U.Text("✓").Bold().Fg(U.Teal).FontSize(12));
-                r.Add(U.Text(t, "t-caption").Fg(U.Ink).Grow());
+                r.Add(U.Icon("check_teal", 14).Tinted(U.C(U.Teal)));
+                var tl = U.Text(t, "t-caption").Fg(U.Ink).Grow();
+                tl.style.whiteSpace = WhiteSpace.Normal;
+                r.Add(tl);
                 m_Tips.Add(r);
             }
             status.Add(m_Tips);
@@ -161,12 +431,12 @@ namespace Organo.Screens
 
             var helper = U.Row(0).AlignSelf(Align.Center).Pad(9, 16).Radius(999).Bg(U.C("#141220", 0.6f));
             helper.style.marginBottom = 12;
-            helper.Add(U.Text("Belum punya kartu? ").FontSize(12).Fg("#FFFFFF"));
-            helper.Add(U.Text("Lihat Library").FontSize(12).Bold().Fg("#9CE6DC").Tap(() => App.GoTab(NavTab.Library)));
+            helper.Add(U.Text("Belum punya kartu?").FontSize(12).Fg("#FFFFFF").Pad(0, 4, 0, 0));
+            helper.Add(U.Text("Cara dapatnya").FontSize(12).Bold().Fg("#9CE6DC").Tap(() => CardSource.Show(App)));
 
-            Root.Add(m_MascotRow);
-            Root.Add(statusWrap);
             Root.Add(helper);
+            Root.Add(statusWrap);
+            m_Frame.BottomAnchor = helper;
 
             SetPhase(Phase.Scanning);
             if (CameraPermission.Current != PermissionState.Granted) Root.schedule.Execute(ShowPermission).ExecuteLater(250);
@@ -176,25 +446,21 @@ namespace Organo.Screens
         {
             m_Phase = p;
             m_ScanTime = 0;
-            string color, banner, title, desc, iconBg, icon;
+            string color, title, desc, iconBg, icon;
             switch (p)
             {
                 case Phase.Dark:
-                    color = U.Yellow; banner = "#B07D00"; title = "Ruangannya terlalu gelap"; iconBg = U.YellowSoft; icon = "moon";
+                    color = U.Yellow; title = "Ruangannya terlalu gelap"; iconBg = U.YellowSoft; icon = "moon";
                     desc = "Nyalakan senter atau pindah ke tempat yang lebih terang."; break;
                 case Phase.Unknown:
-                    color = U.Pink; banner = "#C93758"; title = "Hmm, kartunya belum dikenali"; iconBg = U.PinkSoft; icon = "question";
+                    color = U.Pink; title = "Hmm, kartunya belum dikenali"; iconBg = U.PinkSoft; icon = "question";
                     desc = "Coba cek beberapa hal ini lalu scan lagi."; break;
                 default:
-                    color = U.Teal; banner = U.TealDark; title = "Tahan kartunya, ya!"; iconBg = U.TealSoft; icon = "scan_small";
+                    color = U.Teal; title = "Tahan kartunya, ya!"; iconBg = U.TealSoft; icon = "scan_small";
                     desc = "Jaga HP tetap diam sampai organ muncul."; break;
             }
-            m_BannerLabel.text = p == Phase.Scanning ? "Sedang memindai…" : p == Phase.Dark ? "Terlalu gelap" : "Kartu tidak dikenali";
-            m_Banner.Bg(banner);
-            m_FrameSvg.Tint = U.C(color);
-            m_SweepLine.Visible(p == Phase.Scanning);
-            m_Card.style.rotate = new Rotate(p == Phase.Unknown ? -14 : -4);
-            m_Card.style.opacity = p == Phase.Dark ? 0.35f : 0.92f;
+            m_Frame.Tint = U.C(color);
+            m_Frame.SweepVisible = p == Phase.Scanning;
             m_Dim.style.backgroundColor = U.C("#0A0814", p == Phase.Dark ? 0.62f : 0f);
             m_StatusIcon.Bg(iconBg);
             m_StatusIcon.Clear();
@@ -204,7 +470,7 @@ namespace Organo.Screens
             m_Title.text = title;
             m_Desc.text = desc;
             m_Tips.Visible(p == Phase.Unknown);
-            m_MascotRow.Visible(p == Phase.Scanning);
+            m_StatusWrap.Visible(p != Phase.Scanning || (OrganoApp.DevTools && (Ar == null || !Ar.IsCameraLive || !Ar.HasCardLibrary)));
 
             m_Actions.Clear();
             if (p == Phase.Dark)
@@ -214,7 +480,7 @@ namespace Organo.Screens
                 m_Actions.Add(U.Button("Coba Lagi", () => SetPhase(Phase.Scanning), "btn-primary", "btn-small").Grow());
                 m_Actions.Add(U.Button("Lihat Kartu", () => App.Go<CardCollectionScreen>(), "btn-outline", "btn-small").Grow());
             }
-            else if (Ar == null || !Ar.IsCameraLive || !Ar.HasCardLibrary)
+            else if (OrganoApp.DevTools && (Ar == null || !Ar.IsCameraLive || !Ar.HasCardLibrary))
             {
                 var demo = U.Row(0).Grow();
                 demo.style.flexWrap = Wrap.Wrap;
@@ -225,7 +491,7 @@ namespace Organo.Screens
                 demo.Add(U.Text(" · ").FontSize(11).Fg(U.Muted));
                 demo.Add(U.Text("kartu baru").FontSize(11).Bold().Fg(U.TealDark).Tap(() =>
                 {
-                    var missing = Db.Ordered.FirstOrDefault(o => !P.HasCard(o.id));
+                    var missing = Db.Ordered.FirstOrDefault(o => !P.HasCard(o.id) && o.Printable);
                     OnCard(missing ?? Db.Get(m_DemoOrgan));
                 }));
                 m_Actions.Add(demo);
@@ -234,10 +500,29 @@ namespace Organo.Screens
 
         void SetTorch(bool on)
         {
+            if (on && (Ar == null || !Ar.TorchSupported))
+            {
+                bool editor = Application.isEditor;
+                App.Toast(editor ? "Laptop tidak punya lampu senter. Coba di HP, ya!"
+                    : Ar != null && Ar.UsingWebcam ? "Senter hanya bisa dipakai saat mode AR"
+                    : Ar != null && !Ar.IsCameraLive ? "Tunggu kamera menyala dulu, lalu coba lagi"
+                    : "Senter tidak tersedia di HP ini", 2.6f);
+                on = false;
+            }
             m_Torch = on;
             Ar?.SetTorch(on);
+            PaintTorch(on);
+            if (on) Root.schedule.Execute(() =>
+            {
+                // pastikan senter benar-benar menyala
+                if (m_Torch && Ar != null && !Ar.TorchOn) { App.Toast("Senter belum bisa menyala. Coba lagi, ya!"); m_Torch = false; Ar.SetTorch(false); PaintTorch(false); }
+            }).ExecuteLater(1500);
+        }
+
+        void PaintTorch(bool on)
+        {
             m_Torch_.Bg(on ? U.C(U.Yellow) : U.C("#141220", 0.55f));
-            if (on && Ar != null && Ar.IsCameraLive && !Ar.TorchSupported) App.Toast("Senter tidak tersedia di HP ini");
+            m_Torch_.tooltip = on ? "Matikan senter" : "Nyalakan senter";
         }
 
         void OnCard(OrganInfo organ)
@@ -247,17 +532,76 @@ namespace Organo.Screens
             App.Go<ScanResultScreen>(organ.id);
         }
 
+        /// <summary>Tips scan (juga dipakai lembar Bantuan). Urutan = paling sering jadi penyebab gagal.</summary>
+        public static readonly string[] ScanTips =
+        {
+            "Dekatkan HP sampai kartu memenuhi bingkai (kartu cetak ±15 cm, kartu di layar ±20 cm)",
+            "Tahan HP diam 2 detik, tempat cukup terang",
+            "Hindari pantulan lampu. Kartu di layar: kecerahan sedang (jangan maksimal) & miringkan sedikit",
+            "Pakai kartu Organo dari guru atau situs kartu Organo",
+        };
+
+        float m_NotReadyTime;
+
         public override void Tick(float dt)
         {
             bool live = Ar != null && Ar.IsCameraLive;
             m_StandIn.Visible(!live);
-            m_Sweep = Mathf.Repeat(m_Sweep + dt / 1.8f, 1f);
-            float y = 30 + Mathf.PingPong(m_Sweep * 2f, 1f) * 196;
-            m_SweepLine.style.top = y;
+            var note = ScanParts.CameraNote(Ar);
+            m_CamNote.Visible(note != null);
+            if (note != null && m_CamNoteText.text != note) m_CamNoteText.text = note;
+            if (m_Torch && Ar != null && Ar.UsingWebcam == false && !Ar.IsCameraLive) { m_Torch = false; PaintTorch(false); }
+            m_Frame.Tick(dt);
+
+            // ARCore baru bisa mengenali kartu setelah sesi AR melacak gerak HP
+            bool ready = live && Ar.TrackingReady;
+            m_NotReadyTime = live && !ready ? m_NotReadyTime + dt : 0f;
+            string hint = m_NotReadyTime > 1.5f ? ScanParts.NotReadyHint(Ar) : "Dekatkan HP sampai kartu memenuhi bingkai";
+            if (m_Hint.text != hint) m_Hint.text = hint;
+
             if (m_Phase != Phase.Scanning) return;
-            m_ScanTime += dt;
+            if (ready || !live) m_ScanTime += dt;
             if (live && Ar.IsDark && !m_Torch) SetPhase(Phase.Dark);
-            else if (live && Ar.HasCardLibrary && m_ScanTime > 15f) SetPhase(Phase.Unknown);
+            else if (ready && Ar.HasCardLibrary && m_ScanTime > 15f) SetPhase(Phase.Unknown);
+        }
+
+        /// <summary>Tombol "?": tips scan + info teknis (izin kamera kalau belum diberikan).</summary>
+        public void ShowHelp()
+        {
+            if (CameraPermission.Current != PermissionState.Granted) { ShowPermission(); return; }
+            var c = U.Col(12);
+            c.Add(U.Text("Tips supaya kartu cepat dikenali", "t-h2"));
+            var tips = U.Col(8);
+            for (int i = 0; i < ScanTips.Length; i++)
+            {
+                var r = U.Row(10).Align(Align.FlexStart);
+                r.Add(U.Div().Size(24, 24).Radius(12).Bg(U.TealSoft).Center().Kids(U.Text((i + 1).ToString()).FontSize(12).Bold().Fg(U.TealDark)));
+                var t = U.Text(ScanTips[i], "t-small").Fg(U.Ink).Grow();
+                t.style.whiteSpace = WhiteSpace.Normal;
+                r.Add(t);
+                tips.Add(r);
+            }
+            c.Add(tips);
+
+            // Info teknis: keadaan kamera AR & kartu yang dilihat ARCore (untuk guru/orang tua bila scan belum berhasil)
+            var tech = U.Col(6).Bg("#F6F5F9").Radius(12).Pad(10, 12);
+            var techHead = U.Row(6);
+            techHead.Add(U.Text("Info teknis (untuk guru)", "t-caption").Bold().Fg(U.Ink).Grow());
+            var report = U.Text(Ar != null ? Ar.DebugReport() : "Kamera AR tidak tersedia", "t-caption").Fg(U.Muted);
+            report.style.whiteSpace = WhiteSpace.Normal;
+            techHead.Add(U.Text("Salin").FontSize(12).Bold().Fg(U.TealDark).Pad(2, 4).Tap(() =>
+            {
+                GUIUtility.systemCopyBuffer = "Organo " + Application.version + " · " + SystemInfo.deviceModel + "\n" + report.text;
+                App.Toast("Info teknis disalin");
+            }));
+            tech.Add(techHead);
+            tech.Add(report);
+            report.schedule.Execute(() => { if (Ar != null) report.text = Ar.DebugReport(); }).Every(500);
+            c.Add(tech);
+
+            OrganoApp.Overlay sheet = null;
+            c.Add(U.Button("Mengerti", () => sheet.Close(), "btn-primary"));
+            sheet = App.ShowSheet(c);
         }
 
         void ShowPermission()
@@ -266,7 +610,7 @@ namespace Organo.Screens
             bool denied = CameraPermission.Current == PermissionState.Denied;
             var c = U.Col(10).Align(Align.Center);
             var icon = U.Div().Size(64, 64).Radius(32).Gradient(U.Teal, U.Purple, 135).Center();
-            icon.Add(U.Icon(denied ? "lock_white" : "nav_scan", 30));
+            icon.Add(U.Icon(denied ? "lock_white" : "camera", 34));
             c.Add(icon);
             c.Add(U.Text(denied ? "Izin kamera ditolak" : "Izinkan kamera, ya!", "t-h2").TextCenter());
             c.Add(U.Text(denied
@@ -325,75 +669,88 @@ namespace Organo.Screens
     public class ScanResultScreen : AppScreen
     {
         public override bool UsesCamera => true;
+        // sheet menempel ke tepi bawah layar; area aman bawah jadi jarak di dalam sheet
+        public override bool FullBleedBottom => true;
 
         OrganInfo m_Organ;
-        bool m_IsNew;
-        VisualElement m_ArLayer, m_StandIn, m_Reveal;
+        DraggableSheet m_Sheet;
+        VisualElement m_ArLayer, m_StandIn;
         readonly List<VisualElement> m_ArDots = new List<VisualElement>();
         Label m_ArCalloutT, m_ArCalloutD;
         VisualElement m_ArCallout;
-        float m_RevealT;
-        float m_LastX;
+        Vector2 m_LastPos;
 
         ARScanController Ar => App.ar;
 
         protected override void Build(object arg)
         {
-            m_Organ = Db.Get(arg as string) ?? Db.Get("lambung");
+            var organ = Db.Get(arg as string) ?? Db.Get("lambung");
+            bool added = P.AddCard(organ.id);
+            // dibangun ulang saat model AR baru menempel: kabar "kartu baru" tidak diulang
+            bool announce = added && !m_Rebuilding;
+            m_Rebuilding = false;
+            m_Organ = organ;
             var o = m_Organ;
-            m_IsNew = P.AddCard(o.id);
-            m_RevealT = 0;
             m_ArDots.Clear();
 
             m_StandIn = ScanParts.CameraStandIn();
             Root.Add(m_StandIn);
-            if (m_IsNew)
-            {
-                var dim = U.Div("fill").Bg(U.C("#141220", 0.78f));
-                dim.pickingMode = PickingMode.Ignore;
-                Root.Add(dim);
-            }
 
             var top = U.Row(12).Justify(Justify.SpaceBetween).Align(Align.FlexStart).Pad(16 + App.TopInset, 20, 0, 20);
             top.Add(ScanParts.GlassButton("close", () => { Ar?.ResetDetection(); App.GoTab(NavTab.Scan); }, "Tutup"));
-            if (m_IsNew)
-            {
-                var ok = U.Row(6).Pad(8, 14, 8, 10).Radius(999).Bg(U.TealDark);
-                ok.Add(U.Icon("check", 14));
-                ok.Add(U.Text("Kartu dikenali").FontSize(13).Bold().Fg("#FFFFFF"));
-                top.Add(ok);
-            }
-            else
-            {
-                var name = U.Div().Pad(8, 16).Radius(999).Bg(U.C("#141220", 0.55f));
-                name.Add(U.Text(o.displayName).FontSize(13).Fg("#FFFFFF"));
-                top.Add(name);
-            }
             Root.Add(top);
 
-            if (m_IsNew) BuildNewCard(o); else BuildResult(o);
+            // Kartu baru tidak lagi ditampilkan besar menutupi layar: organ yang di-scan langsung terlihat,
+            // kabar "kartu baru" cukup muncul sebentar lalu hilang sendiri.
+            BuildResult(o);
+            if (announce) ShowNewCardNotice(o);
+        }
+
+        bool m_Rebuilding;
+
+        void ShowNewCardNotice(OrganInfo o)
+        {
+            var notice = U.Row(10).AlignSelf(Align.Center).Pad(8, 14, 8, 10).Radius(999).Bg("#FFFFFF");
+            notice.Elev(Elevation.E2);
+            notice.style.position = Position.Absolute;
+            notice.style.top = 74 + App.TopInset; // di bawah tombol tutup
+            notice.style.left = 20; notice.style.right = 20;
+            notice.style.justifyContent = Justify.Center;
+            notice.pickingMode = PickingMode.Ignore;
+            notice.Add(U.Icon("cards_star", 22));
+            notice.Add(U.Text("Kartu " + o.displayName + " masuk koleksi!").FontSize(13).Bold().Fg(U.Ink));
+            var star = U.Row(3).Pad(3, 8).Radius(999).Bg(U.YellowSoft);
+            star.Add(U.Icon("stat_star", 12).Tinted(U.C(U.Yellow)));
+            star.Add(U.Text("+10").FontSize(11).Bold().Fg("#7A5A00"));
+            notice.Add(star);
+            notice.style.transitionProperty = new List<StylePropertyName> { new StylePropertyName("opacity"), new StylePropertyName("translate") };
+            notice.style.transitionDuration = new List<TimeValue> { new TimeValue(0.35f), new TimeValue(0.35f) };
+            Root.Add(notice);
+            notice.schedule.Execute(() =>
+            {
+                notice.style.opacity = 0f;
+                notice.style.translate = new Translate(0, -12);
+            }).ExecuteLater(2600);
+            notice.schedule.Execute(() => notice.RemoveFromHierarchy()).ExecuteLater(3100);
         }
 
         void BuildResult(OrganInfo o)
         {
-            var banner = U.Row(8).AlignSelf(Align.Center).Pad(8, 16, 8, 12).Radius(999).Bg(U.TealDark);
-            banner.style.marginTop = 16;
-            banner.Add(U.Div().Size(20, 20).Radius(10).Bg("#FFFFFF").Center().Kids(U.Icon("check", 12).Tinted(U.C(U.TealDark))));
-            banner.Add(U.Text(o.displayName + " terdeteksi!").FontSize(13).Bold().Fg("#FFFFFF"));
-            banner.Add(U.Icon("mascot_mini", 30));
-            Root.Add(banner);
 
-            // AR stage: model nyata menempel di kartu (HP), atau viewer 3D (demo di Editor)
+            // AR stage: model nyata menempel di kartu (HP), atau viewer 3D (Editor / posisi kartu belum pasti).
+            // Kalau model AR baru ditempel belakangan, layar ini otomatis berganti ke tampilan AR (lihat Tick).
             bool live = Ar != null && Ar.IsCameraLive && Ar.HasSpawnedModel;
+            m_Live = live;
             m_ArLayer = U.Div().Grow();
             if (live)
             {
-                m_ArLayer.RegisterCallback<PointerDownEvent>(e => { m_LastX = e.position.x; m_ArLayer.CapturePointer(e.pointerId); });
+                m_ArLayer.RegisterCallback<PointerDownEvent>(e => { m_LastPos = e.position; m_ArLayer.CapturePointer(e.pointerId); });
                 m_ArLayer.RegisterCallback<PointerMoveEvent>(e =>
                 {
                     if (!m_ArLayer.HasPointerCapture(e.pointerId)) return;
-                    Ar.RotateSpawned(e.position.x - m_LastX);
-                    m_LastX = e.position.x;
+                    // geser ke segala arah: model berputar 360° mengikuti jari
+                    Ar.RotateSpawned((Vector2)e.position - m_LastPos);
+                    m_LastPos = e.position;
                 });
                 m_ArLayer.RegisterCallback<PointerUpEvent>(e => m_ArLayer.ReleasePointer(e.pointerId));
                 m_ArCallout = U.Col(2, "callout");
@@ -407,7 +764,7 @@ namespace Organo.Screens
             {
                 var shadow = U.Div().Size(200, 30).Radius(100).Bg(U.C("#140E08", 0.35f)).AlignSelf(Align.Center).Abs(95, null, null, 46);
                 m_ArLayer.Add(shadow);
-                var vp = new OrganViewport(App.Viewer, o, false);
+                var vp = new OrganViewport(App.Viewer, o, false) { FreeRotate = true };
                 vp.style.position = Position.Absolute;
                 vp.style.left = 20; vp.style.right = 20; vp.style.top = 20; vp.style.bottom = 40;
                 m_ArLayer.Add(vp);
@@ -415,94 +772,183 @@ namespace Organo.Screens
             Root.Add(m_ArLayer);
 
             var hint = U.Div().AlignSelf(Align.Center).Pad(6, 14).Radius(999).Bg(U.C("#141220", 0.6f));
-            hint.Add(U.Text("Putar dengan jari untuk melihat sisi lain").FontSize(11).Fg("#FFFFFF"));
+            // "putar dengan jari" cukup beberapa kali pertama; petunjuk saat kartu belum / tidak terlihat selalu tampil
+            m_ShowRotateHint = Hints.Take(Hints.ScanRotate, 3);
+            m_HintText = U.Text(live || Ar == null || !Ar.IsCameraLive ? HintRotate : HintWait).FontSize(11).Fg("#FFFFFF");
+            m_HintBox = hint;
+            m_SheetOpen = false;
+            hint.Visible(m_HintText.text != HintRotate || m_ShowRotateHint);
+            hint.Add(m_HintText);
             hint.style.marginBottom = 12;
+            hint.pickingMode = PickingMode.Ignore;
             Root.Add(hint);
+            // ruang untuk sheet ringkas (sheet melayang di atas tampilan AR)
+            var spacer = U.Div().NoShrink().H(230);
+            spacer.pickingMode = PickingMode.Ignore;
+            Root.Add(spacer);
 
-            var sheet = U.Col(8).Bg("#FFFFFF").Pad(10, 20, 24, 20);
-            sheet.style.borderTopLeftRadius = 20; sheet.style.borderTopRightRadius = 20;
-            sheet.Add(U.Div("sheet__grip"));
+            // ---------- Sheet yang bisa ditarik ke atas / ke bawah ----------
+            var sheet = new DraggableSheet();
+            m_Sheet = sheet;
+            sheet.PeekHeightChanged += h => spacer.style.height = h;
+            sheet.BottomInset = App.BottomInset;
             var title = U.Row(10);
             title.style.flexWrap = Wrap.Wrap;
             title.Add(U.Text(o.displayName, "t-h2"));
             title.Add(U.Pill(o.SystemLabel, U.Purple, "#FFFFFF"));
-            sheet.Add(title);
-            sheet.Add(U.Text(o.shortDescription, "t-caption"));
+            sheet.Peek.Add(title);
+            var desc = U.Text(o.shortDescription, "t-caption");
+            desc.style.whiteSpace = WhiteSpace.Normal;
+            sheet.Peek.Add(desc);
             var have = U.Row(8).MinH(40).Pad(8, 12).Radius(12).Bg(U.TealSoft).Border(1, "#9CE6DC");
             have.Add(U.Icon("cards_ok", 20));
-            have.Add(U.Text("Kartu " + o.displayName + " sudah ada di koleksimu", "t-caption").Fg(U.TealInk).Grow());
+            have.Add(U.Text("Kartu " + o.displayName + " di koleksimu", "t-caption").Fg(U.TealInk).Grow());
             have.Add(U.Text("Lihat").FontSize(12).Bold().Fg(U.TealInk));
-            have.Tap(() => App.Go<CardCollectionScreen>(o.id));
-            sheet.Add(have);
+            have.Tap(() => App.Go<CardViewerScreen>(o.id));
+            sheet.Peek.Add(have);
             var btns = U.Row(10);
             btns.style.marginTop = 6;
-            btns.Add(U.Button("Pelajari Lebih Lanjut", () => App.Go<OrganDetailScreen>(o.id), "btn-outline").Grow().MinH(48));
-            btns.Add(U.Button("Mulai Quiz", () => App.Go<QuizPlayScreen>(o.system), "btn-primary").Grow().MinH(48));
-            sheet.Add(btns);
+            btns.Add(U.Button("Pelajari", () => App.Go<OrganDetailScreen>(o.id), "btn-outline").Grow().MinH(48));
+            var seasonId = QuizBank.SeasonFor(o.system);
+            btns.Add(U.Button("Mulai Kuis", () => QuizSession.Play(App, QuizSession.StartSeason(seasonId)), "btn-primary").Grow().MinH(48));
+            sheet.Peek.Add(btns);
+            // panah kecil = tanda sheet bisa ditarik (tanpa kalimat petunjuk)
+            var up = U.Icon("chevron_down", 14).Tinted(U.C(U.Faint));
+            up.pickingMode = PickingMode.Ignore;
+            up.style.rotate = new Rotate(180);
+            up.style.alignSelf = Align.Center;
+            sheet.Peek.Add(up);
+            sheet.OpenChanged += open =>
+            {
+                up.style.rotate = new Rotate(open ? 0 : 180);
+                m_SheetOpen = open;
+                hint.Visible(!open && (m_HintText.text != HintRotate || m_ShowRotateHint));
+            };
+            BuildMore(o, sheet.More.contentContainer);
             Root.Add(sheet);
         }
 
-        void BuildNewCard(OrganInfo o)
+        /// <summary>Isi sheet saat ditarik ke atas: fungsi, bagian-bagian, fakta acak, info lengkap.</summary>
+        void BuildMore(OrganInfo o, VisualElement c)
         {
-            var reveal = U.Col(14).Grow().Center().Pad(0, 20);
-            var head = U.Col(2).Align(Align.Center);
-            head.Add(U.Text("KARTU BARU TERBUKA!").FontSize(13).Bold().Fg("#9CE6DC"));
-            head.Add(U.Text(o.displayName).FontSize(26).Bold().Fg("#FFFFFF"));
-            reveal.Add(head);
-            var stage = U.Div().Size(280, 300).Center();
-            var glow = U.Div().Size(200, 200).Radius(100).Bg(U.C(U.Teal, 0.35f)).Abs(40, 50);
-            stage.Add(glow);
-            stage.Add(U.Icon("sparkles", 280).Abs(0, 10));
-            m_Reveal = Parts.OrganCard(o, true, 172, true);
-            stage.Add(m_Reveal);
-            reveal.Add(stage);
-            Root.Add(reveal);
+            c.SetGap(18, false);
+            var content = OrganContent.Get(o.id);
 
-            var sheet = U.Col(12).Bg("#FFFFFF").Pad(18, 20, 24, 20);
-            sheet.style.borderTopLeftRadius = 24; sheet.style.borderTopRightRadius = 24;
-            sheet.Add(U.Text("Kartu otomatis masuk ke koleksimu. Penjelasan lengkap " + o.displayName + " sekarang bisa dibuka di Library.", "t-small").Fg("#4A4669").TextCenter());
-            var prog = U.Row(12).Pad(12, 14).Radius(14).Bg("#F6F5F9");
-            var pc = U.Col(6).Grow();
-            var pr = U.Row().Justify(Justify.SpaceBetween);
-            int got = P.cards.Count, total = Db.Count;
-            pr.Add(U.Text("Koleksi kartu").FontSize(12).Bold());
-            pr.Add(U.Text(got + " / " + total).FontSize(12).Bold().Fg(U.TealDark));
-            pc.Add(pr);
-            var track = U.Div().H(8).Radius(999).Bg("#E4E2EC");
-            track.style.overflow = Overflow.Hidden;
-            var fill = U.Div().H(8).Radius(999).Gradient(U.Teal, U.Purple, 90);
-            fill.style.width = Length.Percent(100f * got / Mathf.Max(1, total));
-            track.Add(fill);
-            pc.Add(track);
-            prog.Add(pc);
-            var star = U.Row(4).Pad(6, 10).Radius(999).Bg(U.YellowSoft);
-            star.Add(U.Icon("star", 14).Tinted(U.C(U.Yellow)));
-            star.Add(U.Text("+10").FontSize(12).Bold().Fg("#7A5A00"));
-            prog.Add(star);
-            sheet.Add(prog);
-            var btns = U.Row(10);
-            btns.Add(U.Button("Lihat Koleksi", () => App.Go<CardCollectionScreen>(o.id), "btn-outline").Grow().MinH(50));
-            var learn = U.Button("Pelajari " + o.displayName, () => App.Go<OrganDetailScreen>(o.id), "btn-primary").MinH(50);
-            learn.Grow(1.3f);
-            btns.Add(learn);
-            sheet.Add(btns);
-            sheet.Add(U.Text("Scan kartu lain").FontSize(13).Bold().Fg(U.TealDark).AlignSelf(Align.Center).Tap(() => { Ar?.ResetDetection(); App.GoTab(NavTab.Scan); }));
-            Root.Add(sheet);
+            if (!string.IsNullOrEmpty(o.function))
+            {
+                var job = U.Row(12).Align(Align.FlexStart).Bg(U.TealSoft).Radius(14).Pad(12, 14);
+                job.Add(U.Icon("check_teal", 20));
+                var jt = U.Col(2).Grow();
+                jt.Add(U.Text("Tugas utamanya", "t-small").Bold().Fg(U.TealInk));
+                var jl = U.Text(o.function, "t-body").FontSize(13).Fg(U.TealInk);
+                jl.style.whiteSpace = WhiteSpace.Normal;
+                jt.Add(jl);
+                job.Add(jt);
+                c.Add(job);
+            }
+
+            if (content != null && content.parts.Length > 0)
+            {
+                var sec = U.Col(10);
+                sec.Add(OrganVisuals.Section("Bagian-bagian " + o.displayName, o.accent));
+                var rail = U.Scroll(true);
+                rail.style.flexGrow = 0; rail.style.flexShrink = 0;
+                rail.style.marginLeft = -20; rail.style.marginRight = -20;
+                rail.contentContainer.style.flexDirection = FlexDirection.Row;
+                rail.contentContainer.style.paddingLeft = 20;
+                rail.contentContainer.style.paddingRight = 8;
+                foreach (var pd in content.parts)
+                {
+                    var pc = U.Col(6).W(124).MinH(160).NoShrink().Radius(16).Bg("#FFFFFF").Border(1, U.Line).Pad(8); // tinggi ikut isi: teks fungsi panjang tidak keluar kartu
+                    pc.style.marginRight = 10;
+                    pc.Add(OrganVisuals.PartPicture(o, pd, 106, 76));
+                    var nm = U.Text(pd.name, "t-small").Bold();
+                    nm.style.whiteSpace = WhiteSpace.Normal;
+                    pc.Add(nm);
+                    var fn = U.Text(pd.function).FontSize(10).Fg(U.Muted);
+                    fn.style.whiteSpace = WhiteSpace.Normal;
+                    pc.Add(fn);
+                    string target = o.id + "#" + pd.id;
+                    pc.Tap(() => App.Go<OrganDetailScreen>(target));
+                    pc.tooltip = "Lihat " + pd.name + " di model 3D";
+                    rail.Add(pc);
+                }
+                sec.Add(rail);
+                c.Add(sec);
+            }
+
+            // satu fakta acak
+            var facts = new List<string>();
+            if (!string.IsNullOrEmpty(o.funFact)) facts.Add(o.funFact);
+            if (content?.facts != null) foreach (var f in content.facts) if (!facts.Contains(f)) facts.Add(f);
+            if (facts.Count > 0)
+            {
+                var fact = U.Row(12).Align(Align.FlexStart).Bg(U.TealDark).Radius(16).Pad(14);
+                fact.Add(U.Icon("bulb", 24));
+                var ft = U.Col(4).Grow();
+                ft.Add(U.Text("Tau Gak Sih?", "t-body").Bold().Fg("#FFFFFF"));
+                var fl = U.Text(facts[Random.Range(0, facts.Count)]).FontSize(12).Fg("#FFFFFF");
+                fl.style.whiteSpace = WhiteSpace.Normal;
+                ft.Add(fl);
+                if (facts.Count > 1)
+                {
+                    var next = U.Row(4).AlignSelf(Align.FlexStart).Pad(4, 10).Radius(999).Bg(U.C("#FFFFFF", 0.18f));
+                    next.Add(U.Text("Fakta lain").FontSize(11).Bold().Fg("#FFFFFF"));
+                    next.Add(U.Icon("arrow_right", 12).Tinted(Color.white));
+                    next.Tap(() =>
+                    {
+                        int i = facts.IndexOf(fl.text), j = Random.Range(0, facts.Count - 1);
+                        fl.text = facts[j >= i ? j + 1 : j];
+                    });
+                    ft.Add(next);
+                }
+                fact.Add(ft);
+                c.Add(fact);
+            }
+
+            var info = U.Row(12).Bg(U.PurpleSoft).Border(1, "#D3C8F7").Radius(16).Pad(12, 14);
+            info.Add(U.Div().Size(44, 44).Radius(22).Bg("#FFFFFF").Center().Kids(U.Icon("g_book", 26)));
+            var it = U.Col(2).Grow();
+            it.Add(U.Text("Info Lengkap " + o.displayName, "t-body").Bold());
+            info.Add(it);
+            info.Add(U.Icon("chevron_right", 18));
+            info.Tap(() => App.Go<OrganInfoScreen>(o.id));
+            c.Add(info);
         }
+
+        const string HintRotate = "Putar dengan jari untuk melihat sisi lain";
+        const string HintWait = "Gerakkan HP pelan di depan kartu supaya organ muncul di atasnya";
+        const string HintLost = "Arahkan kamera ke kartu lagi untuk melihat organ";
+        bool m_Live, m_ShowRotateHint, m_SheetOpen;
+        Label m_HintText;
+        VisualElement m_HintBox;
 
         public override void Tick(float dt)
         {
             m_StandIn.Visible(!(Ar != null && Ar.IsCameraLive));
-            if (m_Reveal != null && m_IsNew)
+            if (m_Sheet != null) m_Sheet.BottomInset = App.BottomInset; // area aman bisa baru diketahui setelah layar dibuka
+            // model AR baru ditempel (ARCore sudah yakin dengan posisi kartu): ganti dari viewer 3D ke tampilan AR
+            if (!m_Live && Ar != null && Ar.IsCameraLive && Ar.HasSpawnedModel && Ar.CurrentOrgan == m_Organ && m_ArLayer != null)
             {
-                m_RevealT += dt;
-                float t = Mathf.Clamp01(m_RevealT / 0.7f);
-                float flip = Mathf.Abs(Mathf.Cos(t * Mathf.PI)); // kartu "berbalik"
-                float sx = t < 1 ? Mathf.Max(0.02f, t < 0.5f ? flip : flip) : 1f;
-                m_Reveal.style.scale = new Scale(new Vector3(sx, 1, 1));
-                m_Reveal.style.rotate = new Rotate(Mathf.Sin(m_RevealT * 1.4f) * 2f);
+                m_Rebuilding = true;
+                Refresh(m_Organ.id);
+                return;
             }
             if (m_ArCallout == null || Ar == null) return;
+            // model (di atas kartu) di luar layar / kartu hilang dari ARCore: beri petunjuk arahkan kamera ke kartu
+            bool visible = Ar.ModelInView;
+            string ht = visible ? HintRotate : HintLost;
+            if (m_HintText != null && m_HintText.text != ht)
+            {
+                m_HintText.text = ht;
+                m_HintBox?.Visible(!m_SheetOpen && (ht != HintRotate || m_ShowRotateHint));
+            }
+            if (!visible)
+            {
+                foreach (var d in m_ArDots) d.Visible(false);
+                m_ArCallout.Visible(false);
+                return;
+            }
             var spots = Ar.SpawnedHotspots;
             var r = m_ArLayer.worldBound;
             var rootR = Root.worldBound;

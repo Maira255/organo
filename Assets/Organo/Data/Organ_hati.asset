@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_hati
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: hati
+  displayName: Hati
+  system: 0
+  region: 3
+  cardNumber: 9
+  season: 1
+  about: Hati adalah organ dalam terbesar di tubuhmu. Letaknya di perut bagian kanan
+    atas, di bawah tulang rusuk. Hati membuat cairan empedu untuk membantu mencerna
+    lemak. Hati juga menyimpan cadangan tenaga dan membersihkan zat berbahaya dari
+    darah.
+  funFact: Hati bisa tumbuh kembali ke ukuran semula, bahkan setelah sebagian besarnya
+    diangkat dokter!
+  shortDescription: Organ terbesar di perut yang membuat empedu
+  function: Hati membuat empedu dan membersihkan darah.
+  tint: {r: 0.99215686, g: 0.9254902, b: 0.9254902, a: 1}
+  ring: {r: 0.9529412, g: 0.7058824, b: 0.7058824, a: 1}
+  accent: {r: 0.78431374, g: 0.25490198, b: 0.29411766, a: 1}
+  modelPrefab: {fileID: 787329185927265865, guid: 38083680138a9b34988fad7ed93f0c3f, type: 3}
+  modelEuler: {x: 6, y: -8, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Lobus kanan
+    description: Bagian hati yang paling besar
+    localPosition: {x: -0.2, y: 0, z: -0.3}
+  - title: Lobus kiri
+    description: Bagian hati yang lebih kecil
+    localPosition: {x: 0.3, y: 0.05, z: -0.15}
+  - title: Kantong empedu
+    description: Menyimpan cairan empedu
+    localPosition: {x: -0.05, y: -0.2, z: -0.2}
+  lowModelPrefab: {fileID: 4229246905748898054, guid: 6630aa112f82fb24994fd43f3239fc4f, type: 3}
+  insidePrefab: {fileID: 2940097913018561742, guid: 9d4769ca5859e7146b95cfc1cb224f7b, type: 3}
+  insideEuler: {x: 6, y: -8, z: 0}
+  heroImage: {fileID: 2800000, guid: c24a0af192e3938448cc0e93cfb2c5ec, type: 3}
+  partVisuals:
+  - id: kanan
+    image: {fileID: 2800000, guid: 8a7c9726258bf7649a4049dbc9589c4c, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kiri
+    image: {fileID: 2800000, guid: ade1c6bf67330fd45a1a4d976d835e9d, type: 3}
+    microPrefab: {fileID: 0}
+  - id: ligamen
+    image: {fileID: 2800000, guid: ec63ef8901647f34c94ad3eef68170d4, type: 3}
+    microPrefab: {fileID: 0}
+  - id: empedu
+    image: {fileID: 2800000, guid: 430f80a2c7b41d344afbd96359c4dfa3, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pembuluh
+    image: {fileID: 2800000, guid: f38951953f8fe12498b5358e9c7461f9, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sel
+    image: {fileID: 2800000, guid: 9de25e2e345e64244ac29f3a69ae0b3a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: saluranempedu
+    image: {fileID: 2800000, guid: b59d7997f67e1b14889cce3dba1fd397, type: 3}
+    microPrefab: {fileID: 0}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 92314b579b267f34b83300e363582519, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

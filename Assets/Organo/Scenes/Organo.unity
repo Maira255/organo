@@ -152,6 +152,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Organo.OrganoApp
   database: {fileID: 11400000, guid: 7184041dbe42a554680aa52419dd7b83, type: 2}
   styleSheet: {fileID: 7433441132597879392, guid: 16aaa1f1ed0cd1c43bd6e56172275886, type: 3}
+  fontRegular: {fileID: 12800000, guid: 58ff31a1f1e759549b33370721978c04, type: 3}
+  fontSemiBold: {fileID: 12800000, guid: 2f89cf7347c7c6841b2f4325dd8b4ed7, type: 3}
+  fontMedium: {fileID: 12800000, guid: f01033fabb1644044a70f43add03c720, type: 3}
   ar: {fileID: 450105343}
   clickSound: {fileID: 0}
   successSound: {fileID: 0}
@@ -484,11 +487,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4966719baa26e4b0e8231a24d9bd491a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.XR.ARFoundation::UnityEngine.XR.ARFoundation.ARCameraManager
-  m_FocusMode: 1
-  m_LightEstimationMode: 0
+  m_FocusMode: -1
+  m_LightEstimationMode: -1
   m_AutoFocus: 1
   m_ImageStabilization: 0
-  m_LightEstimation: 1
+  m_LightEstimation: 0
   m_FacingDirection: 1
   m_RenderMode: 0
 --- !u!1 &1217432289

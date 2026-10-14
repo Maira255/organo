@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_tenggorokan
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: tenggorokan
+  displayName: Tenggorokan
+  system: 1
+  region: 1
+  cardNumber: 12
+  season: 2
+  about: 'Tenggorokan ada di leher, di belakang hidung dan mulut. Di sini ada faring,
+    jalan bersama untuk udara dan makanan. Lalu jalannya berpisah: udara masuk ke
+    laring (kotak suara) dan trakea menuju paru-paru, sedangkan makanan masuk ke
+    kerongkongan menuju lambung. Epiglotis menutup laring saat kamu menelan supaya
+    makanan tidak salah jalan.'
+  funFact: Suaramu berasal dari pita suara di laring yang bergetar saat udara lewat!
+  shortDescription: Jalan udara & makanan di leher
+  function: Tenggorokan mengatur udara ke paru-paru dan makanan ke kerongkongan.
+  tint: {r: 0.9529412, g: 0.9372549, b: 0.99215686, a: 1}
+  ring: {r: 0.8039216, g: 0.7490196, b: 0.9607843, a: 1}
+  accent: {r: 0.54509807, g: 0.43529412, b: 0.9098039, a: 1}
+  modelPrefab: {fileID: 8979379978658318553, guid: 10bc6d0bf6e60d24cad0db272a54adc3, type: 3}
+  modelEuler: {x: 4, y: -35, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Epiglotis
+    description: Tutup saat menelan
+    localPosition: {x: 0, y: 0.22, z: -0.02}
+  lowModelPrefab: {fileID: 1841777077471907263, guid: d548410d010ee57459132e7301b4c895, type: 3}
+  insidePrefab: {fileID: 2683635092226033847, guid: 0ede889e9695c2e4aa01e102d3a1f047, type: 3}
+  insideEuler: {x: 4, y: 74, z: 0}
+  heroImage: {fileID: 2800000, guid: f76b933ca92238143864f4740263f036, type: 3}
+  partVisuals:
+  - id: faring
+    image: {fileID: 2800000, guid: f5a68aad5039cf949b774e623fbeb460, type: 3}
+    microPrefab: {fileID: 0}
+  - id: amandel
+    image: {fileID: 2800000, guid: 90cf58b259bba7047a90da524620b185, type: 3}
+    microPrefab: {fileID: 0}
+  - id: epiglotis
+    image: {fileID: 2800000, guid: 20db470a57bdc6e44a9af119f79c5b62, type: 3}
+    microPrefab: {fileID: 0}
+  - id: laring
+    image: {fileID: 2800000, guid: 897d0ecb67b944946840c074f260780e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pitasuara
+    image: {fileID: 2800000, guid: c0d6d796b39b71844a0f3c7a32eaa0e3, type: 3}
+    microPrefab: {fileID: 0}
+  - id: trakea
+    image: {fileID: 2800000, guid: c386f209697f58c45a527d2c2ea0a50a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kerongkongan
+    image: {fileID: 2800000, guid: 0e7d9c7460cc49143be301ff41c0568a, type: 3}
+    microPrefab: {fileID: 0}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 9076590fdca8b7a41b5270687451b345, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

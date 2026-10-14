@@ -36,16 +36,21 @@ namespace Organo.EditorTools
         {
             EnsureFolder(Dir);
             var sdf = new StomachSdf();
-            var mesh = SurfaceNets.Build(sdf, new Bounds(new Vector3(-0.05f, 0.02f, 0f), new Vector3(1.8f, 1.85f, 0.95f)), 0.011f);
+            var mesh = SurfaceNets.Build(sdf, new Bounds(new Vector3(-0.05f, 0.02f, 0f), new Vector3(1.8f, 1.85f, 0.95f)), 0.0135f);
             mesh.name = "Lambung";
 
             var meshPath = Dir + "/Lambung_Mesh.asset";
             var old = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
-            if (old != null) { EditorUtility.CopySerialized(mesh, old); mesh = old; }
-            else AssetDatabase.CreateAsset(mesh, meshPath);
+            // Buat ulang aset mesh (CopySerialized tidak memperbarui pembagian submesh dengan benar).
+            if (old != null) AssetDatabase.DeleteAsset(meshPath);
+            AssetDatabase.CreateAsset(mesh, meshPath);
 
             var wall = MakeMaterial(Dir + "/Lambung_Dinding.mat", new Color32(0xD6, 0x5F, 0x58, 0xFF), 0.62f);
             var inner = MakeMaterial(Dir + "/Lambung_Dalam.mat", new Color32(0x7E, 0x24, 0x2A, 0xFF), 0.35f);
+            var kardia = MakeMaterial(Dir + "/Lambung_Kardia.mat", new Color32(0xE8, 0x87, 0x7F, 0xFF), 0.62f);
+            var fundus = MakeMaterial(Dir + "/Lambung_Fundus.mat", new Color32(0xE4, 0x70, 0x6A, 0xFF), 0.62f);
+            var pilorus = MakeMaterial(Dir + "/Lambung_Pilorus.mat", new Color32(0xBF, 0x4A, 0x4E, 0xFF), 0.62f);
+            var duo = MakeMaterial(Dir + "/Lambung_Duodenum.mat", new Color32(0xEF, 0x9A, 0x7C, 0xFF), 0.6f);
             if (inner.HasProperty("_Cull")) { inner.SetFloat("_Cull", 0f); inner.doubleSidedGI = true; }
 
             var root = new GameObject("Lambung");
@@ -53,7 +58,7 @@ namespace Organo.EditorTools
             body.transform.SetParent(root.transform, false);
             body.GetComponent<MeshFilter>().sharedMesh = mesh;
             var mr = body.GetComponent<MeshRenderer>();
-            mr.sharedMaterials = new[] { wall, inner };
+            mr.sharedMaterials = new[] { wall, inner, kardia, fundus, pilorus, duo };
             mr.shadowCastingMode = ShadowCastingMode.On;
 
             // Titik info (depan model menghadap -Z, ke arah kamera close-up)
@@ -66,9 +71,25 @@ namespace Organo.EditorTools
             Object.DestroyImmediate(root);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
 
+            // versi ringan untuk tampilan tubuh
+            var lowMesh = SurfaceNets.Build(sdf, new Bounds(new Vector3(-0.05f, 0.02f, 0f), new Vector3(1.8f, 1.85f, 0.95f)), 0.035f);
+            lowMesh.name = "Lambung_Low";
+            var lowPath = Dir + "/Lambung_Low_Mesh.asset";
+            if (AssetDatabase.LoadAssetAtPath<Mesh>(lowPath) != null) AssetDatabase.DeleteAsset(lowPath);
+            AssetDatabase.CreateAsset(lowMesh, lowPath);
+            var lowRoot = new GameObject("Lambung_Low");
+            var lowBody = new GameObject("Mesh", typeof(MeshFilter), typeof(MeshRenderer));
+            lowBody.transform.SetParent(lowRoot.transform, false);
+            lowBody.GetComponent<MeshFilter>().sharedMesh = lowMesh;
+            lowBody.GetComponent<MeshRenderer>().sharedMaterials = new[] { wall, inner, kardia, fundus, pilorus, duo };
+            PrefabUtility.SaveAsPrefabAsset(lowRoot, Dir + "/Lambung_Low.prefab");
+            Object.DestroyImmediate(lowRoot);
+            var lowPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(Dir + "/Lambung_Low.prefab");
+
             var organ = AssetDatabase.LoadAssetAtPath<OrganInfo>(OrganPath);
             if (organ != null)
             {
+                organ.lowModelPrefab = lowPrefab;
                 organ.modelPrefab = prefab;
                 organ.modelEuler = new Vector3(4f, -12f, 0f);
                 organ.modelScale = 1.05f;
@@ -77,7 +98,14 @@ namespace Organo.EditorTools
             AssetDatabase.SaveAssets();
             RenderPreview(prefab);
             Debug.Log("[Organo] Model 3D lambung dibuat: " + PrefabPath + " (" + mesh.vertexCount + " verteks, " +
-                      (mesh.GetIndexCount(0) + mesh.GetIndexCount(1)) / 3 + " segitiga) dan dipasang ke slot Model Prefab lambung.");
+                      TriCount(mesh) + " segitiga) dan dipasang ke slot Model Prefab lambung.");
+        }
+
+        public static long TriCount(Mesh m)
+        {
+            long n = 0;
+            for (int i = 0; i < m.subMeshCount; i++) n += m.GetIndexCount(i);
+            return n / 3;
         }
 
         static void Hotspot(GameObject root, string title, string desc, Vector3 pos)
@@ -90,7 +118,7 @@ namespace Organo.EditorTools
             h.description = desc;
         }
 
-        static Material MakeMaterial(string path, Color color, float smooth)
+        public static Material MakeMaterial(string path, Color color, float smooth)
         {
             var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (mat == null)
@@ -108,7 +136,7 @@ namespace Organo.EditorTools
             return mat;
         }
 
-        static void EnsureFolder(string path)
+        public static void EnsureFolder(string path)
         {
             if (AssetDatabase.IsValidFolder(path)) return;
             var parent = Path.GetDirectoryName(path).Replace('\\', '/');
@@ -117,7 +145,7 @@ namespace Organo.EditorTools
         }
 
         /// <summary>Render pratinjau ke Temp/OrganoPreview supaya bentuknya bisa dicek tanpa membuka scene.</summary>
-        static void RenderPreview(GameObject prefab)
+        public static void RenderPreview(GameObject prefab, string prefix = "lambung")
         {
             var scene = EditorSceneManager.NewPreviewScene();
             try
@@ -151,7 +179,7 @@ namespace Organo.EditorTools
                     tex.ReadPixels(new Rect(0, 0, rt.width, rt.height), 0, 0);
                     tex.Apply();
                     RenderTexture.active = prev;
-                    File.WriteAllBytes("Library/OrganoPreview/lambung_" + name + ".png", tex.EncodeToPNG());
+                    File.WriteAllBytes("Library/OrganoPreview/" + prefix + "_" + name + ".png", tex.EncodeToPNG());
                     Object.DestroyImmediate(tex);
                 }
                 cam.targetTexture = null;
@@ -168,8 +196,9 @@ namespace Organo.EditorTools
     public interface ISdf
     {
         float Eval(Vector3 p);
-        /// <summary>true kalau titik ini bagian dalam lubang (untuk material bagian dalam).</summary>
-        bool IsInterior(Vector3 p);
+        /// <summary>Indeks material (submesh) untuk titik di permukaan.</summary>
+        int Material(Vector3 p);
+        int MaterialCount { get; }
     }
 
     /// <summary>Bentuk lambung: tabung spline dengan jari-jari berubah + gelembung fundus, ujung terbuka.</summary>
@@ -278,6 +307,19 @@ namespace Organo.EditorTools
             return d / Flatten * 1.1f;
         }
 
+        public int MaterialCount => 6;
+
+        /// <summary>0 badan, 1 bagian dalam lubang, 2 pintu masuk (kardia), 3 fundus, 4 pilorus/antrum, 5 usus dua belas jari.</summary>
+        public int Material(Vector3 p)
+        {
+            if (IsInterior(p)) return 1;
+            if (p.y > 0.3f) return 2;
+            if (p.y > 0.12f && p.x > 0.0f) return 3;
+            if (p.x < -0.44f) return 5;
+            if (p.x < -0.12f && p.y < -0.15f) return 4;
+            return 0;
+        }
+
         public bool IsInterior(Vector3 p)
         {
             var q = new Vector3(p.x, p.y, p.z * Flatten);
@@ -354,8 +396,8 @@ namespace Organo.EditorTools
                 normals.Add(Gradient(sdf, p, cell * 0.5f).normalized);
             }
 
-            var wall = new List<int>();
-            var inner = new List<int>();
+            var lists = new List<int>[sdf.MaterialCount];
+            for (int m = 0; m < lists.Length; m++) lists[m] = new List<int>();
             void Quad(int a, int b, int c, int d)
             {
                 if (a < 0 || b < 0 || c < 0 || d < 0) return;
@@ -366,7 +408,7 @@ namespace Organo.EditorTools
                 var pa = verts[a]; var pb = verts[b]; var pc = verts[c];
                 var nrm = Vector3.Cross(pb - pa, pc - pa);
                 var g = Gradient(sdf, (pa + pb + pc) / 3f, 0.004f);
-                var list = sdf.IsInterior((pa + pb + pc) / 3f) ? inner : wall;
+                var list = lists[Mathf.Clamp(sdf.Material((pa + pb + pc) / 3f), 0, lists.Length - 1)];
                 if (Vector3.Dot(nrm, g) >= 0) { list.Add(a); list.Add(b); list.Add(c); }
                 else { list.Add(a); list.Add(c); list.Add(b); }
             }
@@ -390,11 +432,13 @@ namespace Organo.EditorTools
             var uv = new List<Vector2>(verts.Count);
             foreach (var p in verts) uv.Add(new Vector2(p.x + 0.5f, p.y + 0.5f));
             mesh.SetUVs(0, uv);
-            mesh.subMeshCount = 2;
-            mesh.SetTriangles(wall, 0);
-            mesh.SetTriangles(inner, 1);
+            int total = 0;
+            foreach (var l in lists) total += l.Count;
+            if (total / 3 > 0 && verts.Count > 65000) mesh.indexFormat = IndexFormat.UInt32;
+            mesh.subMeshCount = lists.Length;
+            for (int m = 0; m < lists.Length; m++) mesh.SetTriangles(lists[m], m);
             mesh.RecalculateBounds();
-            mesh.RecalculateTangents();
+            // tanpa tangent: tidak ada normal map, jadi menghemat ukuran aplikasi
             return mesh;
         }
 

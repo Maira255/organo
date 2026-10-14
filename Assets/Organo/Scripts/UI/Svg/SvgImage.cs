@@ -99,7 +99,8 @@ namespace Organo.UI
                     p.lineWidth = Mathf.Max(0.5f, shape.strokeWidth * s);
                     p.lineCap = shape.cap;
                     p.lineJoin = shape.join;
-                    Build(p, shape.segs, s, off);
+                    if (shape.dash != null) BuildDashed(p, shape.segs, s, off, shape.dash);
+                    else Build(p, shape.segs, s, off);
                     p.Stroke();
                 }
             }
@@ -110,6 +111,72 @@ namespace Organo.UI
             if (!tint.HasValue) return c;
             var t = tint.Value;
             return new Color(t.r, t.g, t.b, t.a * c.a);
+        }
+
+        /// <summary>Garis putus-putus: path diratakan jadi polyline lalu dipotong sesuai dasharray.</summary>
+        static void BuildDashed(Painter2D p, List<SvgSeg> segs, float s, Vector2 off, float[] dash)
+        {
+            p.BeginPath();
+            var poly = new List<Vector2>();
+            Vector2 start = default, cur = default;
+            void Flush()
+            {
+                if (poly.Count < 2) { poly.Clear(); return; }
+                int di = 0;
+                float left = dash[0] * s;
+                bool on = true;
+                if (on) p.MoveTo(poly[0]);
+                for (int i = 1; i < poly.Count; i++)
+                {
+                    var a = poly[i - 1]; var b = poly[i];
+                    float len = Vector2.Distance(a, b);
+                    float pos = 0f;
+                    while (len - pos > left)
+                    {
+                        pos += left;
+                        var q = Vector2.Lerp(a, b, pos / Mathf.Max(len, 1e-5f));
+                        if (on) p.LineTo(q); else p.MoveTo(q);
+                        on = !on;
+                        di = (di + 1) % dash.Length;
+                        left = Mathf.Max(0.01f, dash[di] * s);
+                    }
+                    left -= len - pos;
+                    if (on) p.LineTo(b);
+                }
+                poly.Clear();
+            }
+            foreach (var seg in segs)
+            {
+                switch (seg.kind)
+                {
+                    case SvgSegKind.Move:
+                        Flush();
+                        cur = start = seg.p1 * s + off;
+                        poly.Add(cur);
+                        break;
+                    case SvgSegKind.Line:
+                        cur = seg.p1 * s + off;
+                        poly.Add(cur);
+                        break;
+                    case SvgSegKind.Cubic:
+                    {
+                        var c1 = seg.p1 * s + off; var c2 = seg.p2 * s + off; var e = seg.p3 * s + off;
+                        var from = cur;
+                        for (int k = 1; k <= 12; k++)
+                        {
+                            float t = k / 12f, u = 1 - t;
+                            poly.Add(u * u * u * from + 3 * u * u * t * c1 + 3 * u * t * t * c2 + t * t * t * e);
+                        }
+                        cur = e;
+                        break;
+                    }
+                    case SvgSegKind.Close:
+                        poly.Add(start);
+                        cur = start;
+                        break;
+                }
+            }
+            Flush();
         }
 
         static void Build(Painter2D p, List<SvgSeg> segs, float s, Vector2 off)

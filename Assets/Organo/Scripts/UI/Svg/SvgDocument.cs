@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -24,6 +25,7 @@ namespace Organo.UI
         public LineCap cap = LineCap.Butt;
         public LineJoin join = LineJoin.Miter;
         public bool evenOdd;
+        public float[] dash;
     }
 
     /// <summary>
@@ -105,6 +107,7 @@ namespace Organo.UI
             public LineCap cap;
             public LineJoin join;
             public bool evenOdd;
+            public float[] dash;
 
             public static Ctx Default => new Ctx
             {
@@ -128,6 +131,14 @@ namespace Organo.UI
                 if (v != null) c.cap = v == "round" ? LineCap.Round : LineCap.Butt;
                 v = Get(el, style, "stroke-linejoin");
                 if (v != null) c.join = v == "round" ? LineJoin.Round : v == "bevel" ? LineJoin.Bevel : LineJoin.Miter;
+                v = Get(el, style, "stroke-dasharray");
+                if (v != null)
+                {
+                    var nr = new NumberReader(v);
+                    var list = new List<float>();
+                    while (nr.HasMore) list.Add(nr.Next());
+                    c.dash = list.Count > 0 && list.Exists(x => x > 0) ? (list.Count % 2 == 1 ? list.Concat(list).ToArray() : list.ToArray()) : null;
+                }
                 v = el.GetAttribute("transform");
                 if (!string.IsNullOrEmpty(v)) c.m = c.m * ParseTransform(v);
                 return c;
@@ -288,6 +299,7 @@ namespace Organo.UI
             shape.cap = ctx.cap;
             shape.join = ctx.join;
             shape.evenOdd = ctx.evenOdd;
+            if (ctx.dash != null) shape.dash = ctx.dash.Select(x => x * ctx.m.Scale).ToArray();
             if (shape.fill == null && shape.stroke == null) return;
             shapes.Add(shape);
         }

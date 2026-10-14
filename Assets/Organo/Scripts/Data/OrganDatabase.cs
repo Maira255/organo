@@ -10,6 +10,18 @@ namespace Organo.Data
     {
         public List<OrganInfo> organs = new List<OrganInfo>();
 
+        [Header("Tampilan \"Lihat di tubuh\" (dibuat oleh Organo > Model 3D)")]
+        [Tooltip("Tubuh anak laki-laki transparan untuk close-up mode tubuh.")]
+        public GameObject bodyBoyPrefab;
+        [Tooltip("Tubuh anak perempuan transparan untuk close-up mode tubuh.")]
+        public GameObject bodyGirlPrefab;
+        [Tooltip("Material organ lain yang dipudarkan (transparan).")]
+        public Material ghostMaterial;
+        [Tooltip("Material transparan anak laki-laki (urutan sama dengan submesh prefab) untuk melihat organ di dalam.")]
+        public Material[] bodyBoyFaded;
+        [Tooltip("Material transparan anak perempuan.")]
+        public Material[] bodyGirlFaded;
+
         Dictionary<string, OrganInfo> m_ById;
 
         public static OrganDatabase CreateDefault()
@@ -37,8 +49,14 @@ namespace Organo.Data
             return id != null && m_ById.TryGetValue(id, out var r) ? r : null;
         }
 
+        /// <summary>Pemisah nama gambar kartu gaya lain di library AR, mis. "organo-jantung@kartun".</summary>
+        public const char StyleSeparator = '@';
+
         public OrganInfo FindByReferenceImage(string imageName)
         {
+            if (string.IsNullOrEmpty(imageName)) return null;
+            int at = imageName.IndexOf(StyleSeparator);
+            if (at > 0) imageName = imageName.Substring(0, at);
             return organs.FirstOrDefault(o => o != null && (o.ReferenceImageName == imageName || o.id == imageName || o.displayName == imageName));
         }
 

@@ -30,11 +30,38 @@ namespace Organo.UI
 
         // ------------------------------------------------------------ elements
 
+        static readonly HashSet<string> s_PillClasses = new HashSet<string>
+        {
+            "btn", "chip", "pill", "progress", "progress__fill", "nav__icon", "viewport3d__hint", "toast", "sheet__grip", "switch"
+        };
+
         public static VisualElement Div(params string[] classes)
         {
             var v = new VisualElement();
-            foreach (var c in classes) v.AddToClassList(c);
+            foreach (var c in classes)
+            {
+                v.AddToClassList(c);
+                if (s_PillClasses.Contains(c)) AutoPill(v);
+            }
             return v;
+        }
+
+        /// <summary>
+        /// radius-pill (999px) versi CSS: sudut = setengah sisi terpendek. UI Toolkit menskalakan radius besar
+        /// jadi elips, jadi radius dihitung ulang setiap ukuran elemen berubah.
+        /// </summary>
+        public static T AutoPill<T>(T el) where T : VisualElement
+        {
+            if (el.ClassListContains("auto-pill")) return el;
+            el.AddToClassList("auto-pill");
+            el.RegisterCallback<GeometryChangedEvent>(e =>
+            {
+                float r = Mathf.Max(0f, Mathf.Min(e.newRect.width, e.newRect.height) * 0.5f);
+                if (Mathf.Abs(el.resolvedStyle.borderTopLeftRadius - r) < 0.01f) return;
+                el.style.borderTopLeftRadius = r; el.style.borderTopRightRadius = r;
+                el.style.borderBottomLeftRadius = r; el.style.borderBottomRightRadius = r;
+            });
+            return el;
         }
 
         public static VisualElement Row(float gap = 0f, params string[] classes)
@@ -86,7 +113,9 @@ namespace Organo.UI
             s.AddToClassList("scroll");
             s.horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             s.verticalScrollerVisibility = ScrollerVisibility.Hidden;
-            s.touchScrollBehavior = ScrollView.TouchScrollBehavior.Elastic;
+            s.touchScrollBehavior = ScrollView.TouchScrollBehavior.Clamped;
+            s.mouseWheelScrollSize = 36f;
+            s.AddManipulator(new DragScroll(s));
             return s;
         }
 
@@ -122,7 +151,8 @@ namespace Organo.UI
             if (onClick == null) return el;
             el.AddToClassList("pressable");
             el.focusable = true;
-            el.AddManipulator(new Clickable(() =>
+            // ketukan yang tidak mengunci pointer, jadi rail/halaman/sheet tetap bisa digeser mulai dari kartu ini
+            el.AddManipulator(new TapGesture(() =>
             {
                 OrganoAudio.Click();
                 onClick();
@@ -151,6 +181,7 @@ namespace Organo.UI
 
         public static T Radius<T>(this T el, float r) where T : VisualElement
         {
+            if (r >= 500f) return AutoPill(el);
             el.style.borderTopLeftRadius = r; el.style.borderTopRightRadius = r;
             el.style.borderBottomLeftRadius = r; el.style.borderBottomRightRadius = r;
             return el;
@@ -200,6 +231,13 @@ namespace Organo.UI
         public static T Visible<T>(this T el, bool visible) where T : VisualElement
         {
             el.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+            return el;
+        }
+
+        /// <summary>Elevasi dari style guide (bayangan lembut di bawah elemen).</summary>
+        public static T Elev<T>(this T el, Elevation level) where T : VisualElement
+        {
+            ShadowElement.Attach(el, level);
             return el;
         }
 

@@ -19,16 +19,16 @@ MonoBehaviour:
   cardNumber: 1
   season: 1
   about: Mulut adalah pintu masuk makanan. Gigi mengunyah makanan menjadi potongan
-    kecil. Lidah membantumu merasakan manis, asin, dan asam. Air liur mulai melunakkan
-    makanan sebelum ditelan.
-  funFact: Air liurmu bisa mencapai hampir satu liter dalam sehari!
+    kecil. Lidah membantumu merasakan manis, asin, asam, pahit, dan gurih. Air liur
+    mulai melunakkan makanan sebelum ditelan.
+  funFact: Mulutmu membuat sekitar satu liter air liur setiap hari!
   shortDescription: Tempat makanan dikunyah dan dicampur air liur
   function: Mulut mengunyah makanan dan mencampurnya dengan air liur.
   tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
   ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
   accent: {r: 0.9372549, g: 0.2784314, b: 0.43529412, a: 1}
-  modelPrefab: {fileID: 0}
-  modelEuler: {x: 8, y: -20, z: 0}
+  modelPrefab: {fileID: 1297347636279957790, guid: c68689cbb27505342956d0436ee79660, type: 3}
+  modelEuler: {x: 14, y: -16, z: 0}
   modelScale: 1
   hotspots:
   - title: Gigi
@@ -40,8 +40,51 @@ MonoBehaviour:
   - title: Air liur
     description: Melunakkan makanan
     localPosition: {x: -0.25, y: 0, z: 0.15}
+  lowModelPrefab: {fileID: 5069239790681437980, guid: 9fa4d701554cd504f90a4ba63100dd79, type: 3}
+  insidePrefab: {fileID: 1291316045223541856, guid: bdf19ef6f1e4d364aafdf47faaa37f57, type: 3}
+  insideEuler: {x: 8, y: -14, z: 0}
+  heroImage: {fileID: 2800000, guid: 907cfa10c790781488ae5e4e056000cc, type: 3}
+  partVisuals:
+  - id: bibir
+    image: {fileID: 2800000, guid: 702df6dffc1466746a8804129ab4a6ae, type: 3}
+    microPrefab: {fileID: 0}
+  - id: seri
+    image: {fileID: 2800000, guid: 31667e23617cb624799c5bb490556489, type: 3}
+    microPrefab: {fileID: 0}
+  - id: taring
+    image: {fileID: 2800000, guid: 41bab6530e9161a4bae20be255e6f9bd, type: 3}
+    microPrefab: {fileID: 0}
+  - id: geraham
+    image: {fileID: 2800000, guid: c8485da1d214b754c8559e6e6f24be28, type: 3}
+    microPrefab: {fileID: 0}
+  - id: gusi
+    image: {fileID: 2800000, guid: d0158fc638eff6744bb358e647976d13, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lidah
+    image: {fileID: 2800000, guid: 5d6c0457987df4540a87bb0553c9a2e7, type: 3}
+    microPrefab: {fileID: 0}
+  - id: langit
+    image: {fileID: 2800000, guid: 33eb7c8459c88094ab82b47b9827acaf, type: 3}
+    microPrefab: {fileID: 0}
+  - id: tekak
+    image: {fileID: 2800000, guid: 07e0813669f1c004f8511b889995ff6a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: email
+    image: {fileID: 2800000, guid: 98aa9f305842da045bf688620ab2f9a6, type: 3}
+    microPrefab: {fileID: 0}
+  - id: dentin
+    image: {fileID: 2800000, guid: 7f12714194c02814980e410df9fdd542, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pulpa
+    image: {fileID: 2800000, guid: 213085ae3d59a54479c3297a8f45f9c0, type: 3}
+    microPrefab: {fileID: 0}
+  - id: akar
+    image: {fileID: 2800000, guid: 770d2f4194563bf46814640c67dbe6ea, type: 3}
+    microPrefab: {fileID: 0}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: a1d9829938b7c8c429959a02f52deebf, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

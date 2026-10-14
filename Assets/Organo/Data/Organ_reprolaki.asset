@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_reprolaki
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: reprolaki
+  displayName: Reproduksi Laki-laki
+  system: 6
+  region: 4
+  cardNumber: 16
+  season: 7
+  about: Organ reproduksi laki-laki ada di panggul (perut bagian bawah) dan di antara
+    kedua kaki. Testis membuat sel sperma dan hormon testosteron, yang mulai bekerja
+    saat pubertas. Sperma disimpan di epididimis, lalu diantar saluran sperma ke
+    dekat kelenjar prostat. Uretra di dalam penis adalah jalan keluar urine, dan
+    setelah pubertas juga sperma, tetapi tidak pada saat yang sama. Organ ini termasuk
+    bagian tubuh pribadi yang harus dijaga kebersihannya.
+  funFact: Testis berada di luar perut karena sel sperma butuh suhu sedikit lebih
+    dingin daripada suhu tubuh!
+  shortDescription: Organ yang membuat sel sperma & hormon laki-laki
+  function: Organ reproduksi laki-laki membuat sel sperma dan hormon testosteron
+    saat pubertas.
+  tint: {r: 0.93333334, g: 0.94509804, b: 1, a: 1}
+  ring: {r: 0.7490196, g: 0.79607844, b: 0.9607843, a: 1}
+  accent: {r: 0.35686275, g: 0.48235294, b: 0.8784314, a: 1}
+  modelPrefab: {fileID: 2670019177503783142, guid: 06542ff5da9fe4b4fbae97bfa024bf16, type: 3}
+  modelEuler: {x: 6, y: -26, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Testis
+    description: Membuat sel sperma
+    localPosition: {x: 0.08, y: -0.42, z: -0.08}
+  - title: Prostat
+    description: Membuat cairan untuk sperma
+    localPosition: {x: 0, y: 0.06, z: -0.06}
+  lowModelPrefab: {fileID: 6565772200258967339, guid: 5027257c6156ae549907abb2bc046079, type: 3}
+  insidePrefab: {fileID: 6411155844329145072, guid: 108c1165f39673a45bcff434e4127469, type: 3}
+  insideEuler: {x: 6, y: -62, z: 0}
+  heroImage: {fileID: 2800000, guid: cfa923b09f871514e852564882d69694, type: 3}
+  partVisuals:
+  - id: testis
+    image: {fileID: 2800000, guid: 2b4614ccd38608d4da4fcb31931cde2d, type: 3}
+    microPrefab: {fileID: 0}
+  - id: skrotum
+    image: {fileID: 2800000, guid: 7e6c01ec376f737409726d4c5a1c5499, type: 3}
+    microPrefab: {fileID: 0}
+  - id: epididimis
+    image: {fileID: 2800000, guid: cc0f6884c79d7d040a2f73bb5c3f0635, type: 3}
+    microPrefab: {fileID: 0}
+  - id: vasdeferens
+    image: {fileID: 2800000, guid: 5659105fa03aa0f4995415108ff7639e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: tali
+    image: {fileID: 2800000, guid: 636789103a83ece438d262c7289551b1, type: 3}
+    microPrefab: {fileID: 0}
+  - id: vesikula
+    image: {fileID: 2800000, guid: b693b980c47b8ba43873f8d6396d2a37, type: 3}
+    microPrefab: {fileID: 0}
+  - id: prostat
+    image: {fileID: 2800000, guid: 2916f5607c20e714d9de4921414a65ef, type: 3}
+    microPrefab: {fileID: 0}
+  - id: uretra
+    image: {fileID: 2800000, guid: f7359ded941f6364eac249e8f784684a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: penis
+    image: {fileID: 2800000, guid: fdd895b8cec686243b45af5955b1527e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kandungkemih
+    image: {fileID: 2800000, guid: 652397d20bcb74c47ace42c1290539e0, type: 3}
+    microPrefab: {fileID: 0}
+  - id: tubulus
+    image: {fileID: 2800000, guid: 1271d33a4bea1f9498935de134952566, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sperma
+    image: {fileID: 2800000, guid: 78f475da38ce3c249901e243f70391e4, type: 3}
+    microPrefab: {fileID: 2513958035313874933, guid: 423b643d027241140bc0853bb320b2c9, type: 3}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: d597c544f51345749aa7029a2e175f40, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

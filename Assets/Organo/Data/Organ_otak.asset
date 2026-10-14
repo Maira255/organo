@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_otak
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: otak
+  displayName: Otak
+  system: 3
+  region: 0
+  cardNumber: 11
+  season: 5
+  about: Otak adalah pusat kendali tubuhmu. Letaknya di dalam kepala, dilindungi
+    tulang tengkorak. Otak membantumu berpikir, mengingat, merasakan, dan bergerak.
+    Setiap bagian otak punya tugas sendiri, misalnya untuk melihat, mendengar, dan
+    menjaga keseimbangan.
+  funFact: Pesan saraf tercepat bisa melesat sekitar 400 km per jam, lebih cepat
+    dari mobil balap!
+  shortDescription: Pusat kendali seluruh tubuh
+  function: Otak mengatur pikiran dan gerakan tubuh.
+  tint: {r: 1, g: 0.95686275, b: 0.9647059, a: 1}
+  ring: {r: 0.9607843, g: 0.7607843, b: 0.8117647, a: 1}
+  accent: {r: 0.9490196, g: 0.60784316, b: 0.68235296, a: 1}
+  modelPrefab: {fileID: 6837464655491263490, guid: 32dcde550f9d7cd4bb208d5cec6b2228, type: 3}
+  modelEuler: {x: 8, y: -55, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Otak besar
+    description: Berpikir dan mengingat
+    localPosition: {x: 0, y: 0.2, z: -0.3}
+  - title: Otak kecil
+    description: Menjaga keseimbangan
+    localPosition: {x: 0, y: -0.25, z: 0.2}
+  lowModelPrefab: {fileID: 7036086093516946403, guid: 4e265e5c854e3864594dac42b00fc387, type: 3}
+  insidePrefab: {fileID: 6621595809421847055, guid: cf20ae4598a74604d96884c35ffc899d, type: 3}
+  insideEuler: {x: 6, y: 72, z: 0}
+  heroImage: {fileID: 2800000, guid: 35ea400698655a140bb038f4585170fa, type: 3}
+  partVisuals:
+  - id: depan
+    image: {fileID: 2800000, guid: e3020d497b20f0840be8148232fa06ca, type: 3}
+    microPrefab: {fileID: 0}
+  - id: atas
+    image: {fileID: 2800000, guid: 790ba53cfbcd33d4cbb330aa1694bcc7, type: 3}
+    microPrefab: {fileID: 0}
+  - id: samping
+    image: {fileID: 2800000, guid: 096331699cd1e6a41a8c97399d44d3c3, type: 3}
+    microPrefab: {fileID: 0}
+  - id: belakang
+    image: {fileID: 2800000, guid: 8bf154e2f4771d84a858aae8691caeea, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kecil
+    image: {fileID: 2800000, guid: cfe9d132f942daf49a4c189221f329a6, type: 3}
+    microPrefab: {fileID: 0}
+  - id: batang
+    image: {fileID: 2800000, guid: b4d65cb3015a6444689dedf7da3d72fb, type: 3}
+    microPrefab: {fileID: 0}
+  - id: abu
+    image: {fileID: 2800000, guid: bef8e72db272dcb48afd2f85850063fa, type: 3}
+    microPrefab: {fileID: 0}
+  - id: putih
+    image: {fileID: 2800000, guid: 1bc3a93913645314e82795d9ab45102a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kalosum
+    image: {fileID: 2800000, guid: fda9440e3e3b53148b019d57a8e527d2, type: 3}
+    microPrefab: {fileID: 0}
+  - id: neuron
+    image: {fileID: 2800000, guid: 4506772924ed30a4096c5950e73c7c78, type: 3}
+    microPrefab: {fileID: 705602338063518031, guid: f06502fa0a4301e47b55dc42e4dee161, type: 3}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 96cfb03a91463364dad8ec791bff733b, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

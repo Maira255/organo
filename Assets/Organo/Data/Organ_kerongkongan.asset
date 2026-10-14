@@ -21,14 +21,14 @@ MonoBehaviour:
   about: Kerongkongan adalah saluran panjang dari mulut ke lambung. Ototnya meremas
     makanan turun pelan-pelan. Karena itu makanan tetap bisa masuk ke lambung walau
     kamu sedang berbaring.
-  funFact: Kamu tetap bisa menelan makanan sambil berdiri di atas kepala, lho!
+  funFact: Kamu tetap bisa menelan makanan walaupun sedang berdiri terbalik, lho!
   shortDescription: Saluran yang mengantar makanan dari mulut ke lambung
   function: Kerongkongan mendorong makanan dari mulut ke lambung.
   tint: {r: 0.9098039, g: 0.972549, b: 0.9607843, a: 1}
   ring: {r: 0.65882355, g: 0.8901961, b: 0.85490197, a: 1}
   accent: {r: 0.101960786, g: 0.72156864, b: 0.6509804, a: 1}
-  modelPrefab: {fileID: 0}
-  modelEuler: {x: 8, y: -20, z: 0}
+  modelPrefab: {fileID: 487966017645702132, guid: f6683468356cb284298e23ced8fcf5ca, type: 3}
+  modelEuler: {x: 0, y: -10, z: 0}
   modelScale: 1
   hotspots:
   - title: Otot kerongkongan
@@ -37,8 +37,30 @@ MonoBehaviour:
   - title: Ke lambung
     description: Ujung bawah saluran
     localPosition: {x: 0, y: -0.42, z: 0.08}
+  lowModelPrefab: {fileID: 3119517891745070379, guid: f7801313f6e730046835b44704666fc5, type: 3}
+  insidePrefab: {fileID: 7043161506212624755, guid: e6fad052b910a324a9901e167886a5ad, type: 3}
+  insideEuler: {x: 0, y: -10, z: 0}
+  heroImage: {fileID: 2800000, guid: 845cac5a07e889743bee7a46e1549232, type: 3}
+  partVisuals:
+  - id: faring
+    image: {fileID: 2800000, guid: aa89154a84470f443b0dba34437fca4c, type: 3}
+    microPrefab: {fileID: 0}
+  - id: otot
+    image: {fileID: 2800000, guid: a478c5fc3dc6cae4f9c84657bb64fa7d, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sfingter
+    image: {fileID: 2800000, guid: 02045b25f83ca5841944c3a25f6ff149, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lipatan
+    image: {fileID: 2800000, guid: c52fe1c25d90ab147b96d963db70349c, type: 3}
+    microPrefab: {fileID: 0}
+  - id: gumpalan
+    image: {fileID: 2800000, guid: d82187b3fc1287f4b946ba7eeef89fe9, type: 3}
+    microPrefab: {fileID: 0}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 2ca7a72576d4fe04eabc4bde75e55cea, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

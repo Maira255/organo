@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_pankreas
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: pankreas
+  displayName: Pankreas
+  system: 0
+  region: 3
+  cardNumber: 10
+  season: 1
+  about: Pankreas adalah kelenjar panjang yang letaknya di belakang lambung. Pankreas
+    membuat cairan pencernaan yang membantu memecah makanan di usus halus. Pankreas
+    juga membuat insulin, yang menjaga kadar gula di dalam darah.
+  funFact: 'Pankreas bekerja dua kali: membantu mencerna makanan dan menjaga gula
+    darahmu tetap seimbang!'
+  shortDescription: Kelenjar yang membuat cairan pencernaan dan insulin
+  function: Pankreas membuat cairan pencernaan dan insulin.
+  tint: {r: 1, g: 0.95686275, b: 0.9019608, a: 1}
+  ring: {r: 0.94509804, g: 0.827451, b: 0.65882355, a: 1}
+  accent: {r: 0.9137255, g: 0.6901961, b: 0.47843137, a: 1}
+  modelPrefab: {fileID: 7384850407819649189, guid: 39bdf7f5f07c1d94e9a1697b3fbae167, type: 3}
+  modelEuler: {x: 8, y: -10, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Kepala pankreas
+    description: Dikelilingi usus dua belas jari
+    localPosition: {x: -0.2, y: -0.03, z: -0.1}
+  - title: Ekor pankreas
+    description: Dekat limpa
+    localPosition: {x: 0.35, y: 0.1, z: -0.06}
+  lowModelPrefab: {fileID: 713356383870880568, guid: 69f7c4b39e6b42b47b93894b64c6b656, type: 3}
+  insidePrefab: {fileID: 2611213614646962951, guid: d0577f070e19dd940b7c36638684378e, type: 3}
+  insideEuler: {x: 6, y: -6, z: 0}
+  heroImage: {fileID: 2800000, guid: a4dcd2302d89301469a61b2107a1c22d, type: 3}
+  partVisuals:
+  - id: kepala
+    image: {fileID: 2800000, guid: c389bb53d0621e24fb4aa9c70686c7b9, type: 3}
+    microPrefab: {fileID: 0}
+  - id: badan
+    image: {fileID: 2800000, guid: 39f839f87285ddf4ba5ec93747d3f6c7, type: 3}
+    microPrefab: {fileID: 0}
+  - id: ekor
+    image: {fileID: 2800000, guid: 3e46f2d55dea5044c9209ba729681cc2, type: 3}
+    microPrefab: {fileID: 0}
+  - id: duodenum
+    image: {fileID: 2800000, guid: 603d598f78c27834f96a8e675ff9b58b, type: 3}
+    microPrefab: {fileID: 0}
+  - id: limpa
+    image: {fileID: 2800000, guid: 03fe74d141ae4784caf811041714c22c, type: 3}
+    microPrefab: {fileID: 0}
+  - id: empedu
+    image: {fileID: 2800000, guid: fdd68a7da11ff2f469259c977df2aa9e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: saluran
+    image: {fileID: 2800000, guid: c4d8494635c0de94ebedf34c34c44e0d, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pulau
+    image: {fileID: 2800000, guid: b02b54c624992a6409e609477e5fd5e2, type: 3}
+    microPrefab: {fileID: 0}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: dd1109e09a1843d4b9f6b620a084bc04, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

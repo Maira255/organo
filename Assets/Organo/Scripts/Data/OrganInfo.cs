@@ -4,8 +4,20 @@ using UnityEngine;
 
 namespace Organo.Data
 {
-    public enum OrganSystem { Pencernaan, Pernapasan, PeredaranDarah, Saraf }
-    public enum BodyRegion { Kepala, Leher, Dada, Perut }
+    public enum OrganSystem { Pencernaan, Pernapasan, PeredaranDarah, Saraf, Ekskresi, Indera, Reproduksi, Gerak }
+    /// <summary>Panggul = perut bagian bawah (organ reproduksi); di peta tubuh Library ikut area Perut.</summary>
+    public enum BodyRegion { Kepala, Leher, Dada, Perut, Panggul, SeluruhTubuh }
+
+    /// <summary>Gambar & model mikro untuk satu bagian organ (diisi otomatis oleh Organo > Model 3D).</summary>
+    [Serializable]
+    public class OrganPartVisual
+    {
+        public string id;
+        [Tooltip("Gambar bagian organ yang disorot (untuk kartu & Info Lengkap).")]
+        public Texture2D image;
+        [Tooltip("Model bagian yang diperbesar, mis. alveolus (kosong = disorot di model organ).")]
+        public GameObject microPrefab;
+    }
 
     [Serializable]
     public class OrganHotspotInfo
@@ -53,10 +65,27 @@ namespace Organo.Data
         [Tooltip("Pengali ukuran setelah model dinormalisasi agar pas di viewer.")]
         public float modelScale = 1f;
         public List<OrganHotspotInfo> hotspots = new List<OrganHotspotInfo>();
+        [Tooltip("Versi ringan model untuk tampilan tubuh (banyak organ sekaligus).")]
+        public GameObject lowModelPrefab;
+        [Tooltip("Model organ yang dipotong untuk tampilan \"Lihat dalam\" (diisi otomatis oleh Organo > Model 3D).")]
+        public GameObject insidePrefab;
+        [Tooltip("Rotasi awal model potongan supaya bidang potongnya menghadap kamera.")]
+        public Vector3 insideEuler;
+        [Tooltip("Gambar organ utuh untuk halaman Info Lengkap.")]
+        public Texture2D heroImage;
+        [Tooltip("Gambar & model mikro tiap bagian organ (urutan mengikuti OrganContent).")]
+        public List<OrganPartVisual> partVisuals = new List<OrganPartVisual>();
 
-        [Header("Suara penjelasan")]
-        [Tooltip("Rekaman narasi (about + fakta). Dipakai saat anak mengetuk organ di close-up.")]
+        public OrganPartVisual PartVisual(string partId) => partVisuals?.Find(v => v != null && v.id == partId);
+        public GameObject BodyPrefab => lowModelPrefab != null ? lowModelPrefab : modelPrefab;
+
+        [Header("Suara penjelasan (rekaman suara manusia/AI; kosong = suara HP)")]
+        [Tooltip("Rekaman paragraf \"Tentang\" (about). Dibuat oleh Tools/suara/buat_suara.py, dipasang Organo > Suara > Pasang Rekaman.")]
         public AudioClip narration;
+        [Tooltip("Rekaman tiap fakta menarik, urutan sama dengan OrganNarration.Facts (\"Tau gak sih? ...\").")]
+        public AudioClip[] factNarration;
+        [Tooltip("Rekaman kalimat kartu: nama + tugas organ (tombol Dengarkan di kartu).")]
+        public AudioClip cardNarration;
 
         [Header("AR  —  kartu fisik")]
         [Tooltip("Gambar sisi depan kartu Organo. Dipakai untuk membuat XR Reference Image Library (menu Organo > Bangun Library Kartu AR).")]
@@ -68,6 +97,8 @@ namespace Organo.Data
         [Tooltip("Tinggi model di atas kartu (meter).")]
         public float arModelSize = 0.08f;
 
+        /// <summary>Punya kartu cetak untuk di-scan? Organ reproduksi hanya didapat dari kuis (tidak dicetak).</summary>
+        public bool Printable => system != OrganSystem.Reproduksi;
         public string ReferenceImageName => "organo-" + id;
         public string IconKey => "organ_" + id;
         public string SystemLabel => "Sistem " + OrganDefaults.SystemName(system);

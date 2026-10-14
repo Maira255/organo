@@ -28,8 +28,8 @@ MonoBehaviour:
   tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
   ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
   accent: {r: 0.9372549, g: 0.2784314, b: 0.43529412, a: 1}
-  modelPrefab: {fileID: 0}
-  modelEuler: {x: 8, y: -20, z: 0}
+  modelPrefab: {fileID: 2476526998715995281, guid: 76bd40421673af6408004fe74ca7d166, type: 3}
+  modelEuler: {x: 4, y: -8, z: 0}
   modelScale: 1
   hotspots:
   - title: Vili
@@ -38,8 +38,33 @@ MonoBehaviour:
   - title: Lekukan usus
     description: Membuat usus muat di perut
     localPosition: {x: -0.3, y: -0.2, z: 0.2}
+  lowModelPrefab: {fileID: 7415272167985204435, guid: 96e643e66b7f63849abfe441340b3255, type: 3}
+  insidePrefab: {fileID: 8010181643148051008, guid: db1ab9ff1d2f7574cac87dd93f88756a, type: 3}
+  insideEuler: {x: 4, y: -8, z: 0}
+  heroImage: {fileID: 2800000, guid: 8e56ac55fd66445439b8b986ac47cb00, type: 3}
+  partVisuals:
+  - id: duodenum
+    image: {fileID: 2800000, guid: 0482bed3a0cd08e4ebc9e3d752da8e9a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: jejunum
+    image: {fileID: 2800000, guid: 86ca3b0a9a04c854cb4e617fc943ae93, type: 3}
+    microPrefab: {fileID: 0}
+  - id: ileum
+    image: {fileID: 2800000, guid: e3ce4a1781d48ba43baef40032f5bba4, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pembuluh
+    image: {fileID: 2800000, guid: 0cfb36015b23e764bac4ee08000c77a8, type: 3}
+    microPrefab: {fileID: 0}
+  - id: rongga
+    image: {fileID: 2800000, guid: b265f35168f183142a0c2661821de843, type: 3}
+    microPrefab: {fileID: 0}
+  - id: vili
+    image: {fileID: 2800000, guid: f8abf61c5d5484e49b092ac14beefdbe, type: 3}
+    microPrefab: {fileID: 7044924324491792675, guid: 2c5cf1d3b8d3f3d4395362b61c871d04, type: 3}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 8de404f699372c54a8cc816e8cbc352e, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

@@ -92,8 +92,8 @@ namespace Organo.EditorTools
         [MenuItem("Organo/Reset Progres Pemain", priority = 40)]
         public static void ResetProgress()
         {
-            PlayerPrefs.DeleteKey("organo.progress.v1");
             PlayerPrefs.DeleteKey("organo.camera.asked");
+            PlayerProgress.Wipe();
             Debug.Log("[Organo] Progres pemain dihapus.");
         }
 
@@ -156,7 +156,7 @@ namespace Organo.EditorTools
             return ps;
         }
 
-        static OrganDatabase EnsureDatabase()
+        internal static OrganDatabase EnsureDatabase()
         {
             var db = AssetDatabase.LoadAssetAtPath<OrganDatabase>(DbPath);
             if (db == null)
@@ -175,6 +175,8 @@ namespace Organo.EditorTools
                     OrganDefaults.Fill(o, id);
                     AssetDatabase.CreateAsset(o, path);
                 }
+                // teks organ selalu mengikuti kode (koreksi isi langsung terpakai)
+                else if (OrganDefaults.RefreshText(o)) EditorUtility.SetDirty(o);
                 if (!db.organs.Contains(o)) db.organs.Add(o);
             }
             EditorUtility.SetDirty(db);
@@ -191,25 +193,61 @@ namespace Organo.EditorTools
         }
 
         /// <returns>jumlah kartu yang dimasukkan.</returns>
+        internal static int RebuildCardLibrary(OrganDatabase db) => BuildCardLibrary(db);
+
+        /// <summary>
+        /// Patokan ukuran fisik kartu (6,3 cm) di library AR. ARCore (Android) memakai ukuran itu apa adanya: kartu yang
+        /// ditampilkan lebih besar di layar laptop dikira lebih dekat, sehingga model AR melayang & bergeser saat HP digerakkan.
+        /// Tanpa patokan, ARCore memperkirakan ukuran sebenarnya (kertas maupun layar). ARKit (iOS) wajib punya ukuran,
+        /// jadi patokan hanya dilepas selama build Android (OrganoAndroidBuild) lalu dipasang lagi.
+        /// </summary>
+        public static void SetCardLibrarySpecifySize(bool specify)
+        {
+            var lib = EnsureLibrary();
+            for (int i = 0; i < lib.count; i++) lib.SetSpecifySize(i, specify);
+            EditorUtility.SetDirty(lib);
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>Batch (-executeMethod): bangun ulang library kartu AR (kedua gaya) dan meja simulasi XR.</summary>
+        public static void RebuildCardLibraryBatch()
+        {
+            BuildCardLibrary(EnsureDatabase());
+            OrganoArSimulation.BuildAndUse();
+        }
+
         static int BuildCardLibrary(OrganDatabase db)
         {
             var lib = EnsureLibrary();
             while (lib.count > 0) lib.RemoveAt(lib.count - 1);
             int n = 0;
-            foreach (var o in db.organs.Where(o => o != null && o.cardImage != null))
+            foreach (var o in db.organs.Where(o => o != null && o.cardImage != null && o.Printable))
             {
-                lib.Add();
-                int i = lib.count - 1;
-                lib.SetName(i, o.ReferenceImageName);
-                lib.SetTexture(i, o.cardImage, false);
-                lib.SetSpecifySize(i, true);
-                float aspect = (float)o.cardImage.height / Mathf.Max(1, o.cardImage.width);
-                lib.SetSize(i, new Vector2(o.cardWidthMeters, o.cardWidthMeters * aspect));
+                AddCard(lib, o.ReferenceImageName, o.cardImage, o.cardWidthMeters);
+                // Guru boleh mencetak gaya mana pun (Realistis/Kartun), jadi gaya lainnya ikut dikenali.
+                foreach (var (dir, style) in new[] { (OrganoCards.CardDir, "realistis"), (OrganoCards.CartoonDir, "kartun") })
+                {
+                    var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(dir + "/" + o.id + ".png");
+                    if (tex != null && tex != o.cardImage)
+                        AddCard(lib, o.ReferenceImageName + OrganDatabase.StyleSeparator + style, tex, o.cardWidthMeters);
+                }
                 n++;
             }
             EditorUtility.SetDirty(lib);
             AssetDatabase.SaveAssets();
+            Debug.Log("[Organo] Library kartu AR: " + n + " kartu, " + lib.count + " gambar (kedua gaya).");
             return n;
+        }
+
+        static void AddCard(XRReferenceImageLibrary lib, string name, Texture2D tex, float widthMeters)
+        {
+            lib.Add();
+            int i = lib.count - 1;
+            lib.SetName(i, name);
+            lib.SetTexture(i, tex, false);
+            lib.SetSpecifySize(i, true);
+            float aspect = (float)tex.height / Mathf.Max(1, tex.width);
+            lib.SetSize(i, new Vector2(widthMeters, widthMeters * aspect));
         }
 
         static void ConfigurePlayer()
@@ -283,6 +321,31 @@ namespace Organo.EditorTools
             app.database = db;
             app.styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(UssPath);
             app.ar = scanner;
+            AssignFonts(app);
+        }
+
+        static void AssignFonts(OrganoApp app)
+        {
+            app.fontRegular = AssetDatabase.LoadAssetAtPath<Font>(Root + "/Fonts/Poppins-Regular.ttf");
+            app.fontMedium = AssetDatabase.LoadAssetAtPath<Font>(Root + "/Fonts/Poppins-Medium.ttf");
+            app.fontSemiBold = AssetDatabase.LoadAssetAtPath<Font>(Root + "/Fonts/Poppins-SemiBold.ttf");
+            EditorUtility.SetDirty(app);
+        }
+
+        /// <summary>Pasang font Poppins ke OrganoApp di scene Organo (untuk scene yang sudah ada).</summary>
+        [MenuItem("Organo/Pasang Font Poppins", priority = 22)]
+        public static void InstallFonts()
+        {
+            if (!File.Exists(ScenePath)) { Run(true); return; }
+            var active = EditorSceneManager.GetActiveScene();
+            bool already = active.path == ScenePath;
+            var scene = already ? active : EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+            foreach (var root in scene.GetRootGameObjects())
+                foreach (var app in root.GetComponentsInChildren<OrganoApp>(true)) AssignFonts(app);
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            if (!already) EditorSceneManager.CloseScene(scene, true);
+            Debug.Log("[Organo] Font Poppins dipasang ke " + ScenePath);
         }
 
         static void AddToBuildSettings()

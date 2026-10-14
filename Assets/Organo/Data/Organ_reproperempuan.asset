@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_reproperempuan
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: reproperempuan
+  displayName: Reproduksi Perempuan
+  system: 6
+  region: 4
+  cardNumber: 17
+  season: 7
+  about: Organ reproduksi perempuan ada di dalam panggul (perut bagian bawah). Dua
+    ovarium (indung telur) menyimpan calon sel telur dan membuat hormon estrogen.
+    Mulai pubertas, kira-kira sebulan sekali satu sel telur matang lalu berjalan
+    lewat tuba falopi menuju rahim. Dinding rahim menebal untuk bersiap, lalu luruh
+    dan keluar lewat vagina sebagai darah haid bila tidak terjadi kehamilan. Rahim
+    juga tempat bayi tumbuh selama kehamilan.
+  funFact: Saat lahir, bayi perempuan sudah memiliki sekitar satu juta calon sel
+    telur di indung telurnya!
+  shortDescription: Organ yang menyimpan sel telur & tempat bayi tumbuh
+  function: Organ reproduksi perempuan menyimpan sel telur dan menjadi tempat bayi
+    tumbuh.
+  tint: {r: 1, g: 0.9411765, b: 0.9607843, a: 1}
+  ring: {r: 0.9607843, g: 0.7607843, b: 0.8392157, a: 1}
+  accent: {r: 0.8784314, g: 0.40392157, b: 0.56078434, a: 1}
+  modelPrefab: {fileID: 8563100684613377307, guid: abf30bd8fadc587468db28faf0247685, type: 3}
+  modelEuler: {x: 8, y: -8, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Rahim
+    description: Tempat bayi tumbuh
+    localPosition: {x: 0, y: 0.14, z: -0.12}
+  - title: Ovarium
+    description: Menyimpan sel telur
+    localPosition: {x: 0.38, y: 0.06, z: -0.02}
+  lowModelPrefab: {fileID: 3495870171487075734, guid: 02b3b824a8e655849ad93aabf7f49fb4, type: 3}
+  insidePrefab: {fileID: 3593240798760660049, guid: 096c24b99ad78ac4a818e85e22ac5d4d, type: 3}
+  insideEuler: {x: 6, y: -6, z: 0}
+  heroImage: {fileID: 2800000, guid: 60e01fd396383fd41b17a34cf651a104, type: 3}
+  partVisuals:
+  - id: ovarium
+    image: {fileID: 2800000, guid: b28aed2068888dd46a5a737167968c56, type: 3}
+    microPrefab: {fileID: 0}
+  - id: tuba
+    image: {fileID: 2800000, guid: d921eb44c0e3e914dac7e4e9bb4e89f2, type: 3}
+    microPrefab: {fileID: 0}
+  - id: fimbria
+    image: {fileID: 2800000, guid: 619e05acc1af840459529e2af262ebf8, type: 3}
+    microPrefab: {fileID: 0}
+  - id: rahim
+    image: {fileID: 2800000, guid: 0308191452e8fde48a97af1520af0085, type: 3}
+    microPrefab: {fileID: 0}
+  - id: serviks
+    image: {fileID: 2800000, guid: cbb9b5ba8ea0fd24a857c01984e40685, type: 3}
+    microPrefab: {fileID: 0}
+  - id: vagina
+    image: {fileID: 2800000, guid: 2ed582578a5684447b8d5b7374a6bbda, type: 3}
+    microPrefab: {fileID: 0}
+  - id: ligamen
+    image: {fileID: 2800000, guid: 686aa27dba0d0be4191a64acbbeea5e3, type: 3}
+    microPrefab: {fileID: 0}
+  - id: endometrium
+    image: {fileID: 2800000, guid: a03ce3e4faef5a746b343b882b5a0457, type: 3}
+    microPrefab: {fileID: 0}
+  - id: miometrium
+    image: {fileID: 2800000, guid: 326c6fd715c5265489fcfc56f0537275, type: 3}
+    microPrefab: {fileID: 0}
+  - id: folikel
+    image: {fileID: 2800000, guid: bd094d07114afe24d81237c56541633f, type: 3}
+    microPrefab: {fileID: 0}
+  - id: seltelur
+    image: {fileID: 2800000, guid: a7cf3cf05e01a05438cd34eb99622d22, type: 3}
+    microPrefab: {fileID: 941990140229371794, guid: a5536d175b45eee4cbd29a65a5fed97a, type: 3}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 85d2011d0b36e584789070d2223e7d7d, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

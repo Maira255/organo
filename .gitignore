@@ -112,3 +112,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# kunci API layanan suara (Tools/suara/buat_suara.py) - jangan di-commit
+Tools/suara/kunci.txt

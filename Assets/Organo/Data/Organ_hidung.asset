@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c500a02f77c305d459de60f18808786b, type: 3}
+  m_Name: Organ_hidung
+  m_EditorClassIdentifier: Assembly-CSharp::Organo.Data.OrganInfo
+  id: hidung
+  displayName: Hidung
+  system: 1
+  region: 0
+  cardNumber: 13
+  season: 2
+  about: Hidung adalah pintu masuk udara saat kamu bernapas, sekaligus alat indera
+    untuk mencium bau. Di dalam hidung ada bulu halus dan lendir yang menangkap debu
+    dan kuman. Rak-rak berlekuk bernama konka menghangatkan dan melembapkan udara.
+    Di atap rongga hidung ada sel-sel pencium yang mengirim pesan bau ke otak.
+  funFact: Hidungmu bisa mengenali ribuan macam bau, dari kue yang baru matang sampai
+    hujan pertama!
+  shortDescription: Pintu masuk udara & alat pencium
+  function: Hidung menyaring udara yang masuk dan mencium bau.
+  tint: {r: 1, g: 0.95686275, b: 0.93333334, a: 1}
+  ring: {r: 0.9607843, g: 0.8039216, b: 0.72156864, a: 1}
+  accent: {r: 0.9137255, g: 0.5803922, b: 0.43529412, a: 1}
+  modelPrefab: {fileID: 5268593196737674025, guid: 25a74cedd0c27ab4686a252d4fb6a185, type: 3}
+  modelEuler: {x: 6, y: -42, z: 0}
+  modelScale: 1
+  hotspots:
+  - title: Lubang hidung
+    description: Pintu masuk udara
+    localPosition: {x: 0.05, y: -0.06, z: -0.29}
+  lowModelPrefab: {fileID: 680140363402153764, guid: f4d771ea5a2e0c5449eb57198e4fef73, type: 3}
+  insidePrefab: {fileID: 6910268435452717753, guid: eb64ec3f964a4e743a0ce935e05a0dfd, type: 3}
+  insideEuler: {x: 4, y: 74, z: 0}
+  heroImage: {fileID: 2800000, guid: 0e47d98bbc3b1594896a126e882f0e17, type: 3}
+  partVisuals:
+  - id: luar
+    image: {fileID: 2800000, guid: 579d8f7cb6630a9429b8f36761df4966, type: 3}
+    microPrefab: {fileID: 0}
+  - id: bulu
+    image: {fileID: 2800000, guid: 4e6e89c5ffc95464cb3808c817ece94a, type: 3}
+    microPrefab: {fileID: 0}
+  - id: rongga
+    image: {fileID: 2800000, guid: c9656929c2811644b8f1bec0821619c4, type: 3}
+    microPrefab: {fileID: 0}
+  - id: konka
+    image: {fileID: 2800000, guid: 7444d5d91d688064392c9ceafd6f58bc, type: 3}
+    microPrefab: {fileID: 0}
+  - id: sekat
+    image: {fileID: 2800000, guid: f95919aefb9b3d84182dfe3da1a33a94, type: 3}
+    microPrefab: {fileID: 0}
+  - id: penciuman
+    image: {fileID: 2800000, guid: a469feef3637ed3419a1f37faf3d95d5, type: 3}
+    microPrefab: {fileID: 0}
+  - id: nasofaring
+    image: {fileID: 2800000, guid: a632479f0ad32b7468cbeb214da9d381, type: 3}
+    microPrefab: {fileID: 0}
+  narration: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 9636f3c34ecb79e47865b7d2bc96b0d7, type: 3}
+  cardWidthMeters: 0.063
+  arModelPrefab: {fileID: 0}
+  arModelSize: 0.08

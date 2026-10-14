@@ -1,0 +1,47 @@
+{
+  "note": "Akun uji Organo (data contoh untuk pengujian, bukan akun sungguhan). Semua akun memakai password & PIN di bawah. Muat lewat menu Organo > Akun Uji > Buat Akun Uji, atau tombol 'Muat akun uji' di halaman Masuk (hanya Editor / development build).",
+  "accounts": [
+    {
+      "username": "uji.baru",
+      "nickname": "Bima",
+      "password": "organo123",
+      "pin": "1234",
+      "gender": "Boy",
+      "ageRange": "6-7",
+      "stars": 0,
+      "season1Done": 0,
+      "warmupDone": 0,
+      "cards": [],
+      "openedOrgans": [],
+      "favorites": []
+    },
+    {
+      "username": "uji.sedang",
+      "nickname": "Sari",
+      "password": "organo123",
+      "pin": "1234",
+      "gender": "Girl",
+      "ageRange": "8-9",
+      "stars": 85,
+      "season1Done": 2,
+      "warmupDone": 3,
+      "cards": ["mulut", "kerongkongan", "lambung", "jantung", "paru", "mata"],
+      "openedOrgans": ["mulut", "kerongkongan", "lambung", "jantung", "paru", "mata", "hidung"],
+      "favorites": ["jantung", "mata"]
+    },
+    {
+      "username": "uji.lengkap",
+      "nickname": "Raka",
+      "password": "organo123",
+      "pin": "1234",
+      "gender": "Boy",
+      "ageRange": "10-12",
+      "stars": 320,
+      "season1Done": 5,
+      "warmupDone": 5,
+      "cards": ["mulut", "kerongkongan", "lambung", "usushalus", "ususbesar", "paru", "jantung", "ginjal", "hati", "pankreas", "otak", "tenggorokan", "hidung", "mata"],
+      "openedOrgans": ["mulut", "kerongkongan", "lambung", "usushalus", "ususbesar", "paru", "jantung", "ginjal", "hati", "pankreas", "otak", "tenggorokan", "hidung", "mata"],
+      "favorites": ["otak", "jantung", "paru"]
+    }
+  ]
+}

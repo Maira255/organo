@@ -1,0 +1,124 @@
+{
+    "items": [
+        {
+            "key": "k:ginjal",
+            "seed": 3
+        },
+        {
+            "key": "k:hati",
+            "seed": 0
+        },
+        {
+            "key": "k:hidung",
+            "seed": 0
+        },
+        {
+            "key": "k:jantung",
+            "seed": 0
+        },
+        {
+            "key": "k:kerongkongan",
+            "seed": 0
+        },
+        {
+            "key": "k:lambung",
+            "seed": 6
+        },
+        {
+            "key": "k:mata",
+            "seed": 0
+        },
+        {
+            "key": "k:mulut",
+            "seed": 1
+        },
+        {
+            "key": "k:otak",
+            "seed": 0
+        },
+        {
+            "key": "k:pankreas",
+            "seed": 1
+        },
+        {
+            "key": "k:paru",
+            "seed": 1
+        },
+        {
+            "key": "k:rangka",
+            "seed": 7
+        },
+        {
+            "key": "k:tenggorokan",
+            "seed": 1
+        },
+        {
+            "key": "k:ususbesar",
+            "seed": 7
+        },
+        {
+            "key": "k:usushalus",
+            "seed": 0
+        },
+        {
+            "key": "r:ginjal",
+            "seed": 0
+        },
+        {
+            "key": "r:hati",
+            "seed": 0
+        },
+        {
+            "key": "r:hidung",
+            "seed": 5
+        },
+        {
+            "key": "r:jantung",
+            "seed": 0
+        },
+        {
+            "key": "r:kerongkongan",
+            "seed": 0
+        },
+        {
+            "key": "r:lambung",
+            "seed": 0
+        },
+        {
+            "key": "r:mata",
+            "seed": 2
+        },
+        {
+            "key": "r:mulut",
+            "seed": 0
+        },
+        {
+            "key": "r:otak",
+            "seed": 0
+        },
+        {
+            "key": "r:pankreas",
+            "seed": 0
+        },
+        {
+            "key": "r:paru",
+            "seed": 2
+        },
+        {
+            "key": "r:rangka",
+            "seed": 3
+        },
+        {
+            "key": "r:tenggorokan",
+            "seed": 1
+        },
+        {
+            "key": "r:ususbesar",
+            "seed": 0
+        },
+        {
+            "key": "r:usushalus",
+            "seed": 3
+        }
+    ]
+}

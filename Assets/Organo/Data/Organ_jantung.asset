@@ -27,8 +27,8 @@ MonoBehaviour:
   tint: {r: 1, g: 0.94509804, b: 0.95686275, a: 1}
   ring: {r: 0.9607843, g: 0.7176471, b: 0.7764706, a: 1}
   accent: {r: 0.9372549, g: 0.2784314, b: 0.43529412, a: 1}
-  modelPrefab: {fileID: 0}
-  modelEuler: {x: 8, y: -20, z: 0}
+  modelPrefab: {fileID: 5159221209111116837, guid: 941bfe7355de8bf47854ff4a1fdd1f1a, type: 3}
+  modelEuler: {x: 4, y: -14, z: 0}
   modelScale: 1
   hotspots:
   - title: Bilik jantung
@@ -37,8 +37,36 @@ MonoBehaviour:
   - title: Pembuluh darah
     description: Jalan darah keluar-masuk
     localPosition: {x: -0.1, y: 0.42, z: 0.1}
+  lowModelPrefab: {fileID: 9146567789489260140, guid: 1df201d45c3369943b3a3eb5c854cb3b, type: 3}
+  insidePrefab: {fileID: 8134801659244534649, guid: 2ccf94a4524590545963239a2a03cf9a, type: 3}
+  insideEuler: {x: 5, y: -6, z: 0}
+  heroImage: {fileID: 2800000, guid: f75c3b7d8062fe840ab3acd10c8f4c79, type: 3}
+  partVisuals:
+  - id: bilik
+    image: {fileID: 2800000, guid: 0f23b27c3f660b642b6a49c3f339ac6e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: serambi
+    image: {fileID: 2800000, guid: 585bdfbc0f68b56489b27fee7099c71e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: katup
+    image: {fileID: 2800000, guid: e59741f09b3270a4ab540ca2c420ccd2, type: 3}
+    microPrefab: {fileID: 0}
+  - id: aorta
+    image: {fileID: 2800000, guid: 8306fe777a96d4744be35e6adf208263, type: 3}
+    microPrefab: {fileID: 0}
+  - id: vena
+    image: {fileID: 2800000, guid: 43c8a7c41f7bf6e4b925f7079fa65314, type: 3}
+    microPrefab: {fileID: 0}
+  - id: pulmonalis
+    image: {fileID: 2800000, guid: a7835a57a37a4ed4fa0525d60d823753, type: 3}
+    microPrefab: {fileID: 0}
+  - id: seldarah
+    image: {fileID: 2800000, guid: dcc25454aadf8d1418011e7611ad1d7c, type: 3}
+    microPrefab: {fileID: 5941990405802222574, guid: f558f98fb0e69dc4aa89017ff67eff75, type: 3}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 537ba866df642f444bfca0db59ff1621, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

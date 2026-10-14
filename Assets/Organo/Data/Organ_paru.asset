@@ -27,8 +27,8 @@ MonoBehaviour:
   tint: {r: 0.9529412, g: 0.9372549, b: 0.99215686, a: 1}
   ring: {r: 0.8039216, g: 0.7490196, b: 0.9607843, a: 1}
   accent: {r: 0.54509807, g: 0.43529412, b: 0.9098039, a: 1}
-  modelPrefab: {fileID: 0}
-  modelEuler: {x: 8, y: -20, z: 0}
+  modelPrefab: {fileID: 1867755657450710602, guid: de1658a0229de0d4daea0fb4cd185b6e, type: 3}
+  modelEuler: {x: 4, y: -18, z: 0}
   modelScale: 1
   hotspots:
   - title: Tenggorokan
@@ -37,8 +37,39 @@ MonoBehaviour:
   - title: Alveolus
     description: Tukar oksigen & karbon dioksida
     localPosition: {x: 0.3, y: -0.1, z: 0.2}
+  lowModelPrefab: {fileID: 6136586029040127063, guid: 6e94dab4f3ba2ba4ea57c7056694cd84, type: 3}
+  insidePrefab: {fileID: 2584522597267493048, guid: 0106ac7df9625c74ba1f6fc7b208575e, type: 3}
+  insideEuler: {x: 4, y: -12, z: 0}
+  heroImage: {fileID: 2800000, guid: 9d361fd70e81883478081fc8b42bea17, type: 3}
+  partVisuals:
+  - id: hidung
+    image: {fileID: 2800000, guid: 784ce30112595364d8a3dda40d66b8e9, type: 3}
+    microPrefab: {fileID: 0}
+  - id: faring
+    image: {fileID: 2800000, guid: d4eb677c0f8c8e64db199752e4d91bcc, type: 3}
+    microPrefab: {fileID: 0}
+  - id: laring
+    image: {fileID: 2800000, guid: c2d69ce3fb8b7d4499c2483a2440c0de, type: 3}
+    microPrefab: {fileID: 0}
+  - id: kerongkongan
+    image: {fileID: 2800000, guid: d50ef5a03300d8e4da44829e770ed72c, type: 3}
+    microPrefab: {fileID: 0}
+  - id: trakea
+    image: {fileID: 2800000, guid: 9324596e561b2d844acb0d656e6b1d52, type: 3}
+    microPrefab: {fileID: 0}
+  - id: bronkus
+    image: {fileID: 2800000, guid: 34afffdbc87153941b7bc2e4ba5cd81f, type: 3}
+    microPrefab: {fileID: 0}
+  - id: lobus
+    image: {fileID: 2800000, guid: be6441826da1e76419e37e7c16bc5c0e, type: 3}
+    microPrefab: {fileID: 0}
+  - id: alveolus
+    image: {fileID: 2800000, guid: d18b6aa71a8ff0a4d9a03c9733665ff7, type: 3}
+    microPrefab: {fileID: 4734556695566139623, guid: e939a8b437318bb4d89509f45e2a8892, type: 3}
   narration: {fileID: 0}
-  cardImage: {fileID: 0}
+  factNarration: []
+  cardNarration: {fileID: 0}
+  cardImage: {fileID: 2800000, guid: 6c97c2be06791324cbcb04488e7248c8, type: 3}
   cardWidthMeters: 0.063
   arModelPrefab: {fileID: 0}
   arModelSize: 0.08

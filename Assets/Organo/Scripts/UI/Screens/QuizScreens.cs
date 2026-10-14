@@ -20,12 +20,71 @@ namespace Organo.Screens
         public int Correct => answers.Count(a => a.isCorrect);
         public QuizQuestion Q => index < questions.Count ? questions[index] : null;
         public QuizRecord result;
+        /// <summary>Kuis topik khusus (mis. "repro:reprolaki"); null = kuis biasa.</summary>
+        public string topic;
+        /// <summary>Season yang dimainkan (mis. "napas"); null = latihan per jenis soal / topik.</summary>
+        public string seasonId;
+        /// <summary>Id untuk riwayat & "Ulangi kuis" (lihat <see cref="QuizRecord.quizId"/>).</summary>
+        public string quizId;
+        public string title = "Sistem Pencernaan";
+        /// <summary>Kartu yang didapat dari kuis ini (null = tidak ada kartu baru).</summary>
+        public string newCard;
+        /// <summary>Organ reproduksi gender lain yang baru saja terbuka karena kuis ini.</summary>
+        public string unlocked;
+        int m_StartCards;
+        bool m_Finished;
 
+        /// <summary>Tanpa jenis: Season 1 (Pencernaan). Dengan jenis: latihan soal jenis itu dari semua season.</summary>
         public static QuizSession Start(QuizType? only = null)
         {
-            Current = new QuizSession { questions = QuizBank.Pencernaan(only) };
+            if (!only.HasValue) return StartSeason("cerna");
+            Current = new QuizSession
+            {
+                questions = QuizBank.Practice(only.Value), quizId = "latihan:" + only.Value,
+                title = "Latihan " + QuizBank.TypeName(only.Value),
+            };
+            Current.m_StartCards = OrganoApp.Instance != null ? OrganoApp.Instance.Progress.cards.Count : 0;
             return Current;
         }
+
+        public static QuizSession StartSeason(string id)
+        {
+            var info = QuizBank.GetSeason(id) ?? QuizBank.Seasons[1];
+            Current = new QuizSession
+            {
+                seasonId = info.id, quizId = QuizBank.SeasonQuizId(info.id), title = info.title,
+                system = info.system, questions = QuizBank.Season(info.id),
+            };
+            Current.m_StartCards = OrganoApp.Instance != null ? OrganoApp.Instance.Progress.cards.Count : 0;
+            return Current;
+        }
+
+        /// <summary>Mulai lagi kuis yang sama dengan catatan riwayat ini.</summary>
+        public static QuizSession Restart(QuizRecord r)
+        {
+            string id = r?.quizId ?? "";
+            if (id.StartsWith("repro:")) return StartTopic(id);
+            if (id.StartsWith("latihan:") && System.Enum.TryParse(id.Substring(8), out QuizType t)) return Start(t);
+            return StartSeason(QuizBank.RecordSeason(r) ?? "cerna");
+        }
+
+        /// <summary>Mulai kuis lalu buka soal pertamanya.</summary>
+        public static void Play(OrganoApp app, QuizSession s) { Current = s; OpenCurrent(app); }
+
+        /// <summary>Mulai kuis topik (organ reproduksi). Topik gender lain yang masih terkunci tidak bisa dimulai.</summary>
+        public static QuizSession StartTopic(string topic)
+        {
+            Current = new QuizSession
+            {
+                topic = topic, quizId = topic, questions = QuizBank.Topic(topic), title = QuizBank.TopicTitle(topic),
+                system = OrganSystem.Reproduksi,
+            };
+            Current.m_StartCards = OrganoApp.Instance != null ? OrganoApp.Instance.Progress.cards.Count : 0;
+            return Current;
+        }
+
+        /// <summary>Kartu baru yang didapat selama kuis ini (dari misi scan atau hadiah kuis topik).</summary>
+        public bool GainedCard(PlayerProgress p) => newCard != null || p.cards.Count > m_StartCards;
 
         public void Answer(bool ok, string yours, string right)
         {
@@ -34,9 +93,13 @@ namespace Organo.Screens
             if (ok) OrganoAudio.Success(); else OrganoAudio.Wrong();
         }
 
-        /// <summary>Lanjut ke soal berikutnya atau ke hasil.</summary>
-        public void Next(OrganoApp app)
+        /// <summary>
+        /// Lanjut ke soal berikutnya atau ke hasil. <paramref name="from"/> = nomor soal saat tombol ditekan:
+        /// ketukan ganda pada tombol lama diabaikan (soal tidak terlewati, hasil tidak tercatat dua kali).
+        /// </summary>
+        public void Next(OrganoApp app, int from = -1)
         {
+            if (m_Finished || (from >= 0 && from != index)) return;
             index++;
             if (index >= questions.Count) { Finish(app); return; }
             OpenCurrent(app, false);
@@ -45,25 +108,39 @@ namespace Organo.Screens
         public static void OpenCurrent(OrganoApp app, bool push = true)
         {
             var s = Current;
+            if (s?.Q == null) return;
             if (s.Q.type == QuizType.MisiScan) app.Go<QuizScanScreen>(null, push);
             else app.Go<QuizPlayScreen>(s, push);
         }
 
         void Finish(OrganoApp app)
         {
+            if (m_Finished) return;
+            m_Finished = true;
             var p = app.Progress;
             int stars = Correct * 5;
+            if (topic != null)
+            {
+                bool ownBefore = ReproAccess.OwnQuizDone(p);
+                if (!p.doneTopics.Contains(topic)) p.doneTopics.Add(topic);
+                string organ = ReproAccess.OrganOfTopic(topic);
+                if (organ != null && p.AddCard(organ, 0)) newCard = organ;
+                if (!ownBefore && ReproAccess.OwnQuizDone(p)) unlocked = ReproAccess.OtherId(p.gender);
+            }
             result = new QuizRecord
             {
                 system = OrganDefaults.SystemName(system),
-                quizNumber = Mathf.Min(5, p.season1Done + 1),
+                quizId = quizId ?? "", title = title,
+                quizNumber = p.history.Count(h => h.quizId == quizId) + 1,
                 correct = Correct, total = questions.Count, stars = stars,
                 when = "Hari ini, " + System.DateTime.Now.ToString("HH.mm"),
                 answers = new List<QuizAnswer>(answers)
             };
             p.history.Insert(0, result);
             p.stars += stars;
-            if (questions.Count >= 5 && p.season1Done < 5) p.season1Done++;
+            // penghitung lama (dipakai versi sebelumnya) tetap diisi
+            if (seasonId == "cerna" && p.season1Done < 5) p.season1Done++;
+            if (seasonId == "tubuh" && p.warmupDone < 5) p.warmupDone++;
             p.Save();
             app.Go<QuizResultScreen>(this, false);
         }
@@ -77,7 +154,7 @@ namespace Organo.Screens
 
         protected override void Build(object arg)
         {
-            var hist = U.IconButton("rotate", () => App.Go<QuizHistoryScreen>(), 20, "Riwayat");
+            var hist = U.IconButton("history", () => App.Go<QuizHistoryScreen>(), 22, "Riwayat");
             hist.style.marginRight = -12;
             Root.Add(Parts.TopBar("Quiz", () => App.GoTab(NavTab.Beranda), hist));
             var scroll = U.Scroll();
@@ -86,20 +163,22 @@ namespace Organo.Screens
             var c = U.Col(20);
             scroll.Add(c);
 
-            int done = P.season1Done;
+            // Kuis berikutnya: season pertama yang belum diselesaikan (semua selesai: main lagi season dengan skor terendah)
+            var next = P.NextSeason;
+            var replay = next ?? QuizBank.Seasons.OrderBy(x => P.SeasonBest(x.id)).First();
             var cont = U.Col(6).Radius(18).Pad(16).Gradient(U.Pink, U.Purple, 135);
             cont.style.overflow = Overflow.Hidden;
             cont.Add(U.Icon("mascot_quiz", 118).Abs(null, null, -4, -6));
-            cont.Add(U.Text("Season 1 · Lanjutkan").FontSize(12).Bold().Fg(U.C("#FFFFFF", 0.9f)));
-            cont.Add(U.Text("Sistem Pencernaan").FontSize(20).Bold().Fg("#FFFFFF"));
-            cont.Add(U.Text("Kuis " + Mathf.Min(5, done + 1) + " dari 5 · ±5 menit").FontSize(12).Fg("#FFFFFF"));
-            var bar = U.Progress(done / 5f, "#FFFFFF", "#FFFFFF55").W(170);
-            cont.Add(bar);
+            cont.Add(U.Text(next != null ? next.season : "SEMUA SEASON SELESAI").FontSize(12).Bold().Fg(U.C("#FFFFFF", 0.9f)));
+            var heroTitle = U.Text(next != null ? next.title : "Hebat, " + P.nickname + "!").FontSize(20).Bold().Fg("#FFFFFF").W(200);
+            heroTitle.style.whiteSpace = WhiteSpace.Normal;
+            cont.Add(heroTitle);
+            cont.Add(U.Text(next != null ? "5 soal" : "Main lagi " + replay.title).FontSize(12).Fg("#FFFFFF"));
             var go = U.Row(6).Bg("#FFFFFF").Radius(999).Pad(9, 16).AlignSelf(Align.FlexStart);
             go.style.marginTop = 6;
-            go.Add(U.Text("Lanjut Kuis").FontSize(13).Bold().Fg(U.Pink));
+            go.Add(U.Text(next != null ? "Mulai" : "Main Lagi").FontSize(13).Bold().Fg(U.Pink));
             go.Add(U.Icon("arrow_right", 14).Tinted(U.C(U.Pink)));
-            go.Tap(() => { QuizSession.Start(); QuizSession.OpenCurrent(App); });
+            go.Tap(() => QuizSession.Play(App, QuizSession.StartSeason(replay.id)));
             cont.Add(go);
             c.Add(cont);
 
@@ -107,12 +186,9 @@ namespace Organo.Screens
             if (last != null)
             {
                 var r = U.Row(12, "card", "card-lg");
-                var ring = U.Div().Size(46, 46).Radius(23).Border(4, U.Teal).Center();
-                ring.Add(U.Text(last.Percent + "%").FontSize(12).Bold().Fg(U.TealDark));
-                r.Add(ring);
+                r.Add(Parts.PercentCircle(last.Percent));
                 var t = U.Col(2).Grow();
-                t.Add(U.Text("HASIL TERAKHIR", "t-tiny").Bold());
-                t.Add(U.Text(last.system + " · Kuis " + last.quizNumber + " · " + last.correct + "/" + last.total + " benar", "t-small").Bold());
+                t.Add(U.Text(last.Title + " · " + last.correct + "/" + last.total + " benar", "t-small").Bold());
                 t.Add(U.Text(last.when + " · +" + last.stars + " bintang", "t-tiny"));
                 r.Add(t);
                 r.Add(U.Text("Riwayat").FontSize(12).Bold().Fg(U.Pink));
@@ -120,61 +196,106 @@ namespace Organo.Screens
                 c.Add(r);
             }
 
-            var types = U.Col(10);
-            types.Add(U.Text("Latihan per jenis kuis", "t-section"));
-            var row = U.Row(10);
-            row.Add(TypeCard("Tempel Label", "Seret ke tubuh", "grid", U.TealSoft, QuizType.TempelLabel));
-            row.Add(TypeCard("Pilihan Ganda 3D", "Putar & tebak", "rotate", U.PurpleSoft, QuizType.PilihanGanda3D));
-            row.Add(TypeCard("Misi Scan", "Cari kartunya", "scan_small", U.PinkSoft, QuizType.MisiScan));
-            types.Add(row);
-            c.Add(types);
-
             var all = U.Col(10);
             var hdr = U.Row().Justify(Justify.SpaceBetween);
-            hdr.Add(U.Text("Kumpulan kuis", "t-section"));
-            hdr.Add(U.Text((done >= 5 ? 2 : 1) + " dari 4 season selesai", "t-caption"));
+            hdr.Add(U.Text("Season", "t-section"));
+            hdr.Add(U.Text(P.SeasonsDone + " dari " + QuizBank.Seasons.Count + " selesai", "t-caption"));
             all.Add(hdr);
             foreach (var s in QuizBank.Seasons)
             {
-                int d = s.id == "tubuh" ? P.warmupDone : s.id == "cerna" ? done : 0;
-                bool locked = s.id == "napas" ? done < 5 : s.id == "darah";
-                bool complete = d >= s.total;
+                bool complete = P.SeasonDone(s.id);
+                int best = P.SeasonBest(s.id);
                 var (fg, soft) = OrganDefaults.SystemColors(s.system);
-                string color = locked ? "#BDBACE" : s.id == "tubuh" ? U.Teal : U.Pink;
-                var card = U.Row(12).MinH(76).Radius(16).Pad(12, 14).Bg(locked ? "#FBFAFD" : "#FFFFFF").Border(1, !locked && !complete ? "#F5B7C6" : U.Line);
-                var ic = U.Div().Size(48, 48).Radius(14).Center().Bg(locked ? U.C("#F6F5F9") : soft);
-                ic.Add(U.Icon(s.id == "tubuh" ? "logo" : s.id == "cerna" ? "cat_cerna" : s.id == "napas" ? "cat_napas" : "cat_darah", 26));
-                if (locked) ((SvgImage)ic[0]).Tint = U.C("#BDBACE");
+                var card = U.Row(12).MinH(68).Radius(16).Pad(10, 14).Bg("#FFFFFF").Border(1, next == s ? "#F5B7C6" : U.Line);
+                var ic = U.Div().Size(48, 48).Radius(14).Center().Bg(soft);
+                ic.Add(U.Icon(s.icon, 26));
                 card.Add(ic);
-                var mid = U.Col(4).Grow();
+                var mid = U.Col(2).Grow();
                 mid.Add(U.Text(s.season, "t-tiny").Bold());
-                mid.Add(U.Text(s.title, "t-small").Bold().Fg(locked ? U.Faint : U.Ink));
-                var pr = U.Row(8);
-                pr.Add(U.Progress((float)d / s.total, color, "#F0EEF5").Grow());
-                pr.Add(U.Text(d + "/" + s.total + " kuis", "t-tiny"));
-                mid.Add(pr);
+                mid.Add(U.Text(s.title, "t-small").Bold());
                 card.Add(mid);
-                if (locked) card.Add(U.Icon("lock", 20).Tinted(U.C(U.Faint)));
+                if (complete && best >= 0) card.Add(Score(best, 5));
                 else if (complete) card.Add(U.Pill("Selesai", U.TealSoft, U.TealDark));
-                else card.Add(U.Pill("Lanjut", U.PinkSoft, U.PinkDark));
-                card.Tap(() =>
-                {
-                    if (locked) App.Toast("Selesaikan season sebelumnya untuk membuka!");
-                    else { QuizSession.Start(); QuizSession.OpenCurrent(App); }
-                });
+                else card.Add(U.Pill("Main", U.PinkSoft, U.PinkDark));
+                var id = s.id;
+                card.Tap(() => QuizSession.Play(App, QuizSession.StartSeason(id)));
+                card.tooltip = s.title;
                 all.Add(card);
             }
             c.Add(all);
+
+            var types = U.Col(10);
+            types.Add(U.Text("Latihan", "t-section"));
+            var row = U.Row(10).Align(Align.Stretch);
+            row.Add(TypeCard("Tempel Label", "Seret ke tubuh", "qt_label", U.TealSoft, QuizType.TempelLabel));
+            row.Add(TypeCard("Pilihan Ganda 3D", "Putar & tebak", "qt_3d", U.PurpleSoft, QuizType.PilihanGanda3D));
+            row.Add(TypeCard("Misi Scan", "Cari kartunya", "qt_scan", U.PinkSoft, QuizType.MisiScan));
+            types.Add(row);
+            c.Add(types);
+            c.Add(ReproSection());
+        }
+
+        /// <summary>Kuis organ reproduksi: milik sendiri dulu, gender lain terbuka setelahnya.</summary>
+        VisualElement ReproSection()
+        {
+            var sec = U.Col(10);
+            var hdr = U.Row().Justify(Justify.SpaceBetween);
+            hdr.Add(U.Text("Topik: Organ Reproduksi", "t-section"));
+            hdr.Add(U.Text(P.doneTopics.Count(t => t.StartsWith("repro:")) + " dari 2 selesai", "t-caption"));
+            sec.Add(hdr);
+            string own = ReproAccess.OwnId(P.gender);
+            var order = own == ReproAccess.Girl ? new[] { ReproAccess.Girl, ReproAccess.Boy } : new[] { ReproAccess.Boy, ReproAccess.Girl };
+            var (fg, soft) = OrganDefaults.SystemColors(OrganSystem.Reproduksi);
+            foreach (var id in order)
+            {
+                var organ = Db.Get(id);
+                if (organ == null) continue;
+                bool locked = ReproAccess.IsLocked(id, P), done = ReproAccess.QuizDone(P, id);
+                var card = U.Row(12).MinH(76).Radius(16).Pad(12, 14).Bg(locked ? "#FBFAFD" : "#FFFFFF").Border(1, locked || done ? U.Line : "#E6C3E4");
+                var ic = U.Div().Size(48, 48).Radius(14).Center().Bg(locked ? U.C("#F6F5F9") : soft);
+                ic.Add(U.Icon(Parts.MiniIcon(organ), 30));
+                card.Add(ic);
+                var mid = U.Col(3).Grow();
+                mid.Add(U.Text(id == own ? "ORGAN REPRODUKSIMU" : "ORGAN REPRODUKSI LAINNYA", "t-tiny").Bold());
+                mid.Add(U.Text(ReproAccess.QuizName(id), "t-small").Bold().Fg(locked ? U.Faint : U.Ink));
+                var sub = U.Text(locked ? (P.gender == Gender.None ? "Pilih tubuhmu dulu" : "Terbuka setelah " + ReproAccess.QuizName(own)) : done ? "Selesai · kartu didapat" : "5 soal · dapat kartu " + organ.displayName, "t-tiny");
+                sub.style.whiteSpace = WhiteSpace.Normal;
+                mid.Add(sub);
+                card.Add(mid);
+                if (locked) card.Add(U.Icon("lock_gray", 18));
+                else if (done) card.Add(U.Pill("Ulangi", U.TealSoft, U.TealDark));
+                else card.Add(U.Pill("Mulai", CardArt.Hex(soft), CardArt.Hex(fg)));
+                var oo = organ;
+                card.Tap(() =>
+                {
+                    if (locked) { Parts.ShowReproLock(App, oo); return; }
+                    QuizSession.StartTopic(ReproAccess.Topic(oo.id));
+                    QuizSession.OpenCurrent(App);
+                });
+                card.tooltip = ReproAccess.QuizName(id);
+                sec.Add(card);
+            }
+            return sec;
         }
 
         VisualElement TypeCard(string title, string sub, string icon, string bg, QuizType type)
         {
             var t = U.Col(8).Grow().MinH(120).Radius(16).Bg("#FFFFFF").Border(1, U.Line).Pad(12, 8).Align(Align.Center);
-            t.Add(U.Div().Size(44, 44).Radius(22).Bg(bg).Center().Kids(U.Icon(icon, 22)));
+            t.Elev(Elevation.E1);
+            t.Add(U.Div().Size(48, 48).Radius(24).Bg(bg).Center().Kids(U.Icon(icon, 26)));
             t.Add(U.Text(title, "t-small").Bold().TextCenter());
             t.Add(U.Text(sub, "t-tiny").TextCenter());
-            t.Tap(() => { QuizSession.Start(type); QuizSession.OpenCurrent(App); });
+            t.Tap(() => QuizSession.Play(App, QuizSession.Start(type)));
             return t;
+        }
+
+        /// <summary>Skor terbaik season: bintang kecil + "4/5".</summary>
+        static VisualElement Score(int best, int total)
+        {
+            var s = U.Row(4).Pad(4, 10).Radius(999).Bg(best >= total ? U.TealSoft : U.YellowSoft);
+            s.Add(U.Icon("stat_star", 12).Tinted(U.C(best >= total ? U.TealDark : U.Yellow)));
+            s.Add(U.Text(best + "/" + total).FontSize(12).Bold().Fg(best >= total ? U.TealDark : "#7A5A00"));
+            return s;
         }
     }
 
@@ -191,12 +312,18 @@ namespace Organo.Screens
         static readonly Dictionary<string, Vector2> LabelSpots = new Dictionary<string, Vector2>
         {
             { "mulut", new Vector2(195, 62) }, { "kerongkongan", new Vector2(195, 108) },
-            { "lambung", new Vector2(210, 210) }, { "usushalus", new Vector2(195, 262) },
+            { "lambung", new Vector2(214, 195) }, { "usushalus", new Vector2(190, 245) },
+            { "otak", new Vector2(195, 40) }, { "paru", new Vector2(182, 150) },
+            { "hidung", new Vector2(195, 50) }, { "tenggorokan", new Vector2(195, 104) },
         };
+
+        /// <summary>Organ ini punya titik tempel di gambar tubuh (soal tempel label).</summary>
+        public static bool HasLabelSpot(string organId) => LabelSpots.ContainsKey(organId);
 
         protected override void Build(object arg)
         {
-            if (arg is OrganSystem || arg == null) { QuizSession.Start(); }
+            if (arg is OrganSystem sys) QuizSession.StartSeason(QuizBank.SeasonFor(sys));
+            else if (arg == null || QuizSession.Current == null) QuizSession.Start();
             S = QuizSession.Current;
             if (arg is QuizSession || arg is OrganSystem || arg == null) { m_Picked = -1; m_Checked = false; m_Placed.Clear(); m_Holding = null; }
             var q = S.Q;
@@ -206,7 +333,7 @@ namespace Organo.Screens
             var close = U.IconButton("close", () => Parts.ConfirmExitQuiz(App, () => App.GoTab(NavTab.Quiz)));
             close.style.marginLeft = -12;
             top.Add(close);
-            top.Add(U.Text(q.type == QuizType.TempelLabel ? "Label Sistem Pencernaan" : "Quiz Sistem Pencernaan", "t-title").Grow().TextCenter());
+            top.Add(U.Text(S.title, "t-title").Grow().TextCenter());
             top.Add(U.Text((S.index + 1) + "/" + S.questions.Count, "t-small", "t-muted").Bold());
             Root.Add(top);
             var segs = U.Row(6).Pad(12, 20, 0, 20);
@@ -228,79 +355,120 @@ namespace Organo.Screens
 
         // ---------------------------------------------------------- Pilihan ganda 3D
 
+        /// <summary>
+        /// Soal pilihan ganda dibangun sekali. Memilih / memeriksa jawaban hanya mengganti warna baris dan tombol di tempat:
+        /// model 3D (dan RenderTexture-nya) tidak dibuat ulang, jadi tidak berkedip setiap kali jawaban diketuk.
+        /// </summary>
         void BuildChoice(QuizQuestion q, VisualElement c, VisualElement bottom)
         {
-            var head = U.Col(6);
-            head.Add(U.Pill("Pilihan ganda", U.PurpleSoft, U.PurpleDark));
-            head.Add(U.Text(q.prompt, "t-h2"));
-            c.Add(head);
+            // soal panjang (mis. soal keamanan tubuh) memakai huruf sedikit lebih kecil supaya pilihan jawaban tetap terlihat
+            var prompt = U.Text(q.prompt, q.prompt.Length > 90 ? "t-title" : "t-h2");
+            prompt.style.whiteSpace = WhiteSpace.Normal;
+            var fixedTop = U.Col(12).Pad(16, 20, 4, 20).NoShrink();
+            fixedTop.Add(prompt);
+            var sv = c.GetFirstAncestorOfType<ScrollView>();
+            Root.Insert(sv != null ? Root.IndexOf(sv) : Root.childCount, fixedTop);
+            if (sv != null) sv.contentContainer.style.paddingTop = 8;
 
             var organ = Db.Get(q.organId);
-            var box = U.Div().H(220).Radius(18).Bg("#F3EFFD").Border(1, "#CDBFF5");
+            // HP layar pendek / soal panjang: kotak 3D lebih pendek supaya pilihan jawaban tetap terlihat.
+            // Tingginya dihitung sekali dari tinggi layar (bukan mengikuti tata letak), jadi model tidak berubah ukuran.
+            float screenH = App.ScreenHeight;
+            float boxH = screenH > 0 ? Mathf.Round(Mathf.Clamp(screenH * 0.23f, 120f, 200f)) : 200f;
+            var box = U.Div().H(boxH).Radius(18).Bg("#F3EFFD").Border(1, "#CDBFF5").NoShrink();
             box.style.overflow = Overflow.Hidden;
-            var vp = new OrganViewport(App.Viewer, organ, true, "Geser untuk memutar organ") { ShowHotspots = false };
+            var vp = new OrganViewport(App.Viewer, organ, Hints.Take(Hints.QuizRotate), "Geser untuk memutar") { ShowHotspots = false };
             vp.AddToClassList("fill");
             box.Add(vp);
-            var tag = U.Row(4).Abs(12, 12).Pad(4, 10).Radius(999).Bg(U.TealDark);
-            tag.pickingMode = PickingMode.Ignore;
-            tag.Add(U.Text("3D").FontSize(11).Bold().Fg("#FFFFFF"));
-            box.Add(tag);
-            c.Add(box);
+            fixedTop.Add(box);
+
+            // pilihan ganda: cukup ketuk salah satu jawaban (drag & drop hanya untuk soal tempel label)
+            var rows = new List<(VisualElement row, VisualElement badge, Label letter, VisualElement mark)>();
+            var check = U.Button("Periksa Jawaban", null, "btn-disabled");
+            void Paint()
+            {
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    var (row, badge, letter, mark) = rows[i];
+                    bool sel = m_Picked == i, right = i == q.correct;
+                    string bg = "#FFFFFF", bd = "#E4E2EC", badgeBg = "#F6F5F9", badgeFg = U.Ink, markBg = null, icon = null;
+                    float op = 1;
+                    if (!m_Checked && sel) { bg = "#F3EFFD"; bd = U.Purple; badgeBg = U.Purple; badgeFg = "#FFFFFF"; markBg = U.Purple; icon = "check"; }
+                    if (m_Checked && right) { bg = U.TealSoft; bd = U.Teal; badgeBg = U.Teal; badgeFg = "#FFFFFF"; markBg = U.Teal; icon = "check"; }
+                    else if (m_Checked && sel) { bg = U.PinkSoft; bd = U.Pink; badgeBg = U.Pink; badgeFg = "#FFFFFF"; markBg = U.Pink; icon = "x_small"; }
+                    else if (m_Checked) op = 0.55f;
+                    row.Bg(bg).Border(1.5f, bd).Opacity(op);
+                    badge.Bg(badgeBg);
+                    letter.Fg(badgeFg);
+                    mark.Clear();
+                    mark.Visible(icon != null);
+                    if (icon != null) { mark.Bg(markBg); mark.Add(U.Icon(icon, icon == "check" ? 12 : 11)); }
+                }
+                bool can = m_Picked >= 0 && !m_Checked;
+                check.EnableInClassList("btn-primary", can);
+                check.EnableInClassList("btn-disabled", !can);
+            }
 
             var opts = U.Col(10);
             for (int i = 0; i < q.options.Length; i++)
             {
                 int k = i;
-                bool sel = m_Picked == i, right = i == q.correct;
-                string bg = "#FFFFFF", bd = "#E4E2EC", badgeBg = "#F6F5F9", badgeFg = U.Ink;
-                float op = 1;
-                if (!m_Checked && sel) { bg = "#F3EFFD"; bd = U.Purple; badgeBg = U.Purple; badgeFg = "#FFFFFF"; }
-                if (m_Checked && right) { bg = U.TealSoft; bd = U.Teal; badgeBg = U.Teal; badgeFg = "#FFFFFF"; }
-                else if (m_Checked && sel) { bg = U.PinkSoft; bd = U.Pink; badgeBg = U.Pink; badgeFg = "#FFFFFF"; }
-                else if (m_Checked) op = 0.55f;
-                var row = U.Row(12).MinH(52).Pad(10, 14).Radius(14).Bg(bg).Border(1.5f, bd).Opacity(op);
-                row.Add(U.Div().Size(28, 28).Radius(14).Bg(badgeBg).Center().Kids(U.Text("ABCD"[i].ToString()).FontSize(13).Bold().Fg(badgeFg)));
+                var row = U.Row(12).MinH(52).Pad(10, 14).Radius(14);
+                var badge = U.Div().Size(28, 28).Radius(14).Center();
+                var letter = U.Text("ABCD"[i].ToString()).FontSize(13).Bold();
+                badge.Add(letter);
+                row.Add(badge);
                 row.Add(U.Text(q.options[i], "t-small").Bold().Grow());
-                if (m_Checked && right) row.Add(U.Div().Size(22, 22).Radius(11).Bg(U.Teal).Center().Kids(U.Icon("check", 12)));
-                if (m_Checked && sel && !right) row.Add(U.Div().Size(22, 22).Radius(11).Bg(U.Pink).Center().Kids(U.Icon("x_small", 11)));
-                row.Tap(() => { if (!m_Checked) { m_Picked = k; Refresh("keep"); } });
+                var mark = U.Div().Size(22, 22).Radius(11).Center();
+                row.Add(mark);
+                row.Tap(() => { if (m_Checked || m_Picked == k) return; m_Picked = k; Paint(); });
+                rows.Add((row, badge, letter, mark));
                 opts.Add(row);
             }
             c.Add(opts);
 
-            if (!m_Checked)
+            check.Tap(() =>
             {
-                bool can = m_Picked >= 0;
-                bottom.Add(U.Button("Periksa Jawaban", () =>
-                {
-                    if (!can) return;
-                    m_Checked = true;
-                    S.Answer(m_Picked == q.correct, q.options[m_Picked], q.options[q.correct]);
-                    Refresh("keep");
-                }, can ? "btn-primary" : "btn-disabled"));
-            }
-            else
-            {
-                bool ok = m_Picked == q.correct;
-                var fb = U.Row(10).Align(Align.FlexStart).Radius(14).Pad(12).Bg(ok ? U.TealSoft : U.PinkSoft);
-                fb.Add(U.Div().Size(26, 26).Radius(13).Bg(ok ? U.Teal : U.Pink).Center().Kids(U.Icon(ok ? "check" : "x_small", 13)));
-                var ft = U.Col(2).Grow();
-                ft.Add(U.Text(ok ? "Benar! Hebat!" : "Belum tepat, tidak apa-apa!", "t-body").Bold().Fg(ok ? U.TealInk : "#B0234A"));
-                ft.Add(U.Text(q.explain, "t-caption").Fg(U.Ink));
-                fb.Add(ft);
-                bottom.Add(fb);
+                if (m_Picked < 0 || m_Checked) return;
+                m_Checked = true;
+                S.Answer(m_Picked == q.correct, q.options[m_Picked], q.options[q.correct]);
+                Paint();
+                ShowFeedback(c, m_Picked == q.correct, q.explain);
+                bottom.Clear();
                 bottom.Add(NextButton());
-            }
+            });
+            bottom.Add(check);
+            Paint();
+            if (m_Checked) { ShowFeedback(c, m_Picked == q.correct, q.explain); bottom.Clear(); bottom.Add(NextButton()); }
+        }
+
+        /// <summary>Kotak koreksi ikut area gulir (bukan bar bawah) supaya penjelasan panjang tidak terjepit / keluar kotak.</summary>
+        static void ShowFeedback(VisualElement c, bool ok, string explain)
+        {
+            var fb = U.Row(10).Align(Align.FlexStart).Radius(14).Pad(12).Bg(ok ? U.TealSoft : U.PinkSoft).Border(1, ok ? "#9CE6DC" : "#F5B8C6");
+            fb.Add(U.Div().Size(26, 26).Radius(13).Bg(ok ? U.Teal : U.Pink).Center().NoShrink().Kids(U.Icon(ok ? "check" : "x_small", 13)));
+            var ft = U.Col(2).Grow();
+            ft.Add(U.Text(ok ? "Benar! Hebat!" : "Belum tepat, tidak apa-apa!", "t-body").Bold().Fg(ok ? U.TealInk : "#B0234A"));
+            var ex = U.Text(explain, "t-caption").Fg(U.Ink);
+            ex.style.whiteSpace = WhiteSpace.Normal;
+            ft.Add(ex);
+            fb.Add(ft);
+            c.Add(fb);
+            var sv = c.GetFirstAncestorOfType<ScrollView>();
+            if (sv != null) fb.RegisterCallback<GeometryChangedEvent>(_ => sv.ScrollTo(fb));
         }
 
         VisualElement NextButton()
         {
             bool last = S.index >= S.questions.Count - 1;
             bool nextIsScan = !last && S.questions[S.index + 1].type == QuizType.MisiScan;
+            int at = S.index;
             var b = U.Button(last ? "Lihat Hasil Kuis" : nextIsScan ? "Lanjut ke Misi Scan" : "Soal Berikutnya", () =>
             {
+                // ketukan ganda: soal berikutnya tidak boleh ikut terlewati
+                if (S.index != at) return;
                 m_Picked = -1; m_Checked = false; m_Placed.Clear(); m_Holding = null;
-                S.Next(App);
+                S.Next(App, at);
             }, "btn-primary");
             b.Add(U.Icon("arrow_right", 16));
             b[1].style.marginLeft = 8;
@@ -312,7 +480,7 @@ namespace Organo.Screens
         void BuildLabel(QuizQuestion q, VisualElement c, VisualElement bottom)
         {
             var pill = U.Div().AlignSelf(Align.Center).Pad(7, 16).Radius(999).Bg(U.PurpleDark);
-            pill.Add(U.Text("Tempel gambar organ ke posisi yang tepat!").FontSize(13).Fg("#FFFFFF"));
+            pill.Add(U.Text(q.prompt).FontSize(13).Fg("#FFFFFF"));
             c.Add(pill);
 
             var stage = U.Div().Size(350, 330).AlignSelf(Align.Center);
@@ -322,16 +490,17 @@ namespace Organo.Screens
             {
                 { "shirtFill", "#8EDDD3" }, { "shirtStroke", "#5FBFB2" }, { "shirtOp", "0.35" }, { "smileOp", "1" },
                 { "headOp", "0" }, { "neckOp", "0" }, { "chestOp", "0" }, { "bellyOp", "0" }, { "labelOp", "0" },
-                { "boyDisplay", P.gender == Gender.Girl ? "none" : "inline" }, { "girlDisplay", P.gender == Gender.Girl ? "inline" : "none" }, { "bodyAlt", "" }
+                { "boyDisplay", P.gender == Gender.Girl ? "none" : "inline" }, { "girlDisplay", P.gender == Gender.Girl ? "inline" : "none" }, { "bodyAlt", "" }, { "hairOp", "1" }
             }));
             body.Abs(-20, -10).Size(390, 420);
             body.style.scale = new Scale(new Vector3(0.82f, 0.82f, 1));
             body.style.transformOrigin = new TransformOrigin(195, 0);
             stage.Add(body);
 
+            var zones = new List<VisualElement>();
             foreach (var id in q.labelOrgans)
             {
-                var spot = LabelSpots[id];
+                if (!LabelSpots.TryGetValue(id, out var spot)) spot = new Vector2(195, 210);
                 var pos = new Vector2(-20 + 195 + (spot.x - 195) * 0.82f, -10 + spot.y * 0.82f);
                 var placedOrgan = m_Placed.FirstOrDefault(kv => kv.Value == id).Key;
                 var target = U.Div().Abs(pos.x - 22, pos.y - 22).Size(44, 44).Radius(22).Center();
@@ -348,31 +517,57 @@ namespace Organo.Screens
                 else
                 {
                     target.Bg(U.C("#FFFFFF", 0.8f)).Border(2, m_Holding != null ? U.Purple : "#BDBACE");
+                    target.style.transitionProperty = new List<StylePropertyName> { "scale" };
+                    target.style.transitionDuration = new List<TimeValue> { 0.12f };
                     target.Add(U.Text("?").Bold().Fg(U.Muted));
                     target.Tap(() =>
                     {
-                        if (m_Holding == null || m_Checked) { App.Toast("Pilih organ di bawah dulu, lalu ketuk titiknya"); return; }
+                        if (m_Holding == null || m_Checked) { App.Toast("Seret organ dari bawah ke titik ini"); return; }
                         m_Placed[m_Holding] = id;
                         m_Holding = null;
                         Refresh("keep");
                     });
                 }
                 stage.Add(target);
+                zones.Add(target);
             }
             c.Add(stage);
 
             var tray = U.Col(10);
             var remaining = q.labelOrgans.Where(id => !m_Placed.ContainsKey(id)).ToList();
-            tray.Add(U.Text(remaining.Count > 0 ? "Organ yang tersisa · ketuk lalu pilih titiknya" : "Semua organ sudah ditempel!", "t-caption"));
-            var tiles = U.Row(10);
+            var tiles = U.Row(10).Justify(Justify.Center);
             foreach (var id in remaining)
             {
                 var o = Db.Get(id);
                 bool hold = m_Holding == id;
-                var t = U.Col(4).Size(76, 84).Radius(14).Center().Bg(hold ? "#F3EFFD" : "#FFFFFF").Border(hold ? 2 : 1, hold ? U.Purple : U.Line);
-                t.Add(U.Icon(o.IconKey, 36));
-                t.Add(U.Text(o.displayName).FontSize(10).Bold().TextCenter());
-                t.Tap(() => { m_Holding = hold ? null : id; Refresh("keep"); });
+                VisualElement Tile(bool on)
+                {
+                    var tile = U.Col(4).Size(80, 84).Radius(14).Center().Bg(on ? "#F3EFFD" : "#FFFFFF").Border(on ? 2 : 1, on ? U.Purple : U.Line);
+                    tile.Add(U.Icon(o.IconKey, 36));
+                    // nama panjang (Kerongkongan, Tenggorokan) tetap satu baris, tidak terpotong di tengah kata
+                    var nm = U.Text(o.displayName).FontSize(9.5f).Bold().TextCenter();
+                    nm.style.whiteSpace = WhiteSpace.NoWrap;
+                    nm.style.marginLeft = nm.style.marginRight = 0;
+                    nm.style.paddingLeft = nm.style.paddingRight = 0;
+                    tile.Add(nm);
+                    return tile;
+                }
+                var t = Tile(hold);
+                if (!m_Checked)
+                {
+                    var drag = new DragSource(Root, () => Tile(true), () => zones, z =>
+                    {
+                        if (z < 0) return;
+                        var spotId = q.labelOrgans[z];
+                        foreach (var kv in m_Placed.Where(kv => kv.Value == spotId).ToList()) m_Placed.Remove(kv.Key);
+                        m_Placed[id] = spotId;
+                        m_Holding = null;
+                        Refresh("keep");
+                    });
+                    drag.Tapped = () => { m_Holding = hold ? null : id; Refresh("keep"); };
+                    t.AddManipulator(drag);
+                    t.tooltip = "Seret " + o.displayName + " ke tubuh";
+                }
                 tiles.Add(t);
             }
             tray.Add(tiles);
@@ -382,7 +577,7 @@ namespace Organo.Screens
             if (!m_Checked)
             {
                 var info = U.Row().Justify(Justify.SpaceBetween);
-                info.Add(U.Text(m_Holding != null ? "Sekarang ketuk titik di tubuh" : "Tempel semua organ", "t-caption"));
+                info.Add(U.Text(m_Holding != null ? "Sekarang ketuk titik di tubuh" : "", "t-caption"));
                 info.Add(U.Text(placed + "/" + total, "t-caption").Bold());
                 bottom.Add(info);
                 bool can = placed == total;
@@ -393,7 +588,7 @@ namespace Organo.Screens
                     int right = m_Placed.Count(kv => kv.Key == kv.Value);
                     var wrongs = m_Placed.Where(kv => kv.Key != kv.Value).Select(kv => Db.Get(kv.Key).displayName).ToList();
                     S.Answer(right == total, wrongs.Count == 0 ? "Semua tepat" : "Tertukar: " + string.Join(", ", wrongs),
-                        "Mulut → Kerongkongan → Lambung → Usus Halus");
+                        !string.IsNullOrEmpty(q.answer) ? q.answer : string.Join(", ", q.labelOrgans.Select(x => Db.Get(x)?.displayName ?? x)));
                     Refresh("keep");
                 }, can ? "btn-primary" : "btn-disabled"));
             }
@@ -422,7 +617,8 @@ namespace Organo.Screens
         enum State { Idle, Wrong, Right }
         State m_State;
         string m_WrongId;
-        VisualElement m_StandIn, m_Bottom, m_Stage;
+        VisualElement m_StandIn, m_Bottom, m_Stage, m_WrongToast;
+        CardFrame m_Frame;
         QuizSession S;
 
         protected override void Build(object arg)
@@ -435,6 +631,15 @@ namespace Organo.Screens
 
             m_StandIn = ScanParts.CameraStandIn();
             Root.Add(m_StandIn);
+            // bingkai besar berbentuk kartu (ARCore butuh kartu >= 25% gambar kamera), di antara misi & tombol bawah
+            m_Frame = new CardFrame();
+            m_Frame.Box.Tap(() =>
+            {
+                // Demo tanpa kamera: ketuk pertama = kartu salah, ketuk berikutnya = kartu benar
+                if (!OrganoApp.DevTools || (App.ar != null && App.ar.IsCameraLive && App.ar.HasCardLibrary)) return;
+                OnCard(Db.Get(m_State == State.Idle ? "paru" : S.Q.organId));
+            });
+            Root.Add(m_Frame);
             var top = U.Row(12).Pad(16 + App.TopInset, 20, 0, 20);
             top.Add(ScanParts.GlassButton("close", () => Parts.ConfirmExitQuiz(App, () => App.GoTab(NavTab.Quiz)), "Keluar"));
             top.Add(U.Flex());
@@ -444,8 +649,9 @@ namespace Organo.Screens
             Root.Add(top);
 
             var mission = U.Col(6).Margin(14, 20, 0, 20).Bg("#FFFFFF").Radius(16).Pad(14, 16);
-            mission.Add(U.Pill("Misi Scan", U.PinkSoft, U.PinkDark));
-            mission.Add(U.Text(q.prompt, "t-title"));
+            var prompt = U.Text(q.prompt, "t-title");
+            prompt.style.whiteSpace = WhiteSpace.Normal;
+            mission.Add(prompt);
             var hint = U.Row(6);
             hint.Add(U.Icon("bulb", 16).Tinted(U.C("#B07D00")));
             hint.Add(U.Text(q.hint, "t-caption").Grow());
@@ -453,9 +659,12 @@ namespace Organo.Screens
             Root.Add(mission);
 
             m_Stage = U.Div().Grow().Center();
+            m_Stage.pickingMode = PickingMode.Ignore;
             Root.Add(m_Stage);
             m_Bottom = U.Col(8).Pad(0, 20, 20, 20);
             Root.Add(m_Bottom);
+            m_Frame.TopAnchor = mission;
+            m_Frame.BottomAnchor = m_Bottom;
             Render();
         }
 
@@ -464,10 +673,15 @@ namespace Organo.Screens
             var q = S.Q;
             m_Stage.Clear();
             m_Bottom.Clear();
+            m_WrongToast?.RemoveFromHierarchy();
+            m_WrongToast = null;
+            m_Frame.Visible(m_State != State.Right);
+            m_Frame.Tint = U.C(m_State == State.Wrong ? U.Pink : U.Teal);
+            m_Frame.SweepVisible = m_State == State.Idle;
             if (m_State == State.Right)
             {
                 var organ = Db.Get(q.organId);
-                var vp = new OrganViewport(App.Viewer, organ, false) { ShowHotspots = false };
+                var vp = new OrganViewport(App.Viewer, organ, false) { ShowHotspots = false, FreeRotate = true };
                 vp.Size(300, 260);
                 m_Stage.Add(vp);
                 var sheet = U.Col(8).Bg("#FFFFFF").Radius(20).Pad(16);
@@ -477,65 +691,53 @@ namespace Organo.Screens
                 h.Add(U.Pill("+10 bintang", U.YellowSoft, "#7A5A00"));
                 sheet.Add(h);
                 sheet.Add(U.Text(q.explain, "t-small"));
-                sheet.Add(U.Button(S.index >= S.questions.Count - 1 ? "Lihat Hasil Kuis" : "Soal Berikutnya", () => S.Next(App), "btn-primary"));
+                int at = S.index;
+                sheet.Add(U.Button(S.index >= S.questions.Count - 1 ? "Lihat Hasil Kuis" : "Soal Berikutnya", () => S.Next(App, at), "btn-primary"));
                 m_Bottom.Add(sheet);
                 return;
             }
 
-            var frame = U.Div().Size(230, 230);
-            var svg = U.Icon("scan_frame", 230);
-            svg.AddToClassList("fill");
-            svg.Tint = U.C(m_State == State.Wrong ? U.Pink : U.Teal);
-            frame.Add(svg);
+            // petunjuk di dalam bingkai (tidak memakan ruang) supaya bingkai tetap besar di HP layar pendek
+            m_Frame.Hint = m_State == State.Idle ? "Dekatkan HP sampai kartu memenuhi bingkai" : null;
             if (m_State == State.Wrong)
             {
                 var wrong = Db.Get(m_WrongId);
-                var card = U.Col(6).Abs(60, 45).Size(110, 130).Radius(14).Bg("#FFFFFF").Border(2, U.Pink).Center();
-                card.Add(U.Icon(wrong.IconKey, 50));
-                card.Add(U.Text(wrong.displayName).FontSize(11).Bold());
-                var x = U.Div().Size(26, 26).Radius(13).Bg(U.Pink).Border(2, "#FFFFFF").Center().Abs(null, -8, -8);
-                x.Add(U.Icon("x_small", 11));
-                card.Add(x);
-                frame.Add(card);
+                var toast = U.Row(12).Bg("#FFFFFF").Radius(16).Pad(12, 14).Align(Align.FlexStart);
+                // melayang di atas bagian bawah bingkai: ukuran bingkai (dan jarak scan) tidak berubah
+                toast.style.position = Position.Absolute;
+                toast.style.left = 20; toast.style.right = 20; toast.style.bottom = 70;
+                var mini = U.Div().Size(46, 46).Radius(12).Bg(U.PinkSoft).Border(2, U.Pink).Center();
+                mini.Add(U.Icon(wrong.IconKey, 30));
+                toast.Add(mini);
+                var tc = U.Col(4).Grow();
+                tc.Add(U.Text("Itu kartu " + wrong.displayName, "t-title").Fg("#B0234A"));
+                var tx = U.Text(wrong.function + " Coba cari kartu lain, ya!", "t-caption").Fg(U.Ink);
+                tx.style.whiteSpace = WhiteSpace.Normal;
+                tc.Add(tx);
+                toast.Add(tc);
+                Root.Add(toast);
+                m_WrongToast = toast;
             }
-            frame.Tap(() =>
+            // kartunya tidak ada (juga setelah salah kartu): soal boleh dilewati
+            var help = U.Col(6).Align(Align.Center);
+            var skip = U.Row(0).Pad(8, 14).Radius(999).Bg(U.C("#141220", 0.6f));
+            skip.Add(U.Text("Belum punya kartunya?").FontSize(12).Fg("#FFFFFF").Pad(0, 4, 0, 0));
+            int from = S.index;
+            skip.Add(U.Text("Lewati soal").FontSize(12).Bold().Fg("#9CE6DC").Tap(() =>
             {
-                // Demo tanpa kamera: ketuk pertama = kartu salah, ketuk berikutnya = kartu benar
-                if (App.ar != null && App.ar.IsCameraLive && App.ar.HasCardLibrary) return;
-                OnCard(Db.Get(m_State == State.Idle ? "paru" : q.organId));
-            });
-            m_Stage.Add(frame);
-
-            if (m_State == State.Wrong)
-            {
-                var wrong = Db.Get(m_WrongId);
-                var toast = U.Col(4).Bg("#FFFFFF").Radius(16).Pad(12, 14);
-                toast.Add(U.Text("Itu kartu " + wrong.displayName, "t-title").Fg("#B0234A"));
-                toast.Add(U.Text(wrong.function + " Coba cari kartu lain, ya!", "t-caption").Fg(U.Ink));
-                m_Bottom.Add(toast);
-                m_Bottom.Add(U.Text("Ketuk bingkai untuk scan lagi").FontSize(12).Fg("#FFFFFF").AlignSelf(Align.Center));
-            }
-            else
-            {
-                var help = U.Col(6).Align(Align.Center);
-                var pill = U.Div().Pad(8, 20).Radius(999).Bg(U.TealDark);
-                pill.Add(U.Text("Arahkan kamera ke kartu organ").FontSize(13).Bold().Fg("#FFFFFF"));
-                help.Add(pill);
-                var skip = U.Row(0).Pad(8, 14).Radius(999).Bg(U.C("#141220", 0.6f));
-                skip.Add(U.Text("Belum punya kartunya? ").FontSize(12).Fg("#FFFFFF"));
-                skip.Add(U.Text("Lewati soal").FontSize(12).Bold().Fg("#9CE6DC").Tap(() =>
-                {
-                    S.Answer(false, "Dilewati", Db.Get(q.organId).displayName);
-                    S.Next(App);
-                }));
-                help.Add(skip);
-                m_Bottom.Add(help);
-            }
+                if (S.index != from || m_State == State.Right) return;
+                S.Answer(false, "Dilewati", Db.Get(q.organId).displayName);
+                S.Next(App, from);
+            }));
+            help.Add(skip);
+            m_Bottom.Add(help);
         }
 
         void OnCard(OrganInfo o)
         {
             if (o == null || m_State == State.Right) return;
+            // kartu salah yang sama masih di depan kamera: jangan berbunyi & berkedip berulang-ulang
+            if (m_State == State.Wrong && o.id == m_WrongId) { App.ar?.ResetDetection(); return; }
             var q = S.Q;
             if (o.id == q.organId)
             {
@@ -554,7 +756,11 @@ namespace Organo.Screens
             Render();
         }
 
-        public override void Tick(float dt) => m_StandIn.Visible(!(App.ar != null && App.ar.IsCameraLive));
+        public override void Tick(float dt)
+        {
+            m_StandIn.Visible(!(App.ar != null && App.ar.IsCameraLive));
+            m_Frame.Tick(dt);
+        }
 
         public override void Close()
         {
@@ -599,10 +805,7 @@ namespace Organo.Screens
             scroll.Add(c);
             c.Add(U.Icon("mascot_cheer", 170, 150));
             c.Add(U.Text("Kuis Selesai!", "t-display").TextCenter());
-            var meta = U.Row(8);
-            meta.Add(U.Pill("Sistem " + r.system, U.TealSoft, U.TealDark));
-            meta.Add(U.Text("Tersimpan di Riwayat", "t-caption"));
-            c.Add(meta);
+            c.Add(U.Pill(r.Title, U.TealDark, "#FFFFFF").AlignSelf(Align.Center));
 
             var score = U.Col(12, "card", "card-lg").AlignSelf(Align.Stretch).Pad(16, 24).Align(Align.Center);
             score.Add(U.Text(r.correct + " dari " + r.total + " Benar", "t-h1"));
@@ -617,19 +820,30 @@ namespace Organo.Screens
 
             var stars = U.Col(2).Bg(U.YellowSoft).Radius(16).Pad(12, 28).Align(Align.Center);
             var sr = U.Row(6);
-            sr.Add(U.Icon("star", 26).Tinted(U.C(U.Yellow)));
+            sr.Add(U.Icon("star_big", 30));
             sr.Add(U.Text("+" + r.stars).FontSize(24).Bold().Fg("#7A5A00"));
             stars.Add(sr);
             stars.Add(U.Text("Total bintangmu: " + P.stars, "t-caption").Fg("#7A5A00"));
             c.Add(stars);
 
-            var newest = P.newestCard != null ? Db.Get(P.newestCard) : Db.Get("lambung");
-            if (newest != null && r.correct >= r.total - 1)
+            if (s != null && s.unlocked != null && Db.Get(s.unlocked) is OrganInfo opened)
+            {
+                var un = U.Row(12).AlignSelf(Align.Stretch).Radius(16).Pad(12, 14).Bg("#F6E5F5").Border(1, "#E6C3E4");
+                un.Add(U.Div().Size(44, 44).Radius(22).Bg("#FFFFFF").Center().Kids(U.Icon(Parts.MiniIcon(opened), 30)));
+                var ut = U.Col(4).Grow();
+                ut.Add(U.Text(opened.displayName + " sekarang terbuka!", "t-body").Bold());
+                ut.Add(U.Text("Pelajari sekarang").FontSize(13).Bold().Fg("#A2479E").Tap(() => App.Go<OrganDetailScreen>(opened.id)));
+                un.Add(ut);
+                c.Add(un);
+            }
+
+            var newest = s != null && s.newCard != null ? Db.Get(s.newCard) : P.newestCard != null ? Db.Get(P.newestCard) : null;
+            if (newest != null && s != null && s.GainedCard(P))
             {
                 var unlock = U.Col(14).Align(Align.Center);
                 unlock.Add(U.Text("Kamu dapat kartu baru!", "t-section"));
                 var card = Parts.OrganCard(newest, true, 140);
-                card.Tap(() => App.Go<CardCollectionScreen>(newest.id));
+                card.Tap(() => App.Go<CardViewerScreen>(newest.id));
                 unlock.Add(card);
                 unlock.Add(U.Text("Lihat di Koleksi Kartu (" + P.cards.Count + "/" + Db.Count + ")").FontSize(13).Bold().Fg(U.TealDark).Tap(() => App.Go<CardCollectionScreen>(newest.id)));
                 c.Add(unlock);
@@ -678,11 +892,9 @@ namespace Organo.Screens
             scroll.Add(c);
 
             var sum = U.Row(12, "card", "card-lg");
-            var ring = U.Div().Size(54, 54).Radius(27).Border(5, U.Teal).Center();
-            ring.Add(U.Text(m_R.Percent + "%").FontSize(13).Bold().Fg(U.TealDark));
-            sum.Add(ring);
+            sum.Add(Parts.PercentCircle(m_R.Percent));
             var st = U.Col(2).Grow();
-            st.Add(U.Text("Sistem " + m_R.system + " · Kuis " + m_R.quizNumber, "t-body").Bold());
+            st.Add(U.Text(m_R.Title, "t-body").Bold());
             st.Add(U.Text(m_R.correct + " dari " + m_R.total + " benar · " + m_R.when, "t-caption"));
             sum.Add(st);
             c.Add(sum);
@@ -700,7 +912,8 @@ namespace Organo.Screens
             }
             c.Add(chips);
 
-            var answers = m_R.answers.Count > 0 ? m_R.answers : Sample();
+            var answers = m_R.answers;
+            if (answers.Count == 0) c.Add(U.Text("Pembahasan tidak tersedia untuk kuis ini.", "t-small", "t-muted").TextCenter());
             for (int i = 0; i < answers.Count; i++)
             {
                 var a = answers[i];
@@ -724,22 +937,12 @@ namespace Organo.Screens
             }
 
             var bottom = U.Row(10).Pad(12, 20, 20, 20);
-            bottom.Add(U.Button("Ulangi Kuis", () => { QuizSession.Start(); QuizSession.OpenCurrent(App); }, "btn-outline").Grow());
+            var rec = m_R;
+            bottom.Add(U.Button("Ulangi Kuis", () => QuizSession.Play(App, QuizSession.Restart(rec)), "btn-outline").Grow());
             bottom.Add(U.Button("Selesai", () => App.GoTab(NavTab.Quiz), "btn-primary").Grow());
             Root.Add(bottom);
         }
 
-        static List<QuizAnswer> Sample()
-        {
-            var list = new List<QuizAnswer>();
-            foreach (var q in QuizBank.Pencernaan())
-            {
-                bool ok = q.type != QuizType.PilihanGanda3D || q.correct != 0 || list.Count != 2;
-                string right = q.options != null ? q.options[q.correct] : q.organId;
-                list.Add(new QuizAnswer { type = QuizBank.TypeName(q.type), question = q.prompt, yours = ok ? right : "Memompa darah ke seluruh tubuh", right = right, explain = q.explain, isCorrect = ok });
-            }
-            return list;
-        }
     }
 
     // ==================================================================== Riwayat
@@ -755,15 +958,6 @@ namespace Organo.Screens
             var c = U.Col(14);
             scroll.Add(c);
 
-            if (P.guest)
-            {
-                var g = U.Col(4).Bg(U.YellowSoft).Radius(14).Pad(12, 14).Border(1, "#F1D77A");
-                g.Add(U.Text("Kamu sedang di Mode Tamu", "t-body").Bold());
-                g.Add(U.Text("Riwayat hanya ada selama sesi ini dan akan hilang saat kamu keluar.", "t-caption").Fg("#7A5A00"));
-                g.Add(U.Text("Daftar biar riwayat tersimpan →").FontSize(12).Bold().Fg(U.TealDark).Tap(() => App.Go<RegisterScreen>()));
-                c.Add(g);
-            }
-
             var stats = U.Row(10);
             stats.Add(Stat(P.history.Count.ToString(), "Kuis selesai"));
             stats.Add(Stat(Mathf.RoundToInt(P.AveragePercent) + "%", "Rata-rata benar"));
@@ -771,39 +965,33 @@ namespace Organo.Screens
             c.Add(stats);
 
             if (P.history.Count == 0)
-                c.Add(U.Text("Belum ada kuis untuk sistem ini. Yuk mulai dari Beranda!", "t-small", "t-muted").TextCenter());
+            {
+                c.Add(U.Text("Belum ada kuis yang selesai.", "t-small", "t-muted").TextCenter());
+                c.Add(U.Button("Mulai Kuis", () => App.GoTab(NavTab.Quiz), "btn-primary"));
+            }
 
             foreach (var h in P.history)
             {
                 var card = U.Col(10, "card", "card-lg");
                 var row = U.Row(12);
-                var ring = U.Div().Size(46, 46).Radius(23).Border(4, h.Percent >= 80 ? U.Teal : U.Yellow).Center();
-                ring.Add(U.Text(h.Percent + "%").FontSize(12).Bold());
-                row.Add(ring);
+                row.Add(Parts.PercentCircle(h.Percent));
                 var t = U.Col(2).Grow();
-                t.Add(U.Text("Sistem " + h.system + " · Kuis " + h.quizNumber, "t-small").Bold());
+                t.Add(U.Text(h.Title, "t-small").Bold());
                 t.Add(U.Text(h.when + " · " + h.correct + "/" + h.total + " benar", "t-tiny"));
                 row.Add(t);
                 var s = U.Row(3).Pad(4, 8).Radius(999).Bg(U.YellowSoft);
-                s.Add(U.Icon("star", 12).Tinted(U.C(U.Yellow)));
+                s.Add(U.Icon("stat_star", 12).Tinted(U.C(U.Yellow)));
                 s.Add(U.Text("+" + h.stars).FontSize(11).Bold().Fg("#7A5A00"));
                 row.Add(s);
                 card.Add(row);
                 var btns = U.Row(8);
                 var rec = h;
-                btns.Add(U.Button("Lihat pembahasan", () => App.Go<QuizReviewScreen>(rec), "btn-soft", "btn-small").Grow());
-                btns.Add(U.Button("Ulangi kuis ini", () => { QuizSession.Start(); QuizSession.OpenCurrent(App); }, "btn-outline", "btn-small").Grow());
+                if (rec.answers.Count > 0) btns.Add(U.Button("Lihat pembahasan", () => App.Go<QuizReviewScreen>(rec), "btn-soft", "btn-small").Grow());
+                btns.Add(U.Button("Ulangi kuis ini", () => QuizSession.Play(App, QuizSession.Restart(rec)), "btn-outline", "btn-small").Grow());
                 card.Add(btns);
                 c.Add(card);
             }
 
-            if (P.guest)
-            {
-                var old = U.Col(4, "card").Bg("#F6F5F9");
-                old.Add(U.Text("Riwayat sebelumnya tidak tersimpan", "t-small").Bold());
-                old.Add(U.Text("Masuk dengan akun supaya semua hasil kuis tersimpan dan bisa dilihat lagi.", "t-caption"));
-                c.Add(old);
-            }
         }
 
         static VisualElement Stat(string value, string label)
