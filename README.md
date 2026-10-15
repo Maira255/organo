@@ -1,10 +1,8 @@
 # Organo
 
-**Aplikasi belajar organ tubuh untuk anak SD dengan kartu, Augmented Reality (AR), dan kuis.**
+**Aplikasi interaktif pengenalan anatomi tubuh manusia untuk anak SD berbasis Augmented Reality (AR), model 3D interaktif, dan sistem kuis bertahap.**
 
-Anak mempelajari organ lewat model 3D yang bisa diputar dan dibedah, memindai (scan) **kartu Organo** sehingga organ
-muncul di atas kartu, lalu menguji pemahamannya lewat **kuis bertahap** yang terbuka sedikit demi sedikit.
-Aplikasi berjalan **sepenuhnya offline dan tanpa akun**: tidak ada pendaftaran, dan semua progres tersimpan di HP.
+Melalui Organo, anak dapat menjelajahi bentuk dan fungsi organ tubuh menggunakan model 3D yang dapat diputar serta dibedah, memindai **kartu Organo** untuk menghidupkan objek AR secara langsung di atas kartu, dan menguji pemahaman melalui **kuis edukatif bertahap**. Aplikasi ini dirancang **100% offline tanpa registrasi**, memastikan seluruh data progres belajar anak tersimpan secara aman dan privat di perangkat Anda.
 
 | Beranda | Pustaka | Halaman organ | Scan kartu |
 |:---:|:---:|:---:|:---:|
@@ -12,124 +10,110 @@ Aplikasi berjalan **sepenuhnya offline dan tanpa akun**: tidak ada pendaftaran, 
 | **Hasil scan** | **Kuis** | **Soal pilihan ganda 3D** | **Koleksi kartu** |
 | <img src="Dokumen/screenshots/20_scan_hasil_baru.jpg" width="180"> | <img src="Dokumen/screenshots/14_kuis_hub.jpg" width="180"> | <img src="Dokumen/screenshots/16_kuis_pilihan.jpg" width="180"> | <img src="Dokumen/screenshots/21_koleksi.jpg" width="180"> |
 
-> Penjelasan lengkap (fitur, isi materi, riwayat perubahan, hasil pengujian) ada di
-> [Dokumen/Proposal_Organo.pdf](Dokumen/Proposal_Organo.pdf).
+> Penjelasan komprehensif mengenai spesifikasi fitur, rincian materi, riwayat pengembangan, dan hasil pengujian tersedia dalam dokumen [Dokumen/Proposal_Organo.pdf](Dokumen/Proposal_Organo.pdf).
 
 ---
 
-## Isi aplikasi
+## Fitur Utama & Isi Aplikasi
 
-- **17 organ dari 8 sistem tubuh**: Mulut, Kerongkongan, Lambung, Usus Halus, Usus Besar, Hati, Pankreas (Pencernaan) ·
-  Hidung, Tenggorokan, Paru-paru (Pernapasan) · Jantung (Peredaran Darah) · Ginjal (Ekskresi) · Otak (Saraf) ·
-  Mata (Indera) · Rangka (Gerak) · Reproduksi Laki-laki & Perempuan (Reproduksi).
-- **Model 3D** setiap organ dengan tiga tampilan: *Organ* (utuh), *Dalam* (organ dipotong), dan *Tubuh* (letaknya di
-  tubuh anak). Bagian-bagian organ bisa disorot; bagian yang sangat kecil (alveolus, vili, nefron, sel darah)
-  ditampilkan sebagai model mikro.
-- **Info Lengkap** tiap organ: tugas utama, bagian-bagian, cara kerja, fakta menarik ("Tahukah Kamu?"), dan tips sehat,
-  dengan **suara pembaca** berbahasa Indonesia (bisa dimatikan).
-- **Scan kartu & AR**: organ muncul menempel di atas kartu, bisa diputar 360°, titik info bisa diketuk, dan organ
-  berganti saat kartu lain diarahkan ke kamera. HP yang tidak mendukung AR tetap bisa mengenali kartu dengan kamera biasa.
-- **Kuis bertahap**: 17 kuis organ + 6 kuis proses (5 soal per kuis) dengan tiga jenis soal: pilihan ganda 3D,
-  tempel label, dan misi scan. Jawaban yang salah harus diulang sampai benar.
-- **Koleksi kartu, bintang, dan lencana**; **Favoritku**; materi pubertas **"Tubuhku Tumbuh Besar"** dan pesan keamanan
-  tubuh **"Tubuhku milikku"**.
-- **Aksesibilitas**: ukuran teks, kontras tinggi, kurangi animasi, sorot kalimat yang dibacakan, kecepatan & pilihan suara.
+- **Cakupan Materi Luas**: Menampilkan 17 organ vital yang terbagi ke dalam 8 sistem tubuh utama:
+  - **Pencernaan**: Mulut, Kerongkongan, Lambung, Usus Halus, Usus Besar, Hati, Pankreas
+  - **Pernapasan**: Hidung, Tenggorokan, Paru-paru
+  - **Peredaran Darah**: Jantung
+  - **Ekskresi**: Ginjal
+  - **Saraf & Indera**: Otak, Mata
+  - **Gerak**: Rangka
+  - **Reproduksi**: Sistem Reproduksi Laki-laki & Perempuan
+- **Model 3D Interaktif**: Setiap organ divisualisasikan dalam tiga mode tampilan: *Organ* (bentuk utuh), *Dalam* (potongan penampang melintang), dan *Tubuh* (posisi anatomi dalam tubuh anak). Dilengkapi sorotan bagian spesifik serta model mikro untuk struktur mikroskopis (seperti alveolus, vili, nefron, dan sel darah).
+- **Informasi & Audio Narasi**: Penjelasan lengkap mencakup fungsi utama, bagian anatomi, mekanisme kerja, fakta unik ("Tahukah Kamu?"), serta tips hidup sehat, dilengkapi **audio narasi** berbahasa Indonesia yang jernih dan fleksibel (dapat diaktifkan/dinonaktifkan).
+- **Scan Kartu & Teknologi AR**: Kartu fisik yang dipindai akan menampilkan objek organ 3D secara *augmented reality* di atas kartu. Model dapat diputar 360°, titik interaktif dapat diketuk untuk informasi detail, dan kartu dapat diganti secara instan. Bagi perangkat tanpa dukungan AR, tersedia mode kamera standar yang tetap interaktif.
+- **Sistem Kuis Bertahap**: Terdiri dari 17 kuis organ dan 6 kuis proses fisiologis (masing-masing 5 soal) dengan variasi tipe soal: pilihan ganda 3D, menyusun label, dan misi pemindaian. Sistem mendorong pemahaman mendalam dengan mewajibkan koreksi pada jawaban yang keliru.
+- **Gamifikasi & Edukasi Khusus**: Koleksi kartu digital, pencapaian bintang, lencana penghargaan, menu **Favoritku**, serta modul khusus pubertas **"Tubuhku Tumbuh Besar"** dan edukasi perlindungan diri **"Tubuhku Milikku"**.
+- **Aksesibilitas Tinggi**: Pengaturan ukuran teks, mode kontras tinggi, pengurangan animasi, penyorotan teks saat dibacakan, serta kustomisasi kecepatan dan pilihan suara narasi.
 
 ---
 
-## Cara memakai aplikasi
+## Panduan Penggunaan Aplikasi
 
-### 1. Memasang aplikasi (Android)
-1. Salin file `Organo.apk` ke HP Android (Android 7.1 ke atas), lalu buka file tersebut.
-2. Bila diminta, izinkan pemasangan dari sumber ini.
-3. Buka **Organo**. Saat pertama kali dibuka, izinkan akses **kamera** (dipakai hanya untuk scan; gambar tidak disimpan).
+### 1. Instalasi Aplikasi (Android)
+1. Salin dan pasang file `Organo.apk` ke perangkat Android Anda (minimal Android 7.1).
+2. Berikan izin instalasi dari sumber tidak dikenal apabila diminta sistem.
+3. Buka aplikasi **Organo** dan berikan izin akses **kamera** (digunakan eksklusif untuk pemindaian kartu; gambar tidak pernah direkam atau disimpan).
 
-> HP yang mendukung AR mungkin diminta memasang **Google Play Services for AR** sekali. Bila HP tidak mendukung AR,
-> aplikasi otomatis memakai kamera biasa: kartu tetap dikenali dan organ tampil di layar 3D.
+> Perangkat yang mendukung AR mungkin akan meminta instalasi **Google Play Services for AR** saat pertama kali digunakan. Jika perangkat tidak mendukung AR, aplikasi akan otomatis beralih ke mode kamera standar tanpa mengurangi fungsi pembelajaran.
 
-### 2. Pertama kali dibuka
-Splash → tiga halaman pengenalan → **Perkenalan**: isi nama panggilan (boleh dikosongkan) dan pilih tubuh
-laki-laki atau perempuan → Beranda. Setelah itu aplikasi selalu langsung membuka Beranda.
+### 2. Penggunaan Pertama Kali
+Tampilan *Splash* → Halaman pengenalan → **Form Perkenalan**: Masukkan nama panggilan (opsional) dan pilih avatar tubuh (laki-laki/perempuan) untuk menyesuaikan materi reproduksi → Menu Beranda utama.
 
-### 3. Belajar di Pustaka
-1. Buka menu **Pustaka**, lalu ketuk bagian tubuh (kepala, leher, dada, perut, panggul) atau pilih organ dari daftar.
-2. Di halaman organ: geser untuk memutar model, cubit untuk memperbesar, ketuk titik untuk melihat nama bagian.
-3. Pilih tampilan **Organ / Dalam / Tubuh**, ketuk kartu bagian untuk menyorotnya, dan ketuk **Dengarkan** untuk
-   mendengar penjelasan. Ikon speaker mematikan atau menyalakan suara pembaca.
-4. Buka **Info Lengkap** untuk cara kerja, fakta, dan tips sehat.
+### 3. Eksplorasi di Menu Pustaka
+1. Pilih menu **Pustaka**, lalu ketuk area tubuh tertentu (kepala, leher, dada, perut, panggul) atau pilih langsung dari daftar organ.
+2. Di halaman detail organ: usap layar untuk memutar model 3D, cubit untuk memperbesar (*zoom*), dan ketuk titik indikator untuk melihat nama bagian organ.
+3. Gunakan tombol pilihan **Organ / Dalam / Tubuh** untuk berganti perspektif, ketuk kartu bagian untuk menyorotnya, dan tekan **Dengarkan** untuk mendengarkan penjelasan audio.
+4. Akses menu **Info Lengkap** untuk membaca mekanisme kerja, fakta menarik, dan tips kesehatan.
 
-### 4. Scan kartu
-1. Siapkan kartu Organo: cetak dari situs kartu, atau tampilkan di laptop/tablet/HP lain (lihat bagian *Kartu Organo*).
-2. Buka menu **Scan**, lalu **dekatkan HP sampai kartu memenuhi bingkai** (kartu cetak ±15 cm, kartu di layar ±20 cm).
-   Tahan diam sebentar di tempat yang cukup terang.
-3. Organ muncul di atas kartu dan kartu masuk **Koleksi**. Geser untuk memutar organ, ketuk titik hijau untuk melihat
-   bagiannya, dan tarik lembar di bawah ke atas untuk info lengkap.
-4. Arahkan kamera ke kartu lain untuk langsung berganti organ.
+### 4. Pemindaian Kartu (Scan Kartu)
+1. Siapkan kartu Organo (cetak fisik atau tampilkan melalui layar perangkat lain seperti laptop/tablet).
+2. Buka menu **Scan**, lalu **dekatkan kamera HP hingga kartu memenuhi bingkai panduan** (jarak ideal ±15 cm untuk cetak, ±20 cm untuk layar). Tahan sebentar di area dengan pencahayaan cukup.
+3. Objek 3D akan muncul di atas kartu dan otomatis masuk ke galeri **Koleksi**. Putar model, ketuk titik hijau untuk informasi bagian, atau tarik panel bawah ke atas untuk membaca info lengkap.
+4. Pindahkan arah kamera ke kartu lain untuk mengganti organ secara instan.
 
-Tips bila kartu sulit dikenali: dekatkan HP, hindari pantulan lampu, nyalakan senter di ruangan gelap, dan untuk kartu
-di layar pakai kecerahan sedang (jangan maksimal). Tombol **?** di layar Scan berisi tips dan *Info teknis* untuk guru.
+*Tips Kendala Pemindaian*: Dekatkan posisi kamera, hindari pantulan cahaya langsung pada permukaan kartu, aktifkan lampu kilat (*senter*) di tempat gelap, dan gunakan tingkat kecerahan sedang jika memindai dari layar perangkat lain. Tombol bantuan **?** pada layar Scan menyediakan panduan teknis lengkap bagi pendidik.
 
-### 5. Mengerjakan kuis
-- Menu **Kuis** punya dua tab: **Kuis Organ** dan **Kuis Proses**.
-- **Kuis organ** terbuka setelah **kartu organnya di-scan** atau setelah **kuis organ sebelumnya selesai**
-  (Kuis Mulut terbuka sejak awal).
-- **Kuis proses** (mis. Proses Pencernaan) terbuka setelah **semua kuis organ** dalam proses itu selesai.
-- Ketuk kuis yang terkunci untuk melihat cara membukanya.
-- Jawaban salah dicoret dan harus dicoba lagi sampai benar. Bintang dihitung dari jawaban benar pada percobaan pertama.
-- Setelah selesai, lihat skor, bintang, kuis yang baru terbuka, **Pembahasan**, dan **Riwayat Kuis**.
+### 5. Pengerjaan Kuis
+- Menu **Kuis** dibagi menjadi dua tab utama: **Kuis Organ** dan **Kuis Proses**.
+- **Kuis Organ** terbuka secara bertahap setelah **kartu organ berhasil dipindai** atau **kuis organ sebelumnya diselesaikan** (Kuis Mulut terbuka secara otomatis sejak awal).
+- **Kuis Proses** (misalnya Proses Pencernaan) akan terbuka otomatis setelah seluruh kuis organ yang terkait dalam sistem tersebut selesai dikerjakan.
+- Ketuk ikon kuis yang terkunci untuk melihat petunjuk cara membukanya.
+- Jawaban yang keliru harus diulangi hingga benar. Perolehan bintang didasarkan pada ketepatan jawaban pada percobaan pertama.
+- Setelah selesai, tinjau skor akhir, perolehan bintang, keterbukaan kuis baru, menu **Pembahasan**, dan **Riwayat Kuis**.
 
-### 6. Profil
-Ubah nama panggilan (ketuk nama), lihat bintang, kartu, dan lencana, lalu atur **Materi Tubuh**, **Suara & Musik**,
-**Suara Pembaca**, dan **Mode Aksesibilitas**.
+### 6. Profil Pengguna
+Ketuk nama panggilan untuk melakukan penyesuaian profil, pantau akumulasi bintang, koleksi kartu, dan lencana. Atur preferensi **Materi Tubuh**, **Suara & Musik**, **Pengaturan Suara Pembaca**, serta **Mode Aksesibilitas**.
 
-### Alur yang dianjurkan untuk kelas
-**Belajar di Pustaka → scan kartu organ → kerjakan kuis organ → kuis proses.**
+### Alur Belajar yang Disarankan
+**Belajar di Pustaka → Pindai Kartu Organ → Kerjakan Kuis Organ → Selesaikan Kuis Proses.**
 
 ---
 
 ## Kartu Organo
 
-- 17 kartu bernomor (ukuran kartu remi 63×88 mm) dalam dua gaya, **Realistis** dan **Kartun**. Keduanya dikenali
-  aplikasi dan boleh dipakai bersamaan.
-- Situs kartu untuk guru & orang tua: **https://organo-kartu.vercel.app**
-  - PDF A4 siap cetak: cetak dengan skala **100%** / "ukuran sebenarnya", lalu potong mengikuti garis.
-  - **Scan dari layar**: tampilkan kartu besar di laptop/tablet tanpa perlu mencetak.
+- Terdiri dari 17 kartu bernomor (ukuran standar kartu remi 63×88 mm) yang tersedia dalam dua gaya visual: **Realistis** dan **Kartun**. Keduanya didukung penuh oleh sistem aplikasi dan dapat digunakan secara bersamaan.
+- Portal akses kartu untuk guru dan orang tua: **https://organo-kartu.vercel.app**
+  - **Dokumen PDF A4 Siap Cetak**: Cetak dengan pengaturan skala **100%** (*actual size*) lalu potong mengikuti garis panduan.
+  - **Scan Langsung dari Layar**: Tampilkan kartu digital berukuran besar melalui laptop, tablet, atau layar monitor tanpa perlu mencetak fisik.
 
 ---
 
-## Privasi & keamanan anak
+## Privasi & Keamanan Anak
 
-- Tidak ada akun, password, server, maupun iklan. Aplikasi berjalan offline.
-- Progres hanya disimpan di HP anak. Gambar kamera tidak disimpan dan tidak dikirim ke mana pun.
-- Organ reproduksi gender lain terkunci sampai anak menyelesaikan kuis organ reproduksi miliknya sendiri. Setiap materi
-  reproduksi memuat pesan "Tubuhku milikku".
+- **100% Offline & Aman**: Tanpa sistem akun, tanpa kata sandi, tanpa pelacakan server, dan bebas iklan.
+- **Penyimpanan Lokal**: Seluruh data progres belajar tersimpan secara eksklusif di perangkat anak. Tangkapan kamera tidak pernah direkam, disimpan, atau dikirimkan ke pihak luar.
+- **Batasan Akses Edukatif**: Materi organ reproduksi lawan jenis dikunci hingga anak menyelesaikan modul reproduksi sesuai gendernya. Setiap materi reproduksi dilengkapi pesan moral penting **"Tubuhku Milikku"**.
 
 ---
 
-## Untuk pengembang
+## Untuk Pengembang
 
-### Kebutuhan
-- **Unity 6000.3.25f1** dengan modul *Android Build Support* (dan *iOS Build Support* untuk iOS).
-- Git LFS (beberapa aset disimpan dengan LFS).
-- Opsional: Python 3 untuk alat bantu di `Tools/` dan `Web/`.
+### Kebutuhan Sistem & Perangkat Lunak
+- **Unity 6000.3.25f1** dengan modul *Android Build Support* (serta *iOS Build Support* jika melakukan *deployment* ke iOS).
+- Git LFS (diperlukan karena sejumlah aset besar dikelola menggunakan LFS).
+- Opsional: Python 3 untuk menjalankan skrip utilitas di folder `Tools/` dan `Web/`.
 
-### Menjalankan di Editor
-1. Clone repo (`git lfs install` dulu), lalu buka foldernya di Unity Hub.
-2. Menu **Organo > Buka Scene Organo**, lalu **Play**.
-3. Di Editor, layar Scan bisa dicoba dengan mengetuk bingkai scan (mode demo), atau memakai XR Simulation
-   (**Organo > Kartu AR > Simulasi XR: Meja dengan Semua Kartu**).
+### Menjalankan Proyek di Unity Editor
+1. *Clone* repositori (`git lfs install` terlebih dahulu), lalu buka direktori proyek melalui Unity Hub.
+2. Buka menu navigasi **Organo > Buka Scene Organo**, lalu tekan tombol **Play**.
+3. Di dalam Editor, simulasi pemindaian kartu dapat diuji dengan mengetuk bingkai pemindai (mode demo) atau menggunakan XR Simulation (**Organo > Kartu AR > Simulasi XR: Meja dengan Semua Kartu**).
 
-### Build APK Android
-Menu **Organo > Build > APK Android** → `Builds/Android/Organo.apk` (ARM64, IL2CPP, min. Android 7.1, ARCore opsional).
-Atau lewat baris perintah:
+### Membangun APK Android
+Pilih menu **Organo > Build > APK Android** untuk menghasilkan file di `Builds/Android/Organo.apk` (arsitektur ARM64, IL2CPP, min. Android 7.1, dukungan opsional ARCore).
+Atau jalankan melalui *command line*:
 
 ```bash
 Unity.exe -batchmode -quit -projectPath . -buildTarget Android -executeMethod Organo.EditorTools.OrganoAndroidBuild.BuildApk
 ```
 
-### iOS
-Kode sudah mendukung ARKit dan suara iOS. Build iOS membutuhkan **Mac dengan Xcode**: pilih platform iOS di Unity,
-Build, buka proyek Xcode, lalu atur *Signing*. Distribusi uji bisa lewat TestFlight (Apple Developer Program).
+### Pengembangan untuk iOS
+Kode sumber telah mendukung integrasi ARKit dan manajemen audio iOS. Proses build iOS memerlukan komputer Mac dengan Xcode: pilih platform iOS pada editor Unity, lakukan build, buka proyek di Xcode, lalu konfigurasi profil Signing. Pengujian distribusi dapat dilakukan melalui TestFlight (Apple Developer Program).
 
 ### Pengujian otomatis
 - Uji fungsi: `-executeMethod Organo.EditorTools.OrganoSnapshots.RunAndQuit`
