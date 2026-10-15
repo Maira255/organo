@@ -10,7 +10,6 @@ Melalui Organo, anak dapat menjelajahi bentuk dan fungsi organ tubuh menggunakan
 | **Hasil scan** | **Kuis** | **Soal pilihan ganda 3D** | **Koleksi kartu** |
 | <img src="Dokumen/screenshots/20_scan_hasil_baru.jpg" width="180"> | <img src="Dokumen/screenshots/14_kuis_hub.jpg" width="180"> | <img src="Dokumen/screenshots/16_kuis_pilihan.jpg" width="180"> | <img src="Dokumen/screenshots/21_koleksi.jpg" width="180"> |
 
-> Penjelasan komprehensif mengenai spesifikasi fitur, rincian materi, riwayat pengembangan, dan hasil pengujian tersedia dalam dokumen [Dokumen/Proposal_Organo.pdf](Dokumen/Proposal_Organo.pdf).
 
 ---
 
