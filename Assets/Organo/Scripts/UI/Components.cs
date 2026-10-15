@@ -18,9 +18,9 @@ namespace Organo.UI
         static readonly (NavTab tab, string off, string on, string label)[] Items =
         {
             (NavTab.Beranda, "nav_home", "nav_home_on", "Beranda"),
-            (NavTab.Library, "nav_library", "logo", "Library"),
+            (NavTab.Library, "nav_library", "logo", "Pustaka"),
             (NavTab.Scan, null, null, null),
-            (NavTab.Quiz, "nav_quiz", "nav_quiz_on", "Quiz"),
+            (NavTab.Quiz, "nav_quiz", "nav_quiz_on", "Kuis"),
             (NavTab.Profil, "nav_profile", "nav_profile_on", "Profil"),
         };
 
@@ -150,7 +150,7 @@ namespace Organo.UI
             else
             {
                 var ownOrgan = app.Database.Get(own);
-                c.Add(UI.Button("Mulai " + ReproAccess.QuizName(own), () => { sh.Close(); Organo.Screens.QuizSession.StartTopic(ReproAccess.Topic(own)); Organo.Screens.QuizSession.OpenCurrent(app); }, "btn-primary"));
+                c.Add(UI.Button("Mulai " + ReproAccess.QuizName(own), () => { sh.Close(); Organo.Screens.QuizLocks.PlayOrgan(app, own); }, "btn-primary"));
                 if (ownOrgan != null)
                     c.Add(UI.Button("Pelajari " + ownOrgan.displayName + " dulu", () => { sh.Close(); app.Go<Organo.Screens.OrganDetailScreen>(own); }, "btn-outline"));
             }
@@ -213,7 +213,7 @@ namespace Organo.UI
             if (!owned) circle.Add(LockBadge().Abs(null, null, 0, 0));
             card.Add(circle);
             card.Add(UI.Text(o.displayName).FontSize(14).Bold().Fg(owned ? UI.C(UI.Ink) : UI.C(UI.Muted)).TextCenter());
-            card.Add(UI.Text(sub ?? ("Kartu #" + o.cardNumber + " · Season " + o.season)).FontSize(11).Fg(owned ? fg : UI.C(UI.Faint)).TextCenter());
+            card.Add(UI.Text(sub ?? ("Kartu #" + o.cardNumber + " · " + OrganDefaults.SystemName(o.system))).FontSize(11).Fg(owned ? fg : UI.C(UI.Faint)).TextCenter());
             if (isNew)
             {
                 var pill = UI.Pill("BARU", UI.Pink, "#FFFFFF").Abs(8, 34);
@@ -329,12 +329,12 @@ namespace Organo.UI
             return b;
         }
 
-        /// <summary>Isi dialog "Yakin mau keluar?" saat kuis berjalan.</summary>
+        /// <summary>Isi dialog "Yakin ingin keluar?" saat kuis berjalan.</summary>
         public static void ConfirmExitQuiz(OrganoApp app, Action onExit)
         {
             var c = UI.Col(8).Align(Align.Center);
             c.Add(UI.Icon("mascot_worry", 84, 72));
-            c.Add(UI.Text("Yakin mau keluar?", "t-h3").TextCenter());
+            c.Add(UI.Text("Yakin ingin keluar?", "t-h3").TextCenter());
             c.Add(UI.Text("Jawabanmu di kuis ini belum tersimpan. Kalau keluar, kamu harus mulai lagi dari awal.", "t-caption").TextCenter());
             var col = UI.Col(8).AlignSelf(Align.Stretch);
             col.style.marginTop = 12;

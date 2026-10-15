@@ -82,7 +82,7 @@ namespace Organo.Data
         [Header("Suara penjelasan (rekaman suara manusia/AI; kosong = suara HP)")]
         [Tooltip("Rekaman paragraf \"Tentang\" (about). Dibuat oleh Tools/suara/buat_suara.py, dipasang Organo > Suara > Pasang Rekaman.")]
         public AudioClip narration;
-        [Tooltip("Rekaman tiap fakta menarik, urutan sama dengan OrganNarration.Facts (\"Tau gak sih? ...\").")]
+        [Tooltip("Rekaman tiap fakta menarik, urutan sama dengan OrganNarration.Facts (\"Tahukah kamu? ...\").")]
         public AudioClip[] factNarration;
         [Tooltip("Rekaman kalimat kartu: nama + tugas organ (tombol Dengarkan di kartu).")]
         public AudioClip cardNarration;
@@ -98,7 +98,6 @@ namespace Organo.Data
         public float arModelSize = 0.08f;
 
         /// <summary>Punya kartu cetak untuk di-scan? Organ reproduksi hanya didapat dari kuis (tidak dicetak).</summary>
-        public bool Printable => system != OrganSystem.Reproduksi;
         public string ReferenceImageName => "organo-" + id;
         public string IconKey => "organ_" + id;
         public string SystemLabel => "Sistem " + OrganDefaults.SystemName(system);

@@ -221,7 +221,7 @@ namespace Organo.EditorTools
             var lib = EnsureLibrary();
             while (lib.count > 0) lib.RemoveAt(lib.count - 1);
             int n = 0;
-            foreach (var o in db.organs.Where(o => o != null && o.cardImage != null && o.Printable))
+            foreach (var o in db.organs.Where(o => o != null && o.cardImage != null))
             {
                 AddCard(lib, o.ReferenceImageName, o.cardImage, o.cardWidthMeters);
                 // Guru boleh mencetak gaya mana pun (Realistis/Kartun), jadi gaya lainnya ikut dikenali.

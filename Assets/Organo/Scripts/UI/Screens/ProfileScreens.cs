@@ -19,9 +19,9 @@ namespace Organo.Screens
         {
             new Badge { id = "first", name = "Langkah Pertama", desc = "Menyelesaikan kuis pertama", icon = "badge_star", color = U.Teal, progress = Mathf.Min(1, p.history.Count + p.QuizzesCompleted), goal = 1, cta = "Mulai Kuis" },
             new Badge { id = "champ", name = "Juara Kuis", desc = "Semua soal benar dalam satu kuis", icon = "badge_trophy", color = U.Pink, progress = p.history.Any(h => h.total > 0 && h.correct == h.total) ? 1 : 0, goal = 1, cta = "Mulai Kuis" },
-            new Badge { id = "explorer", name = "Penjelajah Organ", desc = "Membuka 5 organ di Library", icon = "badge_medal", color = U.Purple, progress = Mathf.Min(5, p.openedOrgans.Count), goal = 5, cta = "Buka Library" },
+            new Badge { id = "explorer", name = "Penjelajah Organ", desc = "Membuka 5 organ di Pustaka", icon = "badge_medal", color = U.Purple, progress = Mathf.Min(5, p.openedOrgans.Count), goal = 5, cta = "Buka Pustaka" },
             new Badge { id = "stars", name = "Bintang Bersinar", desc = "Mengumpulkan 200 bintang", icon = "badge_star", color = U.Yellow, progress = Mathf.Min(200, p.stars), goal = 200, cta = "Kumpulkan Bintang" },
-            new Badge { id = "digest", name = "Ahli Tubuh", desc = "Menyelesaikan semua season kuis", icon = "badge_trophy", color = U.TealDark, progress = p.SeasonsDone, goal = QuizBank.Seasons.Count, cta = "Lanjut Kuis" },
+            new Badge { id = "digest", name = "Ahli Tubuh", desc = "Menyelesaikan semua kuis proses", icon = "badge_trophy", color = U.TealDark, progress = QuizAccess.ProcessesDone(p), goal = QuizBank.Processes.Count, cta = "Lanjut Kuis" },
         };
 
         /// <summary>Lencana: lingkaran 52-56px (daftar) atau 116px dengan border putih 5px (tampilan besar).</summary>
@@ -75,7 +75,7 @@ namespace Organo.Screens
             var stats = U.Row(10);
             stats.Add(Parts.StatCard("stat_star", P.stars.ToString(), "Bintang"));
             stats.Add(Parts.StatCard("stat_cards", P.cards.Count + "/" + Db.Count, "Kartu", () => App.Go<CardCollectionScreen>()));
-            stats.Add(Parts.StatCard("stat_quiz", P.QuizzesCompleted.ToString(), "Quiz Selesai", () => App.Go<QuizHistoryScreen>()));
+            stats.Add(Parts.StatCard("stat_quiz", P.QuizzesCompleted.ToString(), "Kuis Selesai", () => App.Go<QuizHistoryScreen>()));
             c.Add(stats);
 
             var badges = Badge.All(P);
@@ -100,7 +100,7 @@ namespace Organo.Screens
 
             var list = U.Col(0, "card", "card-lg").Pad(4, 14);
             list.Elev(Elevation.E1);
-            list.Add(Setting("set_history", "Riwayat Quiz", P.history.Count + " kuis", () => App.Go<QuizHistoryScreen>()));
+            list.Add(Setting("set_history", "Riwayat Kuis", P.history.Count + " kuis", () => App.Go<QuizHistoryScreen>()));
             list.Add(Setting("set_body", "Materi Tubuh", P.gender == Gender.Girl ? "Perempuan" : "Laki-laki", () => App.Go<BodyMaterialScreen>()));
             list.Add(SoundRow());
             list.Add(NarrationRow());

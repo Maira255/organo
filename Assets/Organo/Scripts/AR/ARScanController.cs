@@ -31,15 +31,32 @@ namespace Organo.AR
         public bool useWebcamInEditor = true;
 
         public event Action<OrganInfo> CardDetected;
+        /// <summary>Organ berganti karena HP diarahkan ke kartu lain saat hasil scan terbuka (lihat <see cref="SwitchEnabled"/>).</summary>
+        public event Action<OrganInfo> CardSwitched;
+        /// <summary>Boleh berganti ke kartu lain yang diarahkan ke kamera (hanya saat halaman hasil scan terbuka).</summary>
+        public bool SwitchEnabled { get; set; }
 
         OrganDatabase m_Db;
         GameObject m_Spawned;
         Transform m_SpawnNorm;
         readonly List<OrganViewer3D.Hotspot> m_SpawnHotspots = new List<OrganViewer3D.Hotspot>();
         string m_CurrentId;
-        // kartu yang baru saja di-reset diabaikan sebentar supaya tidak langsung terdeteksi lagi saat "Scan kartu lain"
-        string m_IgnoreId;
-        float m_IgnoreUntil;
+        // kartu yang baru saja di-reset diabaikan sebentar (id organ → sampai kapan) supaya tidak langsung terdeteksi lagi.
+        // Disimpan per kartu: dulu hanya satu kartu, sehingga dua kartu salah di depan kamera bergantian terus (misi scan).
+        readonly Dictionary<string, float> m_Ignore = new Dictionary<string, float>();
+        // sejak kapan tiap kartu terlacak penuh (kartu yang baru muncul didahulukan saat berganti kartu)
+        readonly Dictionary<ARTrackedImage, float> m_TrackedSince = new Dictionary<ARTrackedImage, float>();
+
+        /// <summary>Tempelkan model 3D di atas kartu (false untuk misi scan: kuis menampilkan organnya sendiri).</summary>
+        public bool SpawnModels { get; set; } = true;
+        /// <summary>Organ yang sedang dicari (misi scan): kalau beberapa kartu terlihat, kartu ini didahulukan.</summary>
+        public string PreferOrgan { get; set; }
+        /// <summary>Organ yang boleh ditampilkan modelnya (organ reproduksi yang masih terkunci tidak ditampilkan).</summary>
+        public Func<OrganInfo, bool> ModelAllowed { get; set; }
+
+        bool CanSpawn(OrganInfo organ) => SpawnModels && organ != null && (ModelAllowed == null || ModelAllowed(organ));
+        bool Ignored(string organId) => organId != null && m_Ignore.TryGetValue(organId, out var until) && Time.unscaledTime < until;
+        float TrackedSince(ARTrackedImage img) => img != null && m_TrackedSince.TryGetValue(img, out var t) ? t : 0f;
         float m_DarkSince = -1f;
 
         public bool IsRunning { get; private set; }
@@ -142,9 +159,28 @@ namespace Organo.AR
                 return;
             }
 #endif
-            if (ArUnsupported) { IsRunning = true; StartWebcam(); return; }
+            // HP yang sudah ketahuan tidak bisa memakai ARCore: langsung kamera biasa (tidak diminta memasang ARCore lagi)
+            if (ArUnsupported || PlayerPrefs.GetInt(ArUnavailableKey, 0) == 1)
+            {
+                ArUnsupported = true;
+                IsRunning = true;
+                StartWebcam();
+                return;
+            }
             SetRunning(true);
             StartCoroutine(EnsureArAvailable());
+        }
+
+        const string ArUnavailableKey = "organo.ar.unavailable";
+
+        /// <summary>Coba lagi memakai AR (mis. setelah ARCore dipasang sendiri dari Play Store).</summary>
+        public void RetryAr()
+        {
+            PlayerPrefs.DeleteKey(ArUnavailableKey);
+            PlayerPrefs.Save();
+            ArUnsupported = false;
+            End();
+            Begin();
         }
 
         public void End()
@@ -165,7 +201,11 @@ namespace Organo.AR
                 yield return ARSession.Install();
             if (ARSession.state == ARSessionState.Unsupported || ARSession.state == ARSessionState.NeedsInstall)
             {
+                // Mis. HP yang tidak lagi didukung Google: toko aplikasi menolak memasang "Google Play Services for AR".
+                // Diingat, jadi aplikasi tidak menyuruh memasangnya lagi setiap kali Scan dibuka.
                 Debug.Log("[Organo] AR tidak didukung (" + ARSession.state + "), pakai kamera biasa.");
+                PlayerPrefs.SetInt(ArUnavailableKey, 1);
+                PlayerPrefs.Save();
                 ArUnsupported = true;
                 SetRunning(false);
                 IsRunning = true;
@@ -193,9 +233,76 @@ namespace Organo.AR
             NativeTorch.Set(false);
         }
 
+        // ---------------- pengenal kartu dengan kamera biasa (HP tanpa AR)
+        CardMatcher m_Matcher;
+        bool m_MatcherLoaded;
+        Color32[] m_Pixels;
+        float m_MatchTimer;
+        string m_MatchLast;
+        int m_MatchStreak;
+        Rect m_ScanFrame;
+        Vector2 m_ScanView;
+        bool m_HasScanFrame;
+
+        /// <summary>
+        /// Letak bingkai scan di tampilan kamera (unit UI, kiri atas) dan ukuran tampilan kameranya. Diisi layar Scan /
+        /// Misi Scan; dipakai untuk mengenali kartu dengan kamera biasa (HP yang tidak mendukung AR).
+        /// </summary>
+        public void SetScanFrame(Rect frame, Vector2 view)
+        {
+            m_ScanFrame = frame;
+            m_ScanView = view;
+            m_HasScanFrame = frame.width > 1f && frame.height > 1f && view.x > 1f && view.y > 1f;
+        }
+
+        public void ClearScanFrame() { m_HasScanFrame = false; m_MatchStreak = 0; m_MatchLast = null; }
+
+        /// <summary>Kartu bisa dikenali dengan kamera biasa (ciri kartu ada & kamera biasa menyala).</summary>
+        public bool CanRecognizeWithCamera => UsingWebcam && Matcher != null && Matcher.Count > 0;
+
+        CardMatcher Matcher
+        {
+            get
+            {
+                if (!m_MatcherLoaded) { m_MatcherLoaded = true; m_Matcher = CardMatcher.Load(); }
+                return m_Matcher;
+            }
+        }
+
+        /// <summary>
+        /// Kamera biasa: ±3 kali per detik isi bingkai dicocokkan ke semua kartu. Kartu dianggap dikenali kalau organ yang
+        /// sama menang dua kali berturut-turut (satu gambar buram tidak langsung dianggap kartu).
+        /// </summary>
+        void RecognizeWithCamera()
+        {
+            if (!m_HasScanFrame || m_CurrentId != null || m_PendingOrgan != null || !CanRecognizeWithCamera) return;
+            m_MatchTimer -= Time.unscaledDeltaTime;
+            if (m_MatchTimer > 0f) return;
+            m_MatchTimer = 0.3f;
+            int w = m_Webcam.width, h = m_Webcam.height;
+            if (m_Pixels == null || m_Pixels.Length != w * h) m_Pixels = new Color32[w * h];
+            m_Webcam.GetPixels32(m_Pixels);
+            int step = Mathf.Max(1, Mathf.Max(w, h) / 256);
+            var img = CardMatcher.Upright(m_Pixels, w, h, step, WebcamRotation, WebcamMirrored, WebcamFlipped, out int uw, out int uh);
+            var frame = CardMatcher.ScreenToImage(m_ScanFrame, m_ScanView.x, m_ScanView.y, uw, uh);
+            var res = Matcher.Match(img, uw, uh, frame);
+            var organ = res.Confident ? m_Db.Get(res.organId) : null;
+            if (organ == null || Ignored(organ.id)) { m_MatchStreak = 0; m_MatchLast = null; return; }
+            m_MatchStreak = organ.id == m_MatchLast ? m_MatchStreak + 1 : 1;
+            m_MatchLast = organ.id;
+            if (m_MatchStreak < 2) return;
+            m_MatchStreak = 0;
+            m_MatchLast = null;
+            LastSeen = organ.id + " (kamera biasa, cocok " + res.score.ToString("0.00") + ")";
+            LastSeenTime = Time.unscaledTime;
+            Debug.Log("[Organo][AR] kartu dikenali kamera biasa: " + LastSeen);
+            Confirm(null, organ, false);
+        }
+
         void UpdateWebcam()
         {
             if (!UsingWebcam || !m_Webcam.didUpdateThisFrame || m_Webcam.width <= 16) return;
+            RecognizeWithCamera();
             if (m_WebcamRT == null || m_WebcamRT.width != m_Webcam.width || m_WebcamRT.height != m_Webcam.height)
             {
                 if (m_WebcamRT != null) { m_WebcamRT.Release(); Destroy(m_WebcamRT); }
@@ -241,7 +348,7 @@ namespace Organo.AR
 
         public void ResetDetection()
         {
-            if (m_CurrentId != null) { m_IgnoreId = m_CurrentId; m_IgnoreUntil = Time.unscaledTime + 2.5f; }
+            if (m_CurrentId != null) m_Ignore[m_CurrentId] = Time.unscaledTime + 2.5f;
             m_CurrentId = null;
             CurrentOrgan = null;
             m_Pending = null;
@@ -254,6 +361,9 @@ namespace Organo.AR
             m_SpawnImage = null;
             m_Placed = false;
             m_WatchImage = null;
+            m_SwitchTo = null;
+            m_MatchStreak = 0;
+            m_MatchLast = null;
             m_SpawnHotspots.Clear();
         }
 
@@ -300,8 +410,17 @@ namespace Organo.AR
                 LastSeen = img.referenceImage.name + " (" + img.trackingState + ")";
                 LastSeenTime = Time.unscaledTime;
                 Debug.Log("[Organo][AR] kartu dikenali ARCore: " + LastSeen);
+                NoteTracking(img);
             }
+            for (int i = 0; i < args.updated.Count; i++) NoteTracking(args.updated[i]);
             PickCard(args.added);
+        }
+
+        void NoteTracking(ARTrackedImage img)
+        {
+            if (img == null) return;
+            if (img.trackingState != TrackingState.Tracking) m_TrackedSince.Remove(img);
+            else if (!m_TrackedSince.ContainsKey(img)) m_TrackedSince[img] = Time.unscaledTime;
         }
 
         // Kartu yang sudah dikenali ARCore tapi posisinya belum pasti (belum Tracking): ditunggu sebentar
@@ -329,13 +448,14 @@ namespace Organo.AR
                 bool tracking = img.trackingState == TrackingState.Tracking;
                 if (!tracking && !Contains(fresh, img)) continue;
                 var organ = m_Db.FindByReferenceImage(img.referenceImage.name);
-                if (organ == null || (organ.id == m_IgnoreId && Time.unscaledTime < m_IgnoreUntil)) continue;
+                if (organ == null || Ignored(organ.id)) continue;
                 float score = tracking ? 0f : 5f; // yang posisinya sudah pasti didahulukan
                 if (tracking && arCamera != null)
                 {
                     var vp = arCamera.WorldToViewportPoint(img.transform.position);
                     score = vp.z > 0f ? new Vector2(vp.x - 0.5f, vp.y - 0.5f).sqrMagnitude : 4f;
                 }
+                if (organ.id == PreferOrgan) score -= 10f; // misi scan: kartu yang dicari menang
                 if (score < bestScore) { bestScore = score; best = img; bestOrgan = organ; }
             }
             if (best == null) return;
@@ -362,8 +482,9 @@ namespace Organo.AR
             m_CurrentId = organ.id;
             CurrentOrgan = organ;
             // kartu yang posisinya belum pasti tetap diamati: model AR ditempel begitu ARCore melacaknya (lihat UpdatePending)
-            m_WatchImage = spawn ? null : img;
-            if (spawn && img != null) SpawnOn(img, organ);
+            bool can = CanSpawn(organ);
+            m_WatchImage = spawn || !can ? null : img;
+            if (spawn && can && img != null) SpawnOn(img, organ);
             Debug.Log("[Organo][AR] kartu terpilih: " + organ.id + (spawn ? " (model di atas kartu)" : " (posisi belum pasti, tampil di viewer 3D dulu)"));
             CardDetected?.Invoke(organ);
         }
@@ -379,7 +500,7 @@ namespace Organo.AR
                 return;
             }
             // kartu sudah dikenali tapi model belum ditempel: tempel saat ARCore sudah yakin dengan posisi & ukurannya
-            if (m_Spawned == null && m_WatchImage != null && CurrentOrgan != null && m_WatchImage.trackingState == TrackingState.Tracking)
+            if (m_Spawned == null && m_WatchImage != null && CurrentOrgan != null && m_WatchImage.trackingState == TrackingState.Tracking && CanSpawn(CurrentOrgan))
             {
                 var img = m_WatchImage;
                 m_WatchImage = null;
@@ -601,6 +722,64 @@ namespace Organo.AR
         {
             UpdateWebcam();
             UpdatePending();
+            UpdateSwitch();
+        }
+
+        // kartu lain yang sedang ditunggu sebelum organ berganti (supaya tidak berganti-ganti karena sekilas terlihat)
+        ARTrackedImage m_SwitchTo;
+        float m_SwitchSince;
+        const float SwitchHold = 0.4f;
+
+        /// <summary>
+        /// Kartu lain diarahkan ke kamera saat hasil scan terbuka: organ ikut berganti (dulu kartu pertama dipertahankan sampai
+        /// layar ditutup, jadi model mulut tetap muncul walau kamera sudah melihat kartu rangka). Kartu baru harus terlacak
+        /// penuh, dekat tengah layar, dan bertahan sebentar. Organ berganti kalau kartu yang sedang dipakai sudah tidak
+        /// terlacak / di luar layar / jauh lebih ke pinggir, atau kalau kartu baru muncul di tempat yang hampir sama
+        /// (kartu di layar laptop diganti: kartu lama bisa masih dianggap terlacak oleh ARCore beberapa saat).
+        /// </summary>
+        void UpdateSwitch()
+        {
+            if (!SwitchEnabled || m_Db == null || imageManager == null || arCamera == null || CurrentOrgan == null || m_PendingOrgan != null)
+            {
+                m_SwitchTo = null;
+                return;
+            }
+            ARTrackedImage best = null;
+            float bestDist = float.MaxValue, bestSince = 0f;
+            foreach (var img in imageManager.trackables)
+            {
+                if (img == null || img == m_SpawnImage || img == m_WatchImage) continue;
+                float d = CenterDistance(img);
+                if (d > 0.3f || !CanSpawn(m_Db.FindByReferenceImage(img.referenceImage.name))) continue;
+                // beberapa kartu dekat tengah: yang paling baru terlacak didahulukan, lalu yang paling ke tengah
+                float since = TrackedSince(img);
+                if (best == null || since > bestSince + 0.05f || (Mathf.Abs(since - bestSince) <= 0.05f && d < bestDist)) { best = img; bestDist = d; bestSince = since; }
+            }
+            float current = m_SpawnImage != null ? CenterDistance(m_SpawnImage) : float.MaxValue;
+            bool currentGone = current == float.MaxValue || current > bestDist + 0.15f;
+            bool newerHere = best != null && bestSince > TrackedSince(m_SpawnImage) + 0.2f && bestDist <= current + 0.1f;
+            if (best == null || !(currentGone || newerHere)) { m_SwitchTo = null; return; }
+            if (m_SwitchTo != best) { m_SwitchTo = best; m_SwitchSince = Time.unscaledTime; return; }
+            if (Time.unscaledTime - m_SwitchSince < SwitchHold) return;
+
+            m_SwitchTo = null;
+            var organ = m_Db.FindByReferenceImage(best.referenceImage.name);
+            bool changed = organ != CurrentOrgan;
+            m_CurrentId = organ.id;
+            CurrentOrgan = organ;
+            m_WatchImage = null;
+            SpawnOn(best, organ); // kartu Realistis ↔ Kartun organ yang sama: model pindah saja, halaman tetap
+            Debug.Log("[Organo][AR] ganti ke kartu " + best.referenceImage.name + (changed ? " (organ berganti)" : " (organ sama)"));
+            if (changed) CardSwitched?.Invoke(organ);
+        }
+
+        /// <summary>Jarak pusat kartu ke tengah gambar kamera (0 = tepat di tengah); tak hingga kalau tidak terlacak penuh / di luar layar.</summary>
+        float CenterDistance(ARTrackedImage img)
+        {
+            if (img.trackingState != TrackingState.Tracking) return float.MaxValue;
+            var vp = arCamera.WorldToViewportPoint(img.transform.position);
+            if (vp.z <= 0f || vp.x < 0f || vp.x > 1f || vp.y < 0f || vp.y > 1f) return float.MaxValue;
+            return new Vector2(vp.x - 0.5f, vp.y - 0.5f).magnitude;
         }
 
         /// <summary>Simulasi hasil scan (Editor / sebelum gambar kartu dipasang).</summary>

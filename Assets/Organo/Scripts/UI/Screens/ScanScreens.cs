@@ -35,10 +35,14 @@ namespace Organo.Screens
             vignette.pickingMode = PickingMode.Ignore;
             bg.Add(vignette);
 
-            // gambar kamera asli (webcam / kamera biasa) menutupi latar dekorasi kalau tersedia
-            var feed = U.Div("fill");
+            // Gambar kamera asli (webcam / kamera biasa) menutupi latar dekorasi kalau tersedia. Gambar mentah kamera HP
+            // biasanya miring (videoRotationAngle 90/270): kotaknya dibuat seukuran gambar mentah lalu diputar SEARAH
+            // jarum jam sebesar sudut itu, dengan skala "cover" (memenuhi layar, tengahnya terlihat). Dulu diputar ke arah
+            // sebaliknya (gambar terbalik 180°) dan diperbesar ±4x (buram).
+            var feed = U.Div();
             feed.pickingMode = PickingMode.Ignore;
-            feed.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Cover);
+            feed.style.position = Position.Absolute;
+            feed.style.backgroundSize = new BackgroundSize(Length.Percent(100), Length.Percent(100));
             feed.style.display = DisplayStyle.None;
             bg.Add(feed);
             bg.schedule.Execute(() =>
@@ -50,12 +54,31 @@ namespace Organo.Screens
                 if (feed.resolvedStyle.backgroundImage.renderTexture != tex) feed.style.backgroundImage = Background.FromRenderTexture(tex);
                 int rot = ((ar.WebcamRotation % 360) + 360) % 360;
                 bool sideways = rot == 90 || rot == 270;
-                float w = Mathf.Max(1f, bg.layout.width), h = Mathf.Max(1f, bg.layout.height);
-                float s = sideways ? Mathf.Max(h / w, w / h) : 1f;
-                feed.style.rotate = new Rotate(-rot);
-                feed.style.scale = new Scale(new Vector3(s * (ar.WebcamMirrored ? -1f : 1f), s * (ar.WebcamFlipped ? -1f : 1f), 1f));
+                float W = Mathf.Max(1f, bg.layout.width), H = Mathf.Max(1f, bg.layout.height);
+                float uw = sideways ? tex.height : tex.width, uh = sideways ? tex.width : tex.height;
+                float k = Mathf.Max(W / uw, H / uh);
+                float ew = tex.width * k, eh = tex.height * k;
+                feed.style.width = ew;
+                feed.style.height = eh;
+                feed.style.left = (W - ew) / 2f;
+                feed.style.top = (H - eh) / 2f;
+                feed.style.rotate = new Rotate(rot);
+                feed.style.scale = new Scale(new Vector3(ar.WebcamMirrored ? -1f : 1f, ar.WebcamFlipped ? -1f : 1f, 1f));
             }).Every(0);
             return bg;
+        }
+
+        /// <summary>
+        /// Beri tahu pengenal kartu kamera biasa letak bingkai scan di tampilan kamera (dipakai di HP yang tidak mendukung AR).
+        /// </summary>
+        public static void TellScanFrame(ARScanController ar, VisualElement view, VisualElement frameBox, bool active)
+        {
+            if (ar == null) return;
+            if (!active || view == null || frameBox == null || view.panel == null) { ar.ClearScanFrame(); return; }
+            var v = view.worldBound;
+            var f = frameBox.worldBound;
+            if (float.IsNaN(v.width) || v.width < 2f || float.IsNaN(f.width) || f.width < 2f) { ar.ClearScanFrame(); return; }
+            ar.SetScanFrame(new Rect(f.x - v.x, f.y - v.y, f.width, f.height), v.size);
         }
 
         /// <summary>Keterangan kecil tentang kamera yang dipakai (AR / kamera biasa / tidak ada kamera).</summary>
@@ -64,7 +87,7 @@ namespace Organo.Screens
             if (ar == null) return null;
             if (ar.NoCamera) return "Kamera tidak ditemukan di perangkat ini";
             if (!ar.UsingWebcam) return null;
-            if (ar.ArUnsupported) return "HP ini belum mendukung AR · kamera biasa menyala";
+            if (ar.ArUnsupported) return "HP ini belum mendukung AR · kartu tetap bisa di-scan";
             return "Kamera laptop (Editor) · ketuk bingkai untuk mencoba";
         }
 
@@ -276,8 +299,8 @@ namespace Organo.Screens
             var steps = U.Col(10);
             string[] lines =
             {
-                "Pelajari dulu organnya di Library",
-                "Minta kartunya ke guru atau orang tua",
+                "Pelajari dulu organnya di Pustaka",
+                "Mintalah kartunya kepada guru atau orang tua",
                 "Scan kartunya untuk membuka organ & kuis",
             };
             for (int i = 0; i < lines.Length; i++)
@@ -308,13 +331,13 @@ namespace Organo.Screens
             }
             else
             {
-                adult.Add(U.Text("File kartu siap cetak (A4, 15 kartu) tersedia di situs kartu Organo. Cetak dengan skala 100%.", "t-caption", "t-muted"));
+                adult.Add(U.Text("File kartu siap cetak (A4, 17 kartu) tersedia di situs kartu Organo. Cetak dengan skala 100%.", "t-caption", "t-muted"));
             }
             c.Add(adult);
 
             OrganoApp.Overlay sheet = null;
             var actions = U.Col(8);
-            actions.Add(U.Button("Belajar di Library", () => { sheet.Close(); app.GoTab(NavTab.Library); }, "btn-primary"));
+            actions.Add(U.Button("Belajar di Pustaka", () => { sheet.Close(); app.GoTab(NavTab.Library); }, "btn-primary"));
             actions.Add(U.Button("Tutup", () => sheet.Close(), "btn-ghost"));
             c.Add(actions);
             sheet = app.ShowSheet(c);
@@ -432,7 +455,7 @@ namespace Organo.Screens
             var helper = U.Row(0).AlignSelf(Align.Center).Pad(9, 16).Radius(999).Bg(U.C("#141220", 0.6f));
             helper.style.marginBottom = 12;
             helper.Add(U.Text("Belum punya kartu?").FontSize(12).Fg("#FFFFFF").Pad(0, 4, 0, 0));
-            helper.Add(U.Text("Cara dapatnya").FontSize(12).Bold().Fg("#9CE6DC").Tap(() => CardSource.Show(App)));
+            helper.Add(U.Text("Cara mendapatkannya").FontSize(12).Bold().Fg("#9CE6DC").Tap(() => CardSource.Show(App)));
 
             Root.Add(helper);
             Root.Add(statusWrap);
@@ -491,7 +514,7 @@ namespace Organo.Screens
                 demo.Add(U.Text(" · ").FontSize(11).Fg(U.Muted));
                 demo.Add(U.Text("kartu baru").FontSize(11).Bold().Fg(U.TealDark).Tap(() =>
                 {
-                    var missing = Db.Ordered.FirstOrDefault(o => !P.HasCard(o.id) && o.Printable);
+                    var missing = Db.Ordered.FirstOrDefault(o => !P.HasCard(o.id) && !ReproAccess.IsLocked(o, P));
                     OnCard(missing ?? Db.Get(m_DemoOrgan));
                 }));
                 m_Actions.Add(demo);
@@ -528,6 +551,13 @@ namespace Organo.Screens
         void OnCard(OrganInfo organ)
         {
             if (organ == null || Root.panel == null) return;
+            // kartu organ reproduksi gender lain yang belum terbuka: jelaskan cara membukanya, organnya tidak ditampilkan
+            if (ReproAccess.IsLocked(organ, P))
+            {
+                Ar?.ResetDetection();
+                Parts.ShowReproLock(App, organ);
+                return;
+            }
             OrganoAudio.Success();
             App.Go<ScanResultScreen>(organ.id);
         }
@@ -552,6 +582,7 @@ namespace Organo.Screens
             if (note != null && m_CamNoteText.text != note) m_CamNoteText.text = note;
             if (m_Torch && Ar != null && Ar.UsingWebcam == false && !Ar.IsCameraLive) { m_Torch = false; PaintTorch(false); }
             m_Frame.Tick(dt);
+            ScanParts.TellScanFrame(Ar, m_StandIn, m_Frame.Box, m_Phase == Phase.Scanning && !live);
 
             // ARCore baru bisa mengenali kartu setelah sesi AR melacak gerak HP
             bool ready = live && Ar.TrackingReady;
@@ -601,6 +632,9 @@ namespace Organo.Screens
 
             OrganoApp.Overlay sheet = null;
             c.Add(U.Button("Mengerti", () => sheet.Close(), "btn-primary"));
+            // HP yang tadinya ditandai tidak mendukung AR (mis. ARCore baru dipasang sendiri): coba AR lagi
+            if (Ar != null && Ar.ArUnsupported)
+                c.Add(U.Button("Coba pakai AR lagi", () => { sheet.Close(); Ar.RetryAr(); }, "btn-ghost"));
             sheet = App.ShowSheet(c);
         }
 
@@ -638,7 +672,7 @@ namespace Organo.Screens
             if (denied)
             {
                 col.Add(U.Button("Buka Pengaturan", () => { m_PermDialog.Close(); CameraPermission.OpenAppSettings(); }, "btn-primary"));
-                col.Add(U.Button("Lihat Library dulu", () => { m_PermDialog.Close(); App.GoTab(NavTab.Library); }, "btn-ghost"));
+                col.Add(U.Button("Lihat Pustaka dulu", () => { m_PermDialog.Close(); App.GoTab(NavTab.Library); }, "btn-ghost"));
             }
             else
             {
@@ -659,7 +693,7 @@ namespace Organo.Screens
 
         public override void Close()
         {
-            if (Ar != null) Ar.CardDetected -= OnCard;
+            if (Ar != null) { Ar.CardDetected -= OnCard; Ar.ClearScanFrame(); }
             if (m_Torch) Ar?.SetTorch(false);
         }
     }
@@ -676,14 +710,22 @@ namespace Organo.Screens
         DraggableSheet m_Sheet;
         VisualElement m_ArLayer, m_StandIn;
         readonly List<VisualElement> m_ArDots = new List<VisualElement>();
+        readonly List<Vector2> m_ArDotPos = new List<Vector2>();
         Label m_ArCalloutT, m_ArCalloutD;
         VisualElement m_ArCallout;
-        Vector2 m_LastPos;
+        Vector2 m_LastPos, m_DownPos;
+        bool m_Dragged;
+        /// <summary>Titik info AR yang diketuk (-1 = belum ada, keterangan disembunyikan).</summary>
+        int m_ArSel = -1;
 
         ARScanController Ar => App.ar;
+        /// <summary>Organ yang sedang ditampilkan (untuk uji).</summary>
+        public OrganInfo Organ => m_Organ;
 
         protected override void Build(object arg)
         {
+            // HP diarahkan ke kartu lain: halaman ini dibuka ulang dengan organ kartu itu
+            if (Ar != null) { Ar.CardSwitched -= OnSwitched; Ar.CardSwitched += OnSwitched; Ar.SwitchEnabled = true; }
             var organ = Db.Get(arg as string) ?? Db.Get("lambung");
             bool added = P.AddCard(organ.id);
             // dibangun ulang saat model AR baru menempel: kabar "kartu baru" tidak diulang
@@ -692,6 +734,8 @@ namespace Organo.Screens
             m_Organ = organ;
             var o = m_Organ;
             m_ArDots.Clear();
+            m_ArDotPos.Clear();
+            m_ArSel = -1;
 
             m_StandIn = ScanParts.CameraStandIn();
             Root.Add(m_StandIn);
@@ -707,6 +751,20 @@ namespace Organo.Screens
         }
 
         bool m_Rebuilding;
+
+        void OnSwitched(OrganInfo organ)
+        {
+            if (organ == null || Root.panel == null || organ == m_Organ) return;
+            OrganoAudio.Success();
+            App.Go<ScanResultScreen>(organ.id, push: false);
+        }
+
+        public override void Close()
+        {
+            if (Ar == null) return;
+            Ar.CardSwitched -= OnSwitched;
+            Ar.SwitchEnabled = false;
+        }
 
         void ShowNewCardNotice(OrganInfo o)
         {
@@ -744,15 +802,26 @@ namespace Organo.Screens
             m_ArLayer = U.Div().Grow();
             if (live)
             {
-                m_ArLayer.RegisterCallback<PointerDownEvent>(e => { m_LastPos = e.position; m_ArLayer.CapturePointer(e.pointerId); });
+                m_ArLayer.RegisterCallback<PointerDownEvent>(e =>
+                {
+                    m_LastPos = m_DownPos = e.position;
+                    m_Dragged = false;
+                    m_ArLayer.CapturePointer(e.pointerId);
+                });
                 m_ArLayer.RegisterCallback<PointerMoveEvent>(e =>
                 {
                     if (!m_ArLayer.HasPointerCapture(e.pointerId)) return;
-                    // geser ke segala arah: model berputar 360° mengikuti jari
-                    Ar.RotateSpawned((Vector2)e.position - m_LastPos);
+                    if (!m_Dragged && ((Vector2)e.position - m_DownPos).magnitude > 8f) m_Dragged = true;
+                    // geser ke segala arah: model berputar 360° mengikuti jari (ketukan tidak ikut memutar)
+                    if (m_Dragged) Ar.RotateSpawned((Vector2)e.position - m_LastPos);
                     m_LastPos = e.position;
                 });
-                m_ArLayer.RegisterCallback<PointerUpEvent>(e => m_ArLayer.ReleasePointer(e.pointerId));
+                m_ArLayer.RegisterCallback<PointerUpEvent>(e =>
+                {
+                    if (!m_ArLayer.HasPointerCapture(e.pointerId)) return;
+                    m_ArLayer.ReleasePointer(e.pointerId);
+                    if (!m_Dragged) TapSpot(m_ArLayer.WorldToLocal(e.position));
+                });
                 m_ArCallout = U.Col(2, "callout");
                 m_ArCallout.pickingMode = PickingMode.Ignore;
                 m_ArCalloutT = U.Text("", "b").FontSize(12);
@@ -809,8 +878,8 @@ namespace Organo.Screens
             var btns = U.Row(10);
             btns.style.marginTop = 6;
             btns.Add(U.Button("Pelajari", () => App.Go<OrganDetailScreen>(o.id), "btn-outline").Grow().MinH(48));
-            var seasonId = QuizBank.SeasonFor(o.system);
-            btns.Add(U.Button("Mulai Kuis", () => QuizSession.Play(App, QuizSession.StartSeason(seasonId)), "btn-primary").Grow().MinH(48));
+            // kartunya baru di-scan, jadi kuis organ ini sudah terbuka
+            btns.Add(U.Button("Mulai Kuis", () => QuizLocks.PlayOrgan(App, o.id), "btn-primary").Grow().MinH(48));
             sheet.Peek.Add(btns);
             // panah kecil = tanda sheet bisa ditarik (tanpa kalimat petunjuk)
             var up = U.Icon("chevron_down", 14).Tinted(U.C(U.Faint));
@@ -886,7 +955,7 @@ namespace Organo.Screens
                 var fact = U.Row(12).Align(Align.FlexStart).Bg(U.TealDark).Radius(16).Pad(14);
                 fact.Add(U.Icon("bulb", 24));
                 var ft = U.Col(4).Grow();
-                ft.Add(U.Text("Tau Gak Sih?", "t-body").Bold().Fg("#FFFFFF"));
+                ft.Add(U.Text("Tahukah Kamu?", "t-body").Bold().Fg("#FFFFFF"));
                 var fl = U.Text(facts[Random.Range(0, facts.Count)]).FontSize(12).Fg("#FFFFFF");
                 fl.style.whiteSpace = WhiteSpace.Normal;
                 ft.Add(fl);
@@ -916,7 +985,21 @@ namespace Organo.Screens
             c.Add(info);
         }
 
-        const string HintRotate = "Putar dengan jari untuk melihat sisi lain";
+        /// <summary>Ketuk titik info: tampilkan nama & tugas bagian itu (ketuk lagi / ketuk tempat lain = tutup).</summary>
+        void TapSpot(Vector2 local)
+        {
+            int hit = -1;
+            float best = 32f;
+            for (int i = 0; i < m_ArDots.Count && i < m_ArDotPos.Count; i++)
+            {
+                if (m_ArDots[i].resolvedStyle.display == DisplayStyle.None) continue;
+                float d = Vector2.Distance(local, m_ArDotPos[i]);
+                if (d < best) { best = d; hit = i; }
+            }
+            m_ArSel = hit == m_ArSel ? -1 : hit;
+        }
+
+        const string HintRotate = "Ketuk titik untuk melihat bagiannya, geser untuk memutar";
         const string HintWait = "Gerakkan HP pelan di depan kartu supaya organ muncul di atasnya";
         const string HintLost = "Arahkan kamera ke kartu lagi untuk melihat organ";
         bool m_Live, m_ShowRotateHint, m_SheetOpen;
@@ -954,26 +1037,41 @@ namespace Organo.Screens
             var rootR = Root.worldBound;
             while (m_ArDots.Count < spots.Count)
             {
+                // titik tidak menangkap sentuhan sendiri: lapisan AR yang membedakan ketuk (pilih titik) dan geser (putar)
                 var d = U.Div("hotspot");
-                d.Add(U.Div("hotspot__ring"));
+                d.pickingMode = PickingMode.Ignore;
+                var ring = U.Div("hotspot__ring");
+                ring.pickingMode = PickingMode.Ignore;
+                d.Add(ring);
                 m_ArLayer.Add(d);
                 m_ArDots.Add(d);
+                m_ArDotPos.Add(Vector2.zero);
+                m_ArCallout.BringToFront(); // keterangan di atas titik lain
             }
+            if (m_ArSel >= spots.Count) m_ArSel = -1;
             m_ArCallout.Visible(false);
+            // cincin berdenyut seperti titik di close-up: tanda titik bisa diketuk
+            float pulse = 1f + 0.6f * Mathf.Repeat(Time.unscaledTime * 0.6f, 1f);
             for (int i = 0; i < m_ArDots.Count; i++)
             {
                 if (!Ar.TryProjectHotspot(i, out var uv)) { m_ArDots[i].Visible(false); continue; }
                 float x = uv.x * rootR.width - (r.x - rootR.x), y = uv.y * rootR.height - (r.y - rootR.y);
+                m_ArDotPos[i] = new Vector2(x, y);
                 m_ArDots[i].Visible(true);
                 m_ArDots[i].style.left = x;
                 m_ArDots[i].style.top = y;
-                if (i == 0)
+                m_ArDots[i].EnableInClassList("hotspot--selected", i == m_ArSel);
+                var ring = m_ArDots[i][0];
+                ring.style.scale = new Scale(new Vector3(pulse, pulse, 1f));
+                ring.style.opacity = 1.6f - pulse;
+                if (i == m_ArSel)
                 {
                     m_ArCallout.Visible(true);
-                    m_ArCalloutT.text = spots[0].title;
-                    m_ArCalloutD.text = spots[0].description;
-                    m_ArCallout.style.left = Mathf.Min(x + 20, r.width - 136);
-                    m_ArCallout.style.top = Mathf.Max(0, y - 24);
+                    m_ArCalloutT.text = spots[i].title;
+                    m_ArCalloutD.text = spots[i].description;
+                    // di kanan titik; kalau tidak muat, di kirinya
+                    m_ArCallout.style.left = x + 20 + 136 <= r.width ? x + 20 : Mathf.Max(0, x - 20 - 128);
+                    m_ArCallout.style.top = Mathf.Clamp(y - 24, 0, Mathf.Max(0, r.height - 70));
                 }
             }
         }

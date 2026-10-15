@@ -18,8 +18,8 @@ MonoBehaviour:
     m_Storage: []
   m_Images:
   - m_SerializedGuid:
-      m_GuidLow: 5038197153353022470
-      m_GuidHigh: 2117816370923028903
+      m_GuidLow: 5316241244802536581
+      m_GuidHigh: 1541294084703823510
     m_SerializedTextureGuid:
       m_GuidLow: 14466750264366432921
       m_GuidHigh: 13830042036035294505
@@ -28,8 +28,8 @@ MonoBehaviour:
     m_Name: organo-mulut
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5395205001130299827
-      m_GuidHigh: 15235552513238837676
+      m_GuidLow: 4986379882544732884
+      m_GuidHigh: 16062680504118738618
     m_SerializedTextureGuid:
       m_GuidLow: 14462393955993852628
       m_GuidHigh: 7367612229223324954
@@ -38,8 +38,8 @@ MonoBehaviour:
     m_Name: organo-mulut@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5266232195063258138
-      m_GuidHigh: 9941862556053179068
+      m_GuidLow: 5232103213117210139
+      m_GuidHigh: 13481793393155872656
     m_SerializedTextureGuid:
       m_GuidLow: 18303885439194867493
       m_GuidHigh: 16887624997135957226
@@ -48,8 +48,8 @@ MonoBehaviour:
     m_Name: organo-kerongkongan
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 4954771182771685451
-      m_GuidHigh: 15950616417697184159
+      m_GuidLow: 5719050136690336540
+      m_GuidHigh: 3135089960116885167
     m_SerializedTextureGuid:
       m_GuidLow: 249019456656718767
       m_GuidHigh: 14177012646896408473
@@ -58,8 +58,8 @@ MonoBehaviour:
     m_Name: organo-kerongkongan@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5551502911797986400
-      m_GuidHigh: 11253581120636467637
+      m_GuidLow: 5680249861617465767
+      m_GuidHigh: 2704535167758889384
     m_SerializedTextureGuid:
       m_GuidLow: 5612725934913157707
       m_GuidHigh: 2739184331127169035
@@ -68,8 +68,8 @@ MonoBehaviour:
     m_Name: organo-lambung
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5145813235958038191
-      m_GuidHigh: 13266228191316420268
+      m_GuidLow: 5755964535141567177
+      m_GuidHigh: 5050236057455579794
     m_SerializedTextureGuid:
       m_GuidLow: 13669581688276175775
       m_GuidHigh: 542552624570905131
@@ -78,8 +78,8 @@ MonoBehaviour:
     m_Name: organo-lambung@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5011190989190854777
-      m_GuidHigh: 9569097198831441540
+      m_GuidLow: 5655862870363006487
+      m_GuidHigh: 1568687604540471939
     m_SerializedTextureGuid:
       m_GuidLow: 3194346499595306230
       m_GuidHigh: 3329774810845793448
@@ -88,8 +88,8 @@ MonoBehaviour:
     m_Name: organo-usushalus
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 4925219255069118710
-      m_GuidHigh: 5938315384486100404
+      m_GuidLow: 5139191830835910893
+      m_GuidHigh: 2849015659054126766
     m_SerializedTextureGuid:
       m_GuidLow: 753339810605919545
       m_GuidHigh: 17614905082418609738
@@ -98,8 +98,8 @@ MonoBehaviour:
     m_Name: organo-usushalus@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 4854319048700593943
-      m_GuidHigh: 4176803948940062340
+      m_GuidLow: 5009817968490019839
+      m_GuidHigh: 2293668091117504152
     m_SerializedTextureGuid:
       m_GuidLow: 15151283190022594551
       m_GuidHigh: 11419056608438105067
@@ -108,8 +108,8 @@ MonoBehaviour:
     m_Name: organo-ususbesar
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5175867664910890335
-      m_GuidHigh: 10169474977271676603
+      m_GuidLow: 5307717093722374332
+      m_GuidHigh: 563490838174209466
     m_SerializedTextureGuid:
       m_GuidLow: 1757748579147974508
       m_GuidHigh: 8255615653586445401
@@ -118,8 +118,8 @@ MonoBehaviour:
     m_Name: organo-ususbesar@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5033241192064763022
-      m_GuidHigh: 1623854781743158199
+      m_GuidLow: 5194179475436460630
+      m_GuidHigh: 6211001369813575814
     m_SerializedTextureGuid:
       m_GuidLow: 1379234504464908990
       m_GuidHigh: 14431910961327950795
@@ -128,8 +128,8 @@ MonoBehaviour:
     m_Name: organo-paru
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5670876763805128117
-      m_GuidHigh: 4981519907433550762
+      m_GuidLow: 5497778285968180337
+      m_GuidHigh: 15646263143834712245
     m_SerializedTextureGuid:
       m_GuidLow: 15763795709789817317
       m_GuidHigh: 13074216096563579722
@@ -138,8 +138,8 @@ MonoBehaviour:
     m_Name: organo-paru@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5619937113225142915
-      m_GuidHigh: 4273341906630695828
+      m_GuidLow: 4981710555130295505
+      m_GuidHigh: 11896011765786767022
     m_SerializedTextureGuid:
       m_GuidLow: 3406092840189274214
       m_GuidHigh: 2384373814141189195
@@ -148,8 +148,8 @@ MonoBehaviour:
     m_Name: organo-jantung
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5428558620761638210
-      m_GuidHigh: 11314196465474385078
+      m_GuidLow: 5679182309768432043
+      m_GuidHigh: 10709617550735612551
     m_SerializedTextureGuid:
       m_GuidLow: 16358247241784234372
       m_GuidHigh: 1728384747700989913
@@ -158,8 +158,8 @@ MonoBehaviour:
     m_Name: organo-jantung@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5702111253310143450
-      m_GuidHigh: 5599342410051501234
+      m_GuidLow: 5219314288526781647
+      m_GuidHigh: 7979032017164092041
     m_SerializedTextureGuid:
       m_GuidLow: 8796853959314621439
       m_GuidHigh: 12452892745321599064
@@ -168,8 +168,8 @@ MonoBehaviour:
     m_Name: organo-ginjal
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5394312858078845526
-      m_GuidHigh: 18299126064427686059
+      m_GuidLow: 4951061621358447629
+      m_GuidHigh: 8505305238012484254
     m_SerializedTextureGuid:
       m_GuidLow: 1347868249687695043
       m_GuidHigh: 5903127360218894824
@@ -178,8 +178,8 @@ MonoBehaviour:
     m_Name: organo-ginjal@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 4733347361364589559
-      m_GuidHigh: 15001809144004846753
+      m_GuidLow: 5361436927461837888
+      m_GuidHigh: 18443377975405215149
     m_SerializedTextureGuid:
       m_GuidLow: 9166121731569568599
       m_GuidHigh: 1811951611119940536
@@ -188,8 +188,8 @@ MonoBehaviour:
     m_Name: organo-hati
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5248310363066137390
-      m_GuidHigh: 7148450197537542294
+      m_GuidLow: 5005953283587060972
+      m_GuidHigh: 6482827516877117842
     m_SerializedTextureGuid:
       m_GuidLow: 8742766886063560679
       m_GuidHigh: 13565475433474139099
@@ -198,8 +198,8 @@ MonoBehaviour:
     m_Name: organo-hati@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5465983236742114569
-      m_GuidHigh: 6445443285396654473
+      m_GuidLow: 5431922781787188606
+      m_GuidHigh: 11745489519031325089
     m_SerializedTextureGuid:
       m_GuidLow: 4887700927182604768
       m_GuidHigh: 341293495051810489
@@ -208,8 +208,8 @@ MonoBehaviour:
     m_Name: organo-pankreas
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5089996070200180941
-      m_GuidHigh: 15604603833953520316
+      m_GuidLow: 5313641437330553820
+      m_GuidHigh: 16707593885625725631
     m_SerializedTextureGuid:
       m_GuidLow: 12138555136922883981
       m_GuidHigh: 6224182728548722937
@@ -218,8 +218,8 @@ MonoBehaviour:
     m_Name: organo-pankreas@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5496701565926913260
-      m_GuidHigh: 10551516827927901342
+      m_GuidLow: 5371037077667111252
+      m_GuidHigh: 2491732192540088209
     m_SerializedTextureGuid:
       m_GuidLow: 3703244525969322042
       m_GuidHigh: 4284048164034238682
@@ -228,8 +228,8 @@ MonoBehaviour:
     m_Name: organo-otak
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5359219510648564295
-      m_GuidHigh: 14117316601325691293
+      m_GuidLow: 5428112580464914453
+      m_GuidHigh: 11380872927970332563
     m_SerializedTextureGuid:
       m_GuidLow: 12431286988394559046
       m_GuidHigh: 13387104572192432121
@@ -238,8 +238,8 @@ MonoBehaviour:
     m_Name: organo-otak@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5109764030988759118
-      m_GuidHigh: 13208625989743434653
+      m_GuidLow: 5590990174594571529
+      m_GuidHigh: 17019416328984865420
     m_SerializedTextureGuid:
       m_GuidLow: 13232944221657651471
       m_GuidHigh: 5022447569858482715
@@ -248,8 +248,8 @@ MonoBehaviour:
     m_Name: organo-tenggorokan
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5493423279622090275
-      m_GuidHigh: 4382650152125200571
+      m_GuidLow: 4653681494214004006
+      m_GuidHigh: 8077701268568240301
     m_SerializedTextureGuid:
       m_GuidLow: 9580413783425611103
       m_GuidHigh: 7750340983666689947
@@ -258,8 +258,8 @@ MonoBehaviour:
     m_Name: organo-tenggorokan@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5134276628497543565
-      m_GuidHigh: 205243719322336189
+      m_GuidLow: 4643534555481991631
+      m_GuidHigh: 6422585158191407281
     m_SerializedTextureGuid:
       m_GuidLow: 8783231809584821187
       m_GuidHigh: 15542088051788834168
@@ -268,8 +268,8 @@ MonoBehaviour:
     m_Name: organo-hidung
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5599850893000216538
-      m_GuidHigh: 1772806522948790175
+      m_GuidLow: 4772829231935981879
+      m_GuidHigh: 13853889288952386470
     m_SerializedTextureGuid:
       m_GuidLow: 18096658548182422446
       m_GuidHigh: 9926873185856298427
@@ -278,8 +278,8 @@ MonoBehaviour:
     m_Name: organo-hidung@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 4785005947067157095
-      m_GuidHigh: 9840023799797898414
+      m_GuidLow: 5597160169201809559
+      m_GuidHigh: 4021366143042641054
     m_SerializedTextureGuid:
       m_GuidLow: 6612453815582309800
       m_GuidHigh: 13372991307113752488
@@ -288,8 +288,8 @@ MonoBehaviour:
     m_Name: organo-mata
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5079885381177474726
-      m_GuidHigh: 6256514163771861669
+      m_GuidLow: 5430503735244780764
+      m_GuidHigh: 9396846315732780989
     m_SerializedTextureGuid:
       m_GuidLow: 2054994225067942003
       m_GuidHigh: 6617309924811025467
@@ -298,8 +298,48 @@ MonoBehaviour:
     m_Name: organo-mata@kartun
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 5673348762341694140
-      m_GuidHigh: 15049294083762225558
+      m_GuidLow: 5641823204381967475
+      m_GuidHigh: 7371929123434304393
+    m_SerializedTextureGuid:
+      m_GuidLow: 5004894551452140868
+      m_GuidHigh: 4638451630134699930
+    m_Size: {x: 0.063, y: 0.088010915}
+    m_SpecifySize: 1
+    m_Name: organo-reprolaki
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 5115048234984026176
+      m_GuidHigh: 3162100193020419726
+    m_SerializedTextureGuid:
+      m_GuidLow: 2208126316240265211
+      m_GuidHigh: 630952890851006776
+    m_Size: {x: 0.063, y: 0.088010915}
+    m_SpecifySize: 1
+    m_Name: organo-reprolaki@kartun
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 4947399641827455942
+      m_GuidHigh: 10540659001805454011
+    m_SerializedTextureGuid:
+      m_GuidLow: 16538356060412576029
+      m_GuidHigh: 9042451946110226552
+    m_Size: {x: 0.063, y: 0.088010915}
+    m_SpecifySize: 1
+    m_Name: organo-reproperempuan
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 5084970912048545789
+      m_GuidHigh: 9249888510288983211
+    m_SerializedTextureGuid:
+      m_GuidLow: 14453256767893650604
+      m_GuidHigh: 16593089350603348041
+    m_Size: {x: 0.063, y: 0.088010915}
+    m_SpecifySize: 1
+    m_Name: organo-reproperempuan@kartun
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 4652462764384419846
+      m_GuidHigh: 1389563479491641521
     m_SerializedTextureGuid:
       m_GuidLow: 11242130023335868654
       m_GuidHigh: 17998552146189748490
@@ -308,8 +348,8 @@ MonoBehaviour:
     m_Name: organo-rangka
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
-      m_GuidLow: 4891076083935220285
-      m_GuidHigh: 6314432141853421747
+      m_GuidLow: 5036996443092584778
+      m_GuidHigh: 2606169379969686698
     m_SerializedTextureGuid:
       m_GuidLow: 14065966710721380993
       m_GuidHigh: 14883981417486468443

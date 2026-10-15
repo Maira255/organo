@@ -172,7 +172,10 @@ namespace Organo.EditorTools
 
             // nama & fungsi
             var text = U.Col(4).Abs(18, 276, 18).Align(Align.Center);
-            var name = U.Text(o.displayName.ToUpperInvariant()).FontSize(30).Bold().Fg(U.Ink).TextCenter();
+            // nama panjang (mis. REPRODUKSI LAKI-LAKI) tetap satu baris supaya tidak menimpa tulisan di bawahnya
+            bool longName = o.displayName.Length > 12;
+            var name = U.Text(o.displayName.ToUpperInvariant()).FontSize(longName ? 22 : 30).Bold().Fg(U.Ink).TextCenter();
+            if (longName) name.style.whiteSpace = WhiteSpace.NoWrap;
             text.Add(name);
             var fn = U.Text(o.shortDescription).FontSize(13).Fg(U.Muted).TextCenter();
             fn.style.whiteSpace = WhiteSpace.Normal;
@@ -236,7 +239,10 @@ namespace Organo.EditorTools
             var num = U.Div().Size(38, 38).Radius(19).Bg("#FFD34E").Border(3, Ink).Center();
             num.Add(U.Text(o.cardNumber.ToString()).FontSize(16).Bold().Fg(Ink));
             title.Add(num);
-            title.Add(U.Text(o.displayName.ToUpperInvariant()).FontSize(o.displayName.Length > 11 ? 20 : 24).Bold().Fg("#FFFFFF").Grow());
+            // nama sangat panjang (REPRODUKSI PEREMPUAN) diperkecil & tetap satu baris supaya tidak keluar dari pita judul
+            var titleText = U.Text(o.displayName.ToUpperInvariant()).FontSize(o.displayName.Length > 19 ? 17 : o.displayName.Length > 11 ? 20 : 24).Bold().Fg("#FFFFFF").Grow();
+            if (o.displayName.Length > 19) titleText.style.whiteSpace = WhiteSpace.NoWrap;
+            title.Add(titleText);
             frame.Add(title);
 
             // ilustrasi organ berwajah (gaya kartun dari aplikasi)
@@ -325,6 +331,7 @@ namespace Organo.EditorTools
             Debug.Log("[Organo] Kartu AR (" + dir + "): " + n + " gambar dipasang, " + lib + " kartu di library.");
             BuildPrintSheets(db, CardDir, "Realistis");
             BuildPrintSheets(db, CartoonDir, "Kartun");
+            CardSignatureBuilder.Build();
         }
 
         /// <summary>Batch: terapkan ulang pengaturan impor gambar kartu (kedua gaya).</summary>
@@ -366,7 +373,7 @@ namespace Organo.EditorTools
             const int CardW = 744, CardH = 1039;               // 63x88 mm @300 dpi
             const int Gap = 40;
             int ox = (PageW - (CardW * 3 + Gap * 2)) / 2, oy = (PageH - (CardH * 3 + Gap * 2)) / 2;
-            var organs = db.organs.Where(o => o != null && o.Printable && File.Exists(dir + "/" + o.id + ".png")).OrderBy(o => o.cardNumber).ToList();
+            var organs = db.organs.Where(o => o != null && File.Exists(dir + "/" + o.id + ".png")).OrderBy(o => o.cardNumber).ToList();
             var outDir = Path.Combine(PrintDir, style);
             Directory.CreateDirectory(outDir);
             int page = 0;

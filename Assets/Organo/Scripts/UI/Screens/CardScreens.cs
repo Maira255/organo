@@ -277,7 +277,7 @@ namespace Organo.Screens
             if (m_Filter == 1)
             {
                 var row = U.Row(10).AlignSelf(Align.Stretch);
-                row.Add(U.Button("Ke Library", () => App.GoTab(NavTab.Library), "btn-outline").Grow());
+                row.Add(U.Button("Ke Pustaka", () => App.GoTab(NavTab.Library), "btn-outline").Grow());
                 row.Add(U.Button("Scan Kartu", () => App.GoTab(NavTab.Scan), "btn-primary").Grow());
                 box.Add(row);
             }
@@ -467,26 +467,7 @@ namespace Organo.Screens
                 if (P.narration)
                     row.Add(U.Button("Dengarkan", () => { if (OrganoAudio.VoicePlaying || OrganoAudio.SpeechPlaying) OrganoAudio.StopVoice(); else Speak(o); }, "btn-outline", "btn-small").Grow());
                 row.Add(U.Button("Info Lengkap", () => App.Go<OrganInfoScreen>(o.id), "btn-outline", "btn-small").Grow());
-                if (o.Printable) row.Add(U.Button("Scan AR", () => App.Go<ScanScreen>(o.id), "btn-outline", "btn-small").Grow());
-                m_Info.Add(row);
-            }
-            else if (!o.Printable)
-            {
-                // kartu organ reproduksi: tidak dicetak, didapat dari kuisnya (gender lain terbuka setelah kuis milik sendiri)
-                bool locked = Parts.Locked(o);
-                var box = U.Col(8).Pad(12, 14).Radius(14).Bg("#F6E5F5");
-                var t = U.Text(locked ? ReproAccess.LockReason(o.id, P) : "Didapat dari " + ReproAccess.QuizName(o.id) + ".", "t-caption").Fg(U.Ink);
-                t.style.whiteSpace = WhiteSpace.Normal;
-                box.Add(t);
-                m_Info.Add(box);
-                var row = U.Row(10);
-                row.Add(U.Button("Pelajari dulu", () => Parts.OpenOrgan(App, o), "btn-outline").Grow());
-                row.Add(U.Button("Mulai Kuis", () =>
-                {
-                    if (Parts.Locked(o)) { Parts.ShowReproLock(App, o); return; }
-                    QuizSession.StartTopic(ReproAccess.Topic(o.id));
-                    QuizSession.OpenCurrent(App);
-                }, "btn-primary").Grow());
+                row.Add(U.Button("Scan AR", () => App.Go<ScanScreen>(o.id), "btn-outline", "btn-small").Grow());
                 m_Info.Add(row);
             }
             else
@@ -509,7 +490,7 @@ namespace Organo.Screens
         {
             var o = Current;
             if (o == null) return;
-            if (!P.HasCard(o.id)) { Bounce(0); App.Toast(o.Printable ? "Kartu " + o.displayName + " belum kamu punya. Scan kartunya dulu, ya!" : "Kartu " + o.displayName + " didapat dari " + ReproAccess.QuizName(o.id) + "."); return; }
+            if (!P.HasCard(o.id)) { Bounce(0); App.Toast("Kartu " + o.displayName + " belum kamu punya. Scan kartunya dulu, ya!"); return; }
             m_Back = !m_Back;
             m_Hint.text = (m_Back ? "Ketuk untuk melihat gambar kartu" : "Ketuk kartu untuk membalik") + " · geser untuk kartu lain";
             if (P.reduceMotion) { RenderFace(); return; }

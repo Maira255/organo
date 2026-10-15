@@ -48,7 +48,7 @@ namespace Organo.Data
         public List<string> cardDates = new List<string> { "28 Sep", "2 Okt", "Hari ini" };
         public List<string> openedOrgans = new List<string> { "mulut", "kerongkongan", "lambung", "jantung", "paru" };
         public List<string> favorites = new List<string>();
-        /// <summary>Kuis topik yang sudah selesai, mis. "repro:reprolaki" (membuka organ reproduksi gender lain).</summary>
+        /// <summary>Kuis organ yang sudah selesai ("organ:lambung"; kuis reproduksi versi lama: "repro:reprolaki").</summary>
         public List<string> doneTopics = new List<string>();
         public int season1Done = 3;
         public int warmupDone = 5;
@@ -181,23 +181,6 @@ namespace Organo.Data
         }
 
         public int QuizzesCompleted => Mathf.Max(history.Count, warmupDone + season1Done);
-
-        /// <summary>Season kuis ini sudah pernah diselesaikan (catatan lama: season1Done / warmupDone).</summary>
-        public bool SeasonDone(string id) =>
-            history.Any(h => QuizBank.RecordSeason(h) == id) || (id == "cerna" && season1Done > 0) || (id == "tubuh" && warmupDone > 0);
-
-        /// <summary>Jumlah benar terbaik di season ini (-1 = belum ada catatan).</summary>
-        public int SeasonBest(string id)
-        {
-            int best = -1;
-            foreach (var h in history) if (QuizBank.RecordSeason(h) == id && h.correct > best) best = h.correct;
-            return best;
-        }
-
-        public int SeasonsDone => QuizBank.Seasons.Count(s => SeasonDone(s.id));
-
-        /// <summary>Season berikutnya yang belum diselesaikan (null = semua sudah).</summary>
-        public SeasonInfo NextSeason => QuizBank.Seasons.FirstOrDefault(s => !SeasonDone(s.id));
 
         public float AveragePercent => history.Count == 0 ? 0 : (float)history.Average(h => h.Percent);
     }

@@ -22,7 +22,7 @@ import cv2
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IDS = ['mulut', 'kerongkongan', 'lambung', 'usushalus', 'ususbesar', 'paru', 'jantung', 'ginjal', 'hati',
-       'pankreas', 'otak', 'tenggorokan', 'hidung', 'mata', 'rangka']
+       'pankreas', 'otak', 'tenggorokan', 'hidung', 'mata', 'rangka', 'reprolaki', 'reproperempuan']
 CPU_W, CPU_H = 640, 480          # resolusi gambar CPU ARCore (dipakai untuk deteksi gambar)
 DB_W = 480                       # lebar gambar database setelah diperkecil
 MIN_INLIERS = 14

@@ -43,6 +43,7 @@ namespace Organo.EditorTools
                 // ARCore memperkirakan sendiri ukuran kartu (kertas 6,3 cm maupun kartu besar di layar laptop)
                 OrganoSetup.SetCardLibrarySpecifySize(false);
                 sb.AppendLine("Kartu AR: ukuran fisik diperkirakan ARCore (tidak dipatok 6,3 cm)");
+                sb.AppendLine("Ciri kartu untuk HP tanpa AR: " + CardSignatureBuilder.Build() + " gambar kartu");
                 var path = development ? ApkPath.Replace(".apk", "-dev.apk") : ApkPath;
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions

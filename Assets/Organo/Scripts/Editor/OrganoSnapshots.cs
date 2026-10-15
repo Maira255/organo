@@ -145,9 +145,9 @@ namespace Organo.EditorTools
                 ("17b_scan_hasil_terbuka", () => a.Current?.Root.Q<DraggableSheet>()?.SetOpen(true), 1.2f),
                 ("18_kartu_baru", () => a.Go<ScanResultScreen>("usushalus", false), 2f),
                 ("19_quiz", () => a.GoTab(NavTab.Quiz), 1f),
-                ("20_quiz_label", () => { QuizSession.Start(); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1f),
-                ("21_quiz_pilihan", () => { var s = QuizSession.Start(); s.index = 1; a.Go<QuizPlayScreen>(s, false); }, 2f),
-                ("22_quiz_selesai", () => PlayThrough(QuizSession.StartSeason("cerna"), 2), 1.5f),
+                ("20_quiz_label", () => { QuizSession.StartProcess("cerna"); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1f),
+                ("21_quiz_pilihan", () => { var s = QuizSession.StartOrgan("lambung"); a.Go<QuizPlayScreen>(s, false); }, 2f),
+                ("22_quiz_selesai", () => PlayThrough(QuizSession.StartOrgan("mulut"), 2), 1.5f),
                 ("23_profil", () => a.GoTab(NavTab.Profil), 1f),
                 ("24_koleksi", () => a.Go<CardCollectionScreen>(0, false), 1f),
                 ("24b_koleksi_dimiliki", () => a.Go<CardCollectionScreen>(1, false), 1f),
@@ -195,13 +195,14 @@ namespace Organo.EditorTools
                 ("75_uji_halaman_geser", TestPageScroll, 1.0f),
                 ("76_uji_ketuk_kartu", TestTapCard, 1.6f),
                 ("76b_uji_suara_pembaca", TestNarration, 2.0f),
-                ("77_uji_kuis_awal", () => { QuizSession.Start(); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.2f),
+                ("77_uji_kuis_awal", () => { QuizSession.StartProcess("cerna"); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.2f),
                 ("78_uji_kuis_seret", TestQuizDrag, 1.0f),
                 ("79_uji_library_sheet", () => a.Go<LibraryBodyScreen>(Organo.Data.BodyRegion.Perut, false), 1.4f),
                 ("80_uji_library_sheet_turun", TestLibrarySwipe, 1.2f),
                 ("81_uji_overlay", () => a.ShowSheet(new Label("Uji sheet: tarik ke bawah untuk menutup") { style = { height = 160, unityTextAlign = TextAnchor.MiddleCenter } }), 0.8f),
                 ("82_uji_overlay_turun", TestOverlaySwipe, 1.0f),
                 ("86_uji_suara", TestAudio, 0.5f),
+                ("86b_uji_pengenal_kartu", TestCardMatcher, 1.0f),
                 ("89_uji_kartu_awal", () => { foreach (var id in new[] { "mulut", "kerongkongan" }) if (!a.Progress.HasCard(id)) a.Progress.AddCard(id, 0); a.Go<CardViewerScreen>("mulut", false); }, 1.0f),
                 ("89b_uji_kartu_geser", TestCardSwipe, 1.0f),
                 ("89c_uji_kartu_balik", TestCardFlip, 1.0f),
@@ -219,14 +220,18 @@ namespace Organo.EditorTools
                 ("8j_repro_laki", () => a.Go<OrganDetailScreen>("reprolaki|organ", false), 2.2f),
                 ("8k_repro_laki_dalam", () => a.Go<OrganDetailScreen>("reprolaki|dalam", false), 2.2f),
                 ("8l_uji_repro_kunci", TestReproLocked, 1.2f),
-                ("8m_kuis_repro", () => { QuizSession.StartTopic(Organo.Data.ReproAccess.Topic(Organo.Data.ReproAccess.Boy)); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.8f),
+                ("8m_kuis_repro", () => { QuizSession.StartOrgan(Organo.Data.ReproAccess.Boy); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.8f),
                 ("8n_uji_kuis_repro", TestReproQuiz, 1.8f),
-                ("8u_uji_kuis_season", TestQuizSeasons, 0.5f),
+                ("8u_uji_kuis_isi", TestQuizBank, 0.5f),
+                ("8u2_uji_kuis_kunci", TestQuizLocks, 0.5f),
+                ("8u3_kuis_organ", () => a.Go<QuizHubScreen>(0, false), 1.2f),
+                ("8u4_kuis_proses", () => a.Go<QuizHubScreen>(1, false), 1.2f),
                 ("8v_sorot_pilorus", () => a.Go<OrganDetailScreen>("lambung#pilorus", false), 2.2f),
                 ("8w_uji_sorot_tidak_terbawa", TestHighlightNotCarried, 1.6f),
                 ("8x_uji_kuis_ketuk", TestQuizTapInPlace, 1.6f),
-                ("8y_kuis_napas_label", () => { QuizSession.StartSeason("napas"); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.2f),
-                ("8z_kuis_hub_season", () => a.GoTab(NavTab.Quiz), 1.2f),
+                ("8y_kuis_napas_label", () => { QuizSession.StartProcess("napas"); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.2f),
+                ("8y2_uji_label_ulang", TestLabelRetry, 1.6f),
+                ("8z_kuis_hub", () => a.GoTab(NavTab.Quiz), 1.2f),
                 ("8o_repro_perempuan", () => a.Go<OrganDetailScreen>("reproperempuan|organ", false), 2.2f),
                 ("8p_repro_perempuan_dalam", () => a.Go<OrganDetailScreen>("reproperempuan|dalam", false), 2.2f),
                 ("8q_repro_sperma", () => a.Go<OrganDetailScreen>("reprolaki#sperma", false), 2.2f),
@@ -238,7 +243,8 @@ namespace Organo.EditorTools
                 ("90b_uji_bingkai", TestScanFrame, 0.3f),
                 ("90c_bantuan_scan", () => (a.Current as ScanScreen)?.ShowHelp(), 1.0f),
                 ("90d_tutup_bantuan", () => { a.CloseTopOverlay(); a.GoTab(NavTab.Beranda); }, 0.6f),
-                ("90e_misi_scan", () => { QuizSession.Start(Organo.Data.QuizType.MisiScan); a.Go<QuizScanScreen>(null, false); a.ar?.End(); }, 1.6f),
+                ("90e_misi_scan", () => { QuizSession.StartOrgan("mulut"); a.Go<QuizScanScreen>(null, false); a.ar?.End(); }, 1.6f),
+                ("90e2_uji_misi_salah", TestScanWrongSteady, 1.2f),
                 ("90f_uji_bingkai_misi", TestQuizScanFrame, 0.3f),
                 ("90g_keluar_misi", () => a.GoTab(NavTab.Beranda), 0.6f),
                 ("9a_ar_scan", () =>
@@ -248,12 +254,14 @@ namespace Organo.EditorTools
                     if (a.ar != null)
                     {
                         a.ar.useWebcamInEditor = false;
-                        s_ArFirst = null; s_ArDetections = 0;
+                        s_ArFirst = null; s_ArDetections = 0; s_ArSwitches.Clear();
                         a.ar.CardDetected += o => { s_ArDetections++; if (s_ArFirst == null) s_ArFirst = o.id; };
+                        a.ar.CardSwitched += o => s_ArSwitches.Add(o.id);
                     }
                     a.GoTab(NavTab.Scan);
                 }, 8f),
                 ("9b_uji_ar_kartu", TestArScan, 1.5f),
+                ("9b1_uji_ar_titik", TestArHotspotTap, 0.8f),
                 ("9b2_uji_ar_putar", TestArRotate, 1.8f),
                 ("9c_rangka", () => a.Go<OrganDetailScreen>("rangka|organ", false), 2.4f),
                 ("9d_rangka_dalam", () => a.Go<OrganDetailScreen>("rangka|dalam", false), 2.4f),
@@ -449,6 +457,7 @@ namespace Organo.EditorTools
         /// </summary>
         static string s_ArFirst;
         static int s_ArDetections;
+        static readonly List<string> s_ArSwitches = new List<string>();
 
         /// <summary>
         /// Penyebab utama scan gagal di HP: kartu terlalu kecil di gambar kamera. ARCore baru mengenali gambar yang memenuhi
@@ -511,7 +520,7 @@ namespace Organo.EditorTools
                 (names.Count - cartoon) + " Realistis, " + cartoon + " Kartun");
             var organsSeen = new System.Collections.Generic.HashSet<string>();
             foreach (var n in names) { var o = App.Database.FindByReferenceImage(n); if (o != null) organsSeen.Add(o.id); }
-            int printable = App.Database.organs.Count(o => o != null && o.Printable);
+            int printable = App.Database.organs.Count(o => o != null && o.cardImage != null);
             Report("semua kartu cetak terdeteksi", organsSeen.Count == printable, organsSeen.Count + "/" + printable + " organ");
             bool onCard = false;
             if (ar.HasSpawnedModel && ar.CurrentOrgan != null)
@@ -535,8 +544,44 @@ namespace Organo.EditorTools
             }
             else Report("model AR ada di atas kartu", false);
             Report("halaman hasil scan terbuka", App.Current is ScanResultScreen);
-            Report("beberapa kartu terlihat: dipilih satu (paling tengah) dan model tidak melompat antar kartu",
-                s_ArDetections == 1 && ar.CurrentOrgan != null && ar.CurrentOrgan.id == s_ArFirst, "terpilih " + s_ArFirst + ", deteksi " + s_ArDetections + "x");
+            Report("beberapa kartu terlihat: dipilih satu kartu (paling tengah)", s_ArDetections == 1, "terpilih " + s_ArFirst + ", deteksi " + s_ArDetections + "x");
+            // kartu lain diarahkan ke kamera: halaman hasil scan ikut berganti ke organ kartu itu
+            var scr = App.Current as ScanResultScreen;
+            Report("halaman hasil scan menampilkan organ kartu yang dipakai AR", scr != null && ar.CurrentOrgan != null && scr.Organ == ar.CurrentOrgan,
+                (scr?.Organ?.id ?? "-") + " / AR " + (ar.CurrentOrgan?.id ?? "-") + (s_ArSwitches.Count > 0 ? ", berganti: " + s_ArFirst + " -> " + string.Join(" -> ", s_ArSwitches) : ", tidak berganti"));
+            if (s_ArSwitches.Count > 0)
+                Report("berganti ke kartu yang ada di depan kamera", ar.ModelInView, ar.CurrentOrgan?.id);
+        }
+
+        /// <summary>Titik info model AR bisa diketuk: keterangannya sesuai titik itu; ketuk lagi menutup.</summary>
+        static void TestArHotspotTap()
+        {
+            var scr = App.Current as ScanResultScreen;
+            var ar = App.ar;
+            if (scr == null || ar == null) { Report("halaman hasil scan AR terbuka", false); return; }
+            var dots = new List<VisualElement>();
+            scr.Root.Query(className: "hotspot").ForEach(dots.Add);
+            int pick = -1;
+            for (int i = 1; i < dots.Count && pick < 0; i++) if (Shown(dots[i])) pick = i;
+            if (!ar.ModelInView || pick < 0 || pick >= ar.SpawnedHotspots.Count)
+            {
+                Debug.Log("[Organo] uji ketuk titik AR dilewati: model di luar kamera simulasi (" + dots.Count + " titik)");
+                return;
+            }
+            string want = ar.SpawnedHotspots[pick].title;
+            Label CalloutTitle()
+            {
+                var c = scr.Root.Q(className: "callout");
+                return c != null && Shown(c) ? c.Q<Label>() : null;
+            }
+            Tap(dots[pick].worldBound.center);
+            Later(() =>
+            {
+                var t = CalloutTitle();
+                Report("ketuk titik AR menampilkan keterangan bagian itu", t != null && t.text == want, (t?.text ?? "tidak ada") + " / " + want);
+                Tap(dots[pick].worldBound.center);
+                Later(() => Report("ketuk titik yang sama lagi menutup keterangan", CalloutTitle() == null), 250);
+            }, 250);
         }
 
         static void TestReproLocked()
@@ -556,7 +601,7 @@ namespace Organo.EditorTools
         static void TestReproQuiz()
         {
             var s = QuizSession.Current;
-            if (s == null || s.topic == null) { Report("kuis reproduksi dimulai", false); return; }
+            if (s == null || s.organId != Organo.Data.ReproAccess.Boy) { Report("kuis reproduksi dimulai", false); return; }
             int guard = 0;
             while (s.Q != null && guard++ < 20)
             {
@@ -565,8 +610,8 @@ namespace Organo.EditorTools
                 s.Next(App);
             }
             var p = App.Progress;
-            Report("kuis reproduksi laki-laki selesai tercatat", p.doneTopics.Contains(Organo.Data.ReproAccess.Topic(Organo.Data.ReproAccess.Boy)));
-            Report("kartu reproduksi didapat dari kuis (bukan dari scan)", p.HasCard(Organo.Data.ReproAccess.Boy));
+            Report("kuis reproduksi laki-laki selesai tercatat", p.doneTopics.Contains(Organo.Data.ReproAccess.Topic(Organo.Data.ReproAccess.Boy))
+                && Organo.Data.QuizAccess.OrganDone(p, Organo.Data.ReproAccess.Boy));
             Report("organ reproduksi perempuan terbuka setelah kuis milik sendiri", !Organo.Data.ReproAccess.IsLocked(Organo.Data.ReproAccess.Girl, p) && s.unlocked == Organo.Data.ReproAccess.Girl, s.unlocked);
             var girl = new Organo.Data.PlayerProgress { gender = Organo.Data.Gender.Girl };
             girl.doneTopics.Add(Organo.Data.ReproAccess.Topic(Organo.Data.ReproAccess.Boy));
@@ -588,55 +633,151 @@ namespace Organo.EditorTools
             }
         }
 
-        /// <summary>Isi tiap season: 5 soal yang benar-benar bisa dimainkan; season dimulai sesuai pilihan; tombol lanjut aman.</summary>
-        static void TestQuizSeasons()
+        /// <summary>Isi kuis: tiap kuis organ & kuis proses berisi 5 soal yang benar-benar bisa dimainkan.</summary>
+        static void TestQuizBank()
         {
             var db = App.Database;
             var notes = new List<string>();
-            foreach (var season in Organo.Data.QuizBank.Seasons)
+            void Check(string quiz, List<Organo.Data.QuizQuestion> qs)
             {
-                var qs = Organo.Data.QuizBank.Season(season.id);
-                if (qs.Count != 5) notes.Add(season.id + ": " + qs.Count + " soal");
+                if (qs.Count != 5) notes.Add(quiz + ": " + qs.Count + " soal");
                 foreach (var q in qs)
                 {
                     if (q.type == Organo.Data.QuizType.PilihanGanda3D)
                     {
                         var o = db.Get(q.organId);
-                        if (o == null || o.modelPrefab == null) notes.Add(season.id + ": model 3D " + q.organId + " tidak ada");
-                        if (q.options == null || q.correct < 0 || q.correct >= q.options.Length) notes.Add(season.id + ": indeks jawaban salah (" + q.prompt + ")");
+                        if (o == null || o.modelPrefab == null) notes.Add(quiz + ": model 3D " + q.organId + " tidak ada");
+                        if (q.options == null || q.correct < 0 || q.correct >= q.options.Length || q.options.Distinct().Count() != q.options.Length)
+                            notes.Add(quiz + ": pilihan/indeks jawaban salah (" + q.prompt + ")");
                     }
                     else if (q.type == Organo.Data.QuizType.TempelLabel)
                     {
                         foreach (var id in q.labelOrgans)
-                            if (db.Get(id) == null || !QuizPlayScreen.HasLabelSpot(id)) notes.Add(season.id + ": label " + id + " tanpa titik di tubuh");
+                            if (db.Get(id) == null || !QuizPlayScreen.HasLabelSpot(id)) notes.Add(quiz + ": label " + id + " tanpa titik di tubuh");
                     }
                     else
                     {
                         var o = db.Get(q.organId);
-                        if (o == null || !o.Printable) notes.Add(season.id + ": misi scan " + q.organId + " tidak punya kartu cetak");
+                        if (o == null || o.cardImage == null) notes.Add(quiz + ": misi scan " + q.organId + " tidak punya kartu");
                     }
                 }
             }
-            Report("tiap season berisi 5 soal yang bisa dimainkan (model 3D, jawaban, titik label, kartu misi)", notes.Count == 0, string.Join("; ", notes));
+            foreach (var id in Organo.Data.QuizAccess.Order(App.Progress)) Check("organ " + id, Organo.Data.QuizBank.Organ(id));
+            foreach (var pr in Organo.Data.QuizBank.Processes)
+            {
+                Check("proses " + pr.id, Organo.Data.QuizBank.Process(pr.id));
+                foreach (var o in pr.organs) if (Organo.Data.QuizBank.OrganOrder.All(x => x != o)) notes.Add(pr.id + ": organ " + o + " tidak punya kuis organ");
+            }
+            Report("tiap kuis organ (17) dan kuis proses (6) berisi 5 soal yang bisa dimainkan", notes.Count == 0, string.Join("; ", notes.Take(6)));
 
-            var darah = QuizSession.StartSeason("darah");
-            Report("season yang diketuk memulai kuisnya sendiri (bukan selalu Pencernaan)", darah.seasonId == "darah" && darah.questions[0].organId == "jantung" && darah.title == "Peredaran Darah");
+            // jawaban benar tidak selalu di posisi A (pilihan diacak)
+            int notFirst = 0, total = 0;
+            for (int k = 0; k < 6; k++)
+                foreach (var q in QuizSession.StartOrgan("jantung").questions)
+                    if (q.type == Organo.Data.QuizType.PilihanGanda3D && q.options.Any(o => !int.TryParse(o, out _))) { total++; if (q.correct != 0) notFirst++; }
+            Report("pilihan jawaban diacak (jawaban benar tidak selalu A)", total > 0 && notFirst > 0, notFirst + "/" + total + " bukan A");
 
-            var s = QuizSession.StartSeason("ekskresi");
+            var darah = QuizSession.StartProcess("darah");
+            Report("kuis proses yang diketuk memulai kuisnya sendiri", darah.processId == "darah" && darah.title == "Peredaran Darah");
+
+            var s = QuizSession.StartProcess("ekskresi");
             App.Go<QuizPlayScreen>(s, false);
             s.Next(App, 0); s.Next(App, 0);
             Report("tombol lanjut terketuk dua kali: soal berikutnya tidak terlewati", s.index == 1, "sekarang soal ke-" + (s.index + 1));
+        }
 
-            var p = App.Progress;
-            int before = p.history.Count;
-            var napas = QuizSession.StartSeason("napas");
-            PlayThrough(napas);
-            napas.Next(App); // ketukan setelah selesai: diabaikan
-            Report("kuis season selesai tercatat sekali & season ditandai selesai",
-                p.history.Count == before + 1 && p.SeasonDone("napas") && p.history[0].quizId == "season:napas" && App.Current is QuizResultScreen,
-                "riwayat +" + (p.history.Count - before));
-            var again = QuizSession.Restart(p.history[0]);
-            Report("Ulangi kuis dari riwayat memulai kuis yang sama", again.seasonId == "napas");
+        /// <summary>
+        /// Kuis terkunci: kuis organ pertama terbuka; kuis lain terbuka setelah kartunya di-scan atau kuis sebelumnya selesai;
+        /// kuis proses terbuka setelah semua kuis organnya selesai.
+        /// </summary>
+        static void TestQuizLocks()
+        {
+            var keep = App.Progress;
+            var p = new Organo.Data.PlayerProgress { gender = Organo.Data.Gender.Boy };
+            p.cards.Clear(); p.history.Clear(); p.doneTopics.Clear(); p.season1Done = 0; p.warmupDone = 0;
+            bool Open(string id) => Organo.Data.QuizAccess.OrganUnlocked(p, id);
+            Report("awal: hanya kuis organ pertama (Mulut) yang terbuka", Open("mulut") && !Open("kerongkongan") && !Open("lambung") && !Open("rangka"));
+            p.cards.Add("lambung");
+            Report("scan kartu Lambung membuka Kuis Lambung (walau kuis sebelumnya belum selesai)", Open("lambung") && !Open("kerongkongan"));
+            p.doneTopics.Add(Organo.Data.QuizBank.OrganQuizId("mulut"));
+            Report("Kuis Mulut selesai membuka Kuis Kerongkongan", Open("kerongkongan") && !Open("usushalus"));
+            var cerna = Organo.Data.QuizBank.GetProcess("cerna");
+            Report("kuis proses Pencernaan masih terkunci sebelum semua kuis organnya selesai", !Organo.Data.QuizAccess.ProcessUnlocked(p, cerna)
+                && Organo.Data.QuizAccess.ProcessMissing(p, cerna).Count == cerna.organs.Length - 1);
+            foreach (var o in cerna.organs) if (!p.doneTopics.Contains("organ:" + o)) p.doneTopics.Add("organ:" + o);
+            Report("semua kuis organ pencernaan selesai: Proses Pencernaan terbuka", Organo.Data.QuizAccess.ProcessUnlocked(p, cerna)
+                && Organo.Data.QuizAccess.Next(p).process == cerna);
+            Report("organ reproduksi gender lain tetap terkunci sampai kuis reproduksi sendiri selesai", !Open(Organo.Data.ReproAccess.Girl));
+
+            // kuis yang baru terbuka ditampilkan di halaman hasil
+            var s = QuizSession.StartOrgan("hidung");
+            int before = keep.history.Count;
+            PlayThrough(s);
+            Report("kuis organ selesai: tercatat sekali, ditandai selesai, dan kuis berikutnya terbuka",
+                keep.history.Count == before + 1 && Organo.Data.QuizAccess.OrganDone(keep, "hidung") && keep.history[0].quizId == "organ:hidung"
+                && s.opened.Contains("organ:tenggorokan") && App.Current is QuizResultScreen,
+                "terbuka: " + string.Join(", ", s.opened));
+            var again = QuizSession.Restart(keep.history[0]);
+            Report("Ulangi kuis dari riwayat memulai kuis yang sama", again != null && again.organId == "hidung");
+        }
+
+        /// <summary>Tempel label: yang salah kembali ke bawah dan harus dipindah sampai semua tepat; yang tepat terkunci.</summary>
+        static void TestLabelRetry()
+        {
+            var s = QuizSession.Current;
+            var root = App.Current?.Root;
+            if (s?.Q == null || s.Q.type != Organo.Data.QuizType.TempelLabel || root == null) { Report("soal tempel label terbuka", false); return; }
+            var q = s.Q;
+            var screen = App.Current as QuizPlayScreen;
+            // tempel organ pertama & kedua tertukar, sisanya tepat
+            var placed = (Dictionary<string, string>)typeof(QuizPlayScreen).GetField("m_Placed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(screen);
+            placed.Clear();
+            for (int i = 0; i < q.labelOrgans.Length; i++) placed[q.labelOrgans[i]] = q.labelOrgans[i];
+            placed[q.labelOrgans[0]] = q.labelOrgans[1];
+            placed[q.labelOrgans[1]] = q.labelOrgans[0];
+            screen.GetType().GetMethod("Refresh", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(screen, new object[] { "keep" });
+            int answered = s.answers.Count;
+            Later(() =>
+            {
+                Label Find(string text) { Label f = null; App.Current.Root.Query<Label>().ForEach(l => { if (f == null && l.text == text) f = l; }); return f; }
+                var check = Find("Periksa Jawaban");
+                if (check != null) Tap(check.parent.worldBound.center);
+                Later(() =>
+                {
+                    bool stillHere = s.index == 0 && Find("Soal Berikutnya") == null && placed.Count == q.labelOrgans.Length - 2;
+                    Report("tempel label salah: tidak bisa lanjut, organ yang salah kembali ke bawah", stillHere && s.answers.Count == answered + 1 && !s.answers[s.answers.Count - 1].isCorrect,
+                        placed.Count + " organ tetap tertempel");
+                    placed[q.labelOrgans[0]] = q.labelOrgans[0];
+                    placed[q.labelOrgans[1]] = q.labelOrgans[1];
+                    screen.GetType().GetMethod("Refresh", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(screen, new object[] { "keep" });
+                    Later(() =>
+                    {
+                        var check2 = Find("Periksa Jawaban");
+                        if (check2 != null) Tap(check2.parent.worldBound.center);
+                        Later(() => Report("setelah semua tepat: boleh lanjut (jawaban pertama tetap tercatat salah)",
+                            Find("Soal Berikutnya") != null && s.answers.Count == answered + 1), 250);
+                    }, 200);
+                }, 250);
+            }, 200);
+        }
+
+        /// <summary>Misi scan: beberapa kartu salah bergantian di depan kamera, kabarnya tetap satu dan tidak dibuat ulang.</summary>
+        static void TestScanWrongSteady()
+        {
+            var scr = App.Current as QuizScanScreen;
+            if (scr == null) { Report("misi scan terbuka", false); return; }
+            var on = typeof(QuizScanScreen).GetMethod("OnCard", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            on.Invoke(scr, new object[] { App.Database.Get("paru") });
+            var first = scr.Root.Query<Label>().Where(l => l.text != null && l.text.StartsWith("Itu kartu")).First();
+            var toast = first?.parent?.parent;
+            on.Invoke(scr, new object[] { App.Database.Get("ginjal") });
+            on.Invoke(scr, new object[] { App.Database.Get("paru") });
+            on.Invoke(scr, new object[] { App.Database.Get("jantung") });
+            int toasts = 0;
+            scr.Root.Query<Label>().ForEach(l => { if (l.text != null && l.text.StartsWith("Itu kartu")) toasts++; });
+            Report("misi scan: kartu salah bergantian tidak membuat kabar berkedip (satu kabar, tetap di tempat)",
+                first != null && toasts == 1 && toast != null && toast.panel != null && first.text == "Itu kartu Paru-paru", (first?.text ?? "-") + ", " + toasts + " kabar");
+            Report("misi scan: model AR tidak ditempel & kartu yang dicari didahulukan", App.ar == null || (!App.ar.SpawnModels && App.ar.PreferOrgan == "mulut"));
         }
 
         /// <summary>Bagian organ yang disorot di halaman organ tidak ikut terbawa ke soal kuis (organ sama, layar berbeda).</summary>
@@ -644,8 +785,7 @@ namespace Organo.EditorTools
         {
             var v = App.Viewer;
             bool before = v != null && v.PartHighlighted;
-            var s = QuizSession.StartSeason("cerna");
-            s.index = 1; // "Organ apa ini?" (lambung)
+            var s = QuizSession.StartOrgan("lambung"); // "Organ apa ini?" (lambung)
             App.Go<QuizPlayScreen>(s, false);
             Later(() => Report("sorotan bagian organ dari halaman organ tidak terbawa ke soal kuis",
                 before && v != null && !v.PartHighlighted && v.Organ != null && v.Organ.id == "lambung",
@@ -669,8 +809,15 @@ namespace Organo.EditorTools
             Later(() =>
             {
                 bool afterPick = Same();
-                var right = Find(q.options[q.correct]);
-                if (right != null) Tap(right.parent.worldBound.center);
+                // periksa jawaban salah: belum boleh lanjut
+                var check0 = Find("Periksa Jawaban");
+                if (check0 != null) Tap(check0.parent.worldBound.center);
+                Later(() =>
+                {
+                    Report("jawaban salah: muncul \"coba lagi\" dan belum ada tombol lanjut", Find("Belum tepat. Ayo, coba lagi!") != null && Find("Soal Berikutnya") == null);
+                    var right = Find(q.options[q.correct]);
+                    if (right != null) Tap(right.parent.worldBound.center);
+                }, 250);
                 Later(() =>
                 {
                     var check = Find("Periksa Jawaban");
@@ -680,8 +827,10 @@ namespace Organo.EditorTools
                         bool afterCheck = Same();
                         Report("memilih jawaban kuis tidak membuat ulang model 3D (tidak berkedip)", afterPick && afterCheck, "setelah pilih " + afterPick + ", setelah periksa " + afterCheck);
                         Report("periksa jawaban: koreksi & tombol lanjut muncul di tempat", Find("Benar! Hebat!") != null && Find("Soal Berikutnya") != null);
+                        Report("jawaban salah dulu: tidak bisa lanjut sampai benar, percobaan pertama tercatat salah",
+                            s.answers.Count > 0 && !s.answers[s.answers.Count - 1].isCorrect && s.Q == q);
                     }, 250);
-                }, 200);
+                }, 550);
             }, 200);
         }
 

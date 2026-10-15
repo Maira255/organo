@@ -52,16 +52,24 @@ namespace Organo.Screens
             m_Track = U.Row().Align(Align.FlexStart);
             m_Track.style.transitionProperty = new List<StylePropertyName> { new StylePropertyName("translate") };
             m_Track.style.transitionDuration = new List<TimeValue> { new TimeValue(0.45f, TimeUnit.Second) };
-            // kuis berikutnya yang benar-benar belum dimainkan (bukan angka contoh)
-            var next = P.NextSeason;
-            var quizSeason = next ?? QuizBank.Seasons[0];
-            m_Track.Add(Slide(U.Teal, U.Purple, 135, null, U.TealDark, "Yuk, Scan Kartumu!", null, "Mulai Scan", "hero_scan", () => App.GoTab(NavTab.Scan), -1));
-            m_Track.Add(Slide(U.Purple, U.Pink, 135, null, U.Pink, next != null ? "Kuis " + next.title : "Semua kuis selesai!",
-                next != null ? next.Label + " · 5 soal" : P.SeasonsDone + " season selesai",
-                next != null ? "Mulai Kuis" : "Main Lagi", "hero_quiz",
-                () => { if (next != null) QuizSession.Play(App, QuizSession.StartSeason(quizSeason.id)); else App.GoTab(NavTab.Quiz); },
-                P.SeasonsDone / (float)QuizBank.Seasons.Count));
-            m_Track.Add(Slide(U.Teal, "#A18BEE", 225, null, "#7455D8", "Perpustakaan Organ", null, "Buka Library", "hero_library", () => App.Go<LibraryListScreen>(), -1));
+            // kuis berikutnya yang sudah terbuka dan belum dimainkan (bukan angka contoh)
+            var (nextOrgan, nextProcess) = QuizAccess.Next(P);
+            bool hasNext = nextOrgan != null || nextProcess != null;
+            int quizTotal = QuizAccess.Order(P).Count + QuizBank.Processes.Count;
+            int quizDone = QuizAccess.OrgansDone(P) + QuizAccess.ProcessesDone(P);
+            m_Track.Add(Slide(U.Teal, U.Purple, 135, null, U.TealDark, "Ayo, Scan Kartumu!", null, "Mulai Scan", "hero_scan", () => App.GoTab(NavTab.Scan), -1));
+            m_Track.Add(Slide(U.Purple, U.Pink, 135, null, U.Pink,
+                nextProcess != null ? nextProcess.title : nextOrgan != null ? "Kuis " + Db.Get(nextOrgan)?.displayName : "Buka kuis baru!",
+                hasNext ? "5 soal · " + quizDone + " dari " + quizTotal + " kuis selesai" : "Scan kartu lain untuk membuka kuisnya",
+                hasNext ? "Mulai Kuis" : "Lihat Kuis", "hero_quiz",
+                () =>
+                {
+                    if (nextProcess != null) QuizSession.Play(App, QuizSession.StartProcess(nextProcess.id));
+                    else if (nextOrgan != null) QuizSession.Play(App, QuizSession.StartOrgan(nextOrgan));
+                    else App.GoTab(NavTab.Quiz);
+                },
+                quizDone / (float)quizTotal));
+            m_Track.Add(Slide(U.Teal, "#A18BEE", 225, null, "#7455D8", "Perpustakaan Organ", null, "Buka Pustaka", "hero_library", () => App.Go<LibraryListScreen>(), -1));
             viewport.Add(m_Track);
             var indicator = U.Row(0).Abs(0, null, 0, 14).Justify(Justify.Center);
             for (int i = 0; i < SlideCount; i++)
@@ -355,16 +363,16 @@ namespace Organo.Screens
                 ? new[]
                 {
                     ("Tubuh makin tinggi", "Tinggi badan bertambah cepat dan bentuk tubuh mulai berubah, misalnya pinggul melebar dan payudara mulai tumbuh.", "Pakai pakaian yang nyaman untukmu."),
-                    ("Haid (menstruasi)", "Suatu hari kamu akan mulai haid: keluar darah dari vagina beberapa hari setiap bulan. Ini tanda tubuhmu sehat dan tumbuh.", "Siapkan pembalut dan ceritakan ke orang tua."),
+                    ("Haid (menstruasi)", "Suatu hari kamu akan mulai haid: keluar darah dari vagina beberapa hari setiap bulan. Ini tanda tubuhmu sehat dan tumbuh.", "Siapkan pembalut dan ceritakan kepada orang tua."),
                     ("Rambut & kulit", "Tumbuh rambut halus di ketiak dan kemaluan. Kulit bisa lebih berminyak dan muncul jerawat.", "Mandi teratur dan cuci muka dua kali sehari."),
-                    ("Perasaan berubah", "Kadang perasaan mudah berubah. Itu wajar karena hormon sedang bekerja.", "Ceritakan perasaanmu ke orang yang kamu percaya.")
+                    ("Perasaan berubah", "Kadang perasaan mudah berubah. Itu wajar karena hormon sedang bekerja.", "Ceritakan perasaanmu kepada orang yang kamu percaya.")
                 }
                 : new[]
                 {
                     ("Tubuh makin tinggi", "Tinggi badan bertambah cepat, bahu melebar, dan otot makin kuat.", "Makan bergizi dan cukup tidur membantu tubuhmu tumbuh."),
                     ("Suara memberat", "Suaramu bisa pecah-pecah lalu menjadi lebih berat. Jakun di leher juga mulai terlihat.", "Tidak apa-apa kalau suaramu kadang aneh, itu normal!"),
                     ("Tumbuh rambut baru", "Tumbuh rambut di ketiak, kemaluan, dan kadang kumis tipis. Kulit bisa berminyak dan berjerawat.", "Mandi teratur dan pakai deodoran bila perlu."),
-                    ("Perasaan berubah", "Kadang perasaan mudah berubah. Itu wajar karena hormon sedang bekerja.", "Ceritakan perasaanmu ke orang yang kamu percaya.")
+                    ("Perasaan berubah", "Kadang perasaan mudah berubah. Itu wajar karena hormon sedang bekerja.", "Ceritakan perasaanmu kepada orang yang kamu percaya.")
                 };
             for (int i = 0; i < topics.Length; i++)
             {
@@ -398,9 +406,9 @@ namespace Organo.Screens
             sh.Add(U.Div().Size(34, 34).Radius(17).Bg(U.PurpleDark).Center().Kids(U.Icon("shield_white", 20)));
             sh.Add(U.Text("Tubuhku milikku", "t-section").Fg(U.PurpleDark));
             safety.Add(sh);
-            safety.Add(U.Text("Bagian tubuh yang tertutup pakaian dalam adalah bagian pribadi. Kalau ada yang menyentuh atau membuatmu tidak nyaman, katakan <b>TIDAK</b>, pergi, lalu cerita ke orang dewasa yang kamu percaya.", "t-small"));
+            safety.Add(U.Text("Bagian tubuh yang tertutup pakaian dalam adalah bagian pribadi. Kalau ada yang menyentuh atau membuatmu tidak nyaman, katakan <b>TIDAK</b>, pergi, lalu bercerita kepada orang dewasa yang kamu percaya.", "t-small"));
             c.Add(safety);
-            c.Add(U.Text("Punya pertanyaan? Tanyakan ke orang tua atau guru, ya.", "t-caption").TextCenter());
+            c.Add(U.Text("Punya pertanyaan? Tanyakan kepada orang tua atau guru, ya.", "t-caption").TextCenter());
             c.Add(U.Text("Ubah pilihan gender").FontSize(13).Bold().Fg(U.TealDark).AlignSelf(Align.Center).Tap(() => App.Go<GenderScreen>("profile")));
         }
     }

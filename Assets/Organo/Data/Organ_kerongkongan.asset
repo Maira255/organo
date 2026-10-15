@@ -21,7 +21,7 @@ MonoBehaviour:
   about: Kerongkongan adalah saluran panjang dari mulut ke lambung. Ototnya meremas
     makanan turun pelan-pelan. Karena itu makanan tetap bisa masuk ke lambung walau
     kamu sedang berbaring.
-  funFact: Kamu tetap bisa menelan makanan walaupun sedang berdiri terbalik, lho!
+  funFact: Kamu tetap bisa menelan makanan walaupun sedang berdiri terbalik!
   shortDescription: Saluran yang mengantar makanan dari mulut ke lambung
   function: Kerongkongan mendorong makanan dari mulut ke lambung.
   tint: {r: 0.9098039, g: 0.972549, b: 0.9607843, a: 1}

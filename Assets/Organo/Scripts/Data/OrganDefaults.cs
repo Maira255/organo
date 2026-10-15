@@ -115,7 +115,7 @@ namespace Organo.Data
                 case "kerongkongan":
                     Set(o, "Kerongkongan", OrganSystem.Pencernaan, BodyRegion.Leher, 2, 1, "#E8F8F5", "#A8E3DA", "#1AB8A6",
                         "Kerongkongan adalah saluran panjang dari mulut ke lambung. Ototnya meremas makanan turun pelan-pelan. Karena itu makanan tetap bisa masuk ke lambung walau kamu sedang berbaring.",
-                        "Kamu tetap bisa menelan makanan walaupun sedang berdiri terbalik, lho!",
+                        "Kamu tetap bisa menelan makanan walaupun sedang berdiri terbalik!",
                         "Saluran yang mengantar makanan dari mulut ke lambung",
                         "Kerongkongan mendorong makanan dari mulut ke lambung.");
                     Hot(o, "Otot kerongkongan", "Meremas makanan turun", new Vector3(0.05f, 0.1f, 0.12f));
@@ -151,7 +151,7 @@ namespace Organo.Data
                     break;
                 case "paru":
                     Set(o, "Paru-paru", OrganSystem.Pernapasan, BodyRegion.Dada, 6, 2, "#F3EFFD", "#CDBFF5", "#8B6FE8",
-                        "Ada dua paru-paru di dalam dadamu. Saat menarik napas, paru-paru mengambil oksigen dari udara. Saat menghembuskan napas, paru-paru membuang karbon dioksida yang tidak dibutuhkan tubuh.",
+                        "Ada dua paru-paru di dalam dadamu. Saat menarik napas, paru-paru mengambil oksigen dari udara. Saat mengembuskan napas, paru-paru membuang karbon dioksida yang tidak dibutuhkan tubuh.",
                         "Paru-paru kiri sedikit lebih kecil supaya ada tempat untuk jantung!",
                         "Sepasang organ untuk bernapas",
                         "Paru-paru untuk bernapas: mengambil oksigen dari udara.");

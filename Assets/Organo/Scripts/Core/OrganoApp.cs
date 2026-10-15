@@ -100,7 +100,12 @@ namespace Organo
             };
             if (Camera.main != null) Camera.main.cullingMask &= ~(1 << OrganViewer3D.Layer);
             if (ar == null) ar = FindAnyObjectByType<ARScanController>();
-            if (ar != null) ar.Init(database);
+            if (ar != null)
+            {
+                ar.Init(database);
+                // organ reproduksi gender lain yang belum terbuka: kartunya dikenali, tapi modelnya tidak ditampilkan
+                ar.ModelAllowed = o => !ReproAccess.IsLocked(o, Progress);
+            }
         }
 
         bool m_Started;

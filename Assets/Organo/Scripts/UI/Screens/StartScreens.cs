@@ -57,7 +57,7 @@ namespace Organo.Screens
             word.Add(logo);
             word.Add(U.Text("Organo").FontSize(40).Bold().Fg("#FFFFFF"));
             Root.Add(word);
-            var tag = U.Text("Kenali organ tubuhmu, yuk!").FontSize(15).Fg("#FFFFFF");
+            var tag = U.Text("Ayo, kenali organ tubuhmu!").FontSize(15).Fg("#FFFFFF");
             tag.style.marginTop = 8;
             Root.Add(tag);
             Root.Add(U.Flex());
@@ -125,9 +125,9 @@ namespace Organo.Screens
 
         static readonly (string tag, string color, string soft, string title, string desc, string art)[] Pages =
         {
-            ("Jelajahi tubuh", "#12857A", "#D5F3EF", "Kenalan sama organ tubuhmu!", "Ketuk bagian tubuh, lalu lihat organnya dari dekat lengkap dengan suara penjelasan.", "onb_explore"),
+            ("Jelajahi tubuh", "#12857A", "#D5F3EF", "Berkenalan dengan organ tubuhmu!", "Ketuk bagian tubuh, lalu lihat organnya dari dekat lengkap dengan suara penjelasan.", "onb_explore"),
             ("Scan & AR", "#6F52D1", "#E8E2FB", "Scan kartu, organ jadi 3D!", "Arahkan kamera ke kartu Organo dan lihat organ muncul langsung di depanmu.", "onb_scan"),
-            ("Kuis seru", "#D6385E", "#FDE0E7", "Main kuis, kumpulkan bintang!", "Jawab kuis, scan organ yang diminta, lalu kumpulkan kartu dan lencana."
+            ("Kuis seru", "#D6385E", "#FDE0E7", "Bermain kuis, kumpulkan bintang!", "Jawab kuis, scan organ yang diminta, lalu kumpulkan kartu dan lencana."
                 , "onb_quiz"),
         };
 
@@ -226,7 +226,7 @@ namespace Organo.Screens
             else if (arg == null) { m_FromProfile = false; m_Name = null; }
             // pertama kali dibuka (setelah onboarding): sekalian kenalan, nama panggilan untuk sapaan di Beranda
             bool first = !m_FromProfile;
-            Root.Add(Parts.TopBar(first ? "Kenalan Dulu" : "Pilih Gender", first ? (System.Action)(() => App.Go<OnboardingScreen>(2, false)) : App.Back));
+            Root.Add(Parts.TopBar(first ? "Perkenalan" : "Pilih Gender", first ? (System.Action)(() => App.Go<OnboardingScreen>(2, false)) : App.Back));
             var scroll = U.Scroll();
             Root.Add(scroll);
             var c = U.Col(16);
@@ -250,7 +250,7 @@ namespace Organo.Screens
             var what = U.Col(10, "card");
             what.Elev(Elevation.E1);
             what.Add(U.Text("Yang disesuaikan untukmu", "t-section"));
-            foreach (var (t, ic) in new[] { ("Tokoh tubuh di Library", "g_person"), ("Materi perubahan tubuh saat tumbuh besar", "g_book"), ("Contoh cerita di kuis", "g_chat") })
+            foreach (var (t, ic) in new[] { ("Tokoh tubuh di Pustaka", "g_person"), ("Materi perubahan tubuh saat tumbuh besar", "g_book"), ("Contoh cerita di kuis", "g_chat") })
             {
                 var r = U.Row(8);
                 r.Add(U.Icon(ic, 18));
@@ -260,8 +260,8 @@ namespace Organo.Screens
             c.Add(what);
             string other = m_Pick == Gender.Girl ? "laki-laki" : m_Pick == Gender.Boy ? "perempuan" : null;
             c.Add(Parts.InfoNote(other != null
-                ? "Materi tubuh " + other + " tetap bisa kamu pelajari kapan saja lewat tombol tubuh di Library."
-                : "Apa pun pilihanmu, materi tubuh laki-laki dan perempuan tetap bisa dipelajari dari Library."));
+                ? "Materi tubuh " + other + " tetap bisa kamu pelajari kapan saja lewat tombol tubuh di Pustaka."
+                : "Apa pun pilihanmu, materi tubuh laki-laki dan perempuan tetap bisa dipelajari dari Pustaka."));
 
             var bottom = U.Col(8).Pad(12, 20, 20, 20);
             bool picked = m_Pick != Gender.None;

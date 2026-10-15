@@ -57,7 +57,7 @@ namespace Organo.EditorTools
             l.type = LightType.Directional; l.intensity = 1.1f;
 
             // kartu cetak di atas meja (5 per baris), seperti dibagikan guru: 15 kartu Realistis lalu 15 kartu Kartun
-            var organs = db.organs.Where(o => o != null && o.Printable && o.cardImage != null).OrderBy(o => o.cardNumber).ToList();
+            var organs = db.organs.Where(o => o != null && o.cardImage != null).OrderBy(o => o.cardNumber).ToList();
             var cards = new System.Collections.Generic.List<(string name, Texture2D tex, float width)>();
             foreach (var (dir, label) in new[] { (OrganoCards.CardDir, "Realistis"), (OrganoCards.CartoonDir, "Kartun") })
                 foreach (var o in organs)

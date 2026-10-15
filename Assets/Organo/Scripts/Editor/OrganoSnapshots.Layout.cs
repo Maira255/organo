@@ -78,17 +78,18 @@ namespace Organo.EditorTools
                 Screen("13_info_mulut", () => a.Go<OrganInfoScreen>("mulut", false), 1.6f);
                 Screen("13b_rangka", () => a.Go<OrganDetailScreen>("rangka|organ", false), 2.0f);
                 Screen("14_kuis_hub", () => a.GoTab(NavTab.Quiz));
-                Screen("15_kuis_label", () => { QuizSession.Start(Organo.Data.QuizType.TempelLabel); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.6f);
+                Screen("14b_kuis_proses", () => a.Go<QuizHubScreen>(1, false));
+                Screen("15_kuis_label", () => { QuizSession.StartProcess("cerna"); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.6f);
                 Screen("16_kuis_pilihan", () =>
                 {
-                    QuizSession.StartTopic(Organo.Data.ReproAccess.Topic(Organo.Data.ReproAccess.Boy));
+                    QuizSession.StartOrgan(Organo.Data.ReproAccess.Boy);
                     var s = QuizSession.Current;
                     s.index = s.questions.Count - 1; // soal terakhir: soal keamanan tubuh yang panjang
                     a.Go<QuizPlayScreen>(s, false);
                 }, 1.6f);
                 Screen("17_kuis_dijawab", () => AnswerCurrentChoice(), 1.4f);
                 Screen("18_scan", () => { a.GoTab(NavTab.Scan); a.ar?.End(); }, 1.4f);
-                Screen("19_misi_scan", () => { QuizSession.Start(Organo.Data.QuizType.MisiScan); a.Go<QuizScanScreen>(null, false); a.ar?.End(); }, 1.4f);
+                Screen("19_misi_scan", () => { QuizSession.StartOrgan("mulut"); a.Go<QuizScanScreen>(null, false); a.ar?.End(); }, 1.4f);
                 Screen("20_scan_hasil_baru", () =>
                 {
                     a.Progress.cards.Remove("jantung");

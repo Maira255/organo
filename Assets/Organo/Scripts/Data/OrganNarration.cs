@@ -9,7 +9,7 @@ namespace Organo.Data
     /// </summary>
     public static class OrganNarration
     {
-        public const string FactIntro = "Tau gak sih? ";
+        public const string FactIntro = "Tahukah kamu? ";
 
         /// <summary>Daftar fakta menarik organ (fakta utama dulu, lalu fakta tambahan tanpa duplikat).</summary>
         public static List<string> Facts(OrganInfo o)

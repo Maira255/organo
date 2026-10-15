@@ -61,7 +61,7 @@ namespace Organo.Screens
             toggle.Add(BodyPill(Gender.Boy, "kid_boy"));
             toggle.Add(BodyPill(Gender.Girl, "kid_girl"));
             toggle.NoShrink();
-            var bar = Parts.TopBar("Library", () => App.GoTab(NavTab.Beranda), toggle);
+            var bar = Parts.TopBar("Pustaka", () => App.GoTab(NavTab.Beranda), toggle);
             bar.Q(className: "topbar__title").style.fontSize = 18;
             // sisi kiri & kanan dilebarkan sama supaya wadah (dan bayangannya) pas membungkus kedua ikon,
             // sementara judul tetap di tengah
@@ -314,7 +314,7 @@ namespace Organo.Screens
             else if (arg as string == "favorit") { m_Filter = null; m_Saraf = false; m_Fav = true; }
             else if (arg as string == "") { m_Filter = null; m_Saraf = false; m_Fav = false; }
             var body = U.IconButton("kid_boy", () => App.Go<LibraryBodyScreen>(push: false), 28, "Lihat tubuh");
-            var bar = Parts.TopBar("Library", App.Back, body);
+            var bar = Parts.TopBar("Pustaka", App.Back, body);
             bar.Q(className: "topbar__title").style.fontSize = 18;
             Root.Add(bar);
 
@@ -627,7 +627,7 @@ namespace Organo.Screens
             chipR.Add(U.Icon("ar", 14));
             chipR.Add(U.Text("Lihat di AR").FontSize(11).Fg("#FFFFFF"));
             chipR.Tap(() => App.Go<ScanScreen>(o.id));
-            if (o.Printable) card.Add(chipR);
+            card.Add(chipR);
             card.Add(bonesChip);
 
             // bagian yang sedang disorot (ketuk x untuk kembali ke organ utuh)
@@ -761,7 +761,7 @@ namespace Organo.Screens
             m_Fact.Add(U.Icon("bulb", 24));
             var ft = U.Col(4).Grow();
             var fh = U.Row(8);
-            fh.Add(U.Text("Tau Gak Sih?", "t-body").Bold().Fg("#FFFFFF").Grow());
+            fh.Add(U.Text("Tahukah Kamu?", "t-body").Bold().Fg("#FFFFFF").Grow());
             m_FactCount = U.Text("").FontSize(11).Fg(U.C("#FFFFFF", 0.8f));
             fh.Add(m_FactCount);
             ft.Add(fh);
@@ -802,7 +802,7 @@ namespace Organo.Screens
                 sh2.Add(U.Div().Size(32, 32).Radius(16).Bg(U.PurpleDark).Center().Kids(U.Icon("shield_white", 18)));
                 sh2.Add(U.Text("Tubuhku milikku", "t-section").Fg(U.PurpleDark));
                 safe.Add(sh2);
-                var st = U.Text("Organ reproduksi adalah bagian tubuh pribadi. Tidak ada yang boleh menyentuh atau melihatnya, kecuali orang tua atau dokter untuk menjaga kesehatanmu. Kalau ada yang membuatmu tidak nyaman, katakan TIDAK, pergi, lalu cerita ke orang dewasa yang kamu percaya.", "t-small");
+                var st = U.Text("Organ reproduksi adalah bagian tubuh pribadi. Tidak ada yang boleh menyentuh atau melihatnya, kecuali orang tua atau dokter untuk menjaga kesehatanmu. Kalau ada yang membuatmu tidak nyaman, katakan TIDAK, pergi, lalu bercerita kepada orang dewasa yang kamu percaya.", "t-small");
                 st.style.whiteSpace = WhiteSpace.Normal;
                 safe.Add(st);
                 safe.Add(U.Text("Baca juga: Tubuhku Tumbuh Besar (pubertas)").FontSize(13).Bold().Fg(U.TealDark).Tap(() => App.Go<BodyMaterialScreen>(ReproAccess.GenderOf(o.id))));
@@ -822,18 +822,6 @@ namespace Organo.Screens
                 s.Add(link);
                 c.Add(s);
             }
-            else if (repro)
-            {
-                var s = U.Row(10).Align(Align.FlexStart).Bg("#F6E5F5").Border(1, "#E6C3E4").Radius(12).Pad(10, 12);
-                s.Add(U.Icon("cards_star", 22));
-                var col = U.Col(8).Grow();
-                var ct = U.Text("Kartu " + o.displayName + " tidak dicetak. Selesaikan " + ReproAccess.QuizName(o.id) + " untuk mendapatkannya!", "t-caption").Fg(U.Ink);
-                ct.style.whiteSpace = WhiteSpace.Normal;
-                col.Add(ct);
-                col.Add(U.Button("Mulai Kuis", () => { QuizSession.StartTopic(ReproAccess.Topic(o.id)); QuizSession.OpenCurrent(App); }, "btn-dark", "btn-small").AlignSelf(Align.FlexStart));
-                s.Add(col);
-                c.Add(s);
-            }
             else
             {
                 // kartu cetak hanya didapat dengan men-scan kartunya (kuis biasa tidak memberi kartu)
@@ -849,13 +837,20 @@ namespace Organo.Screens
 
             // ---------- Aksi bawah ----------
             var bottom = U.Div().Pad(12, 20, 20, 20).Bg(U.Surface);
-            var season = QuizBank.GetSeason(QuizBank.SeasonFor(o.system));
-            var quiz = repro
-                ? U.Button("Mulai " + ReproAccess.QuizName(o.id), () => { QuizSession.StartTopic(ReproAccess.Topic(o.id)); QuizSession.OpenCurrent(App); }, "btn-primary")
-                : U.Button("Mulai Kuis " + season.title.Replace("Sistem ", ""), () => QuizSession.Play(App, QuizSession.StartSeason(season.id)), "btn-primary");
-            quiz.Bg(U.PinkDark);
-            quiz.Add(U.Icon("arrow_right", 16));
-            quiz[1].style.marginLeft = 8;
+            // kuis organ ini: terbuka setelah kartunya di-scan atau kuis organ sebelumnya selesai
+            bool quizOpen = QuizAccess.OrganUnlocked(P, o.id);
+            var quiz = U.Button(quizOpen ? "Mulai Kuis " + o.displayName : "Kuis " + o.displayName + " terkunci", () => QuizLocks.PlayOrgan(App, o.id), quizOpen ? "btn-primary" : "btn-outline");
+            if (quizOpen)
+            {
+                quiz.Bg(U.PinkDark);
+                quiz.Add(U.Icon("arrow_right", 16));
+                quiz[1].style.marginLeft = 8;
+            }
+            else
+            {
+                quiz.Insert(0, U.Icon("lock_gray", 16));
+                quiz[1].style.marginLeft = 8;
+            }
             bottom.Add(quiz);
             Root.Add(bottom);
         }
@@ -898,7 +893,7 @@ namespace Organo.Screens
             if (own == null) bottom.Add(U.Button("Pilih tubuhku", () => App.Go<GenderScreen>("profile"), "btn-primary"));
             else
             {
-                bottom.Add(U.Button("Mulai " + ReproAccess.QuizName(own), () => { QuizSession.StartTopic(ReproAccess.Topic(own)); QuizSession.OpenCurrent(App); }, "btn-primary"));
+                bottom.Add(U.Button("Mulai " + ReproAccess.QuizName(own), () => QuizLocks.PlayOrgan(App, own), "btn-primary"));
                 bottom.Add(U.Button("Pelajari " + Db.Get(own)?.displayName, () => App.Go<OrganDetailScreen>(own, false), "btn-outline"));
             }
             Root.Add(bottom);
@@ -1127,7 +1122,7 @@ namespace Organo.Screens
             P.Save();
             OrganoAudio.NarrationEnabled = on;
             UpdateVoiceUI();
-            App.Toast(on ? "Suara pembaca nyala" : "Suara pembaca dimatikan");
+            App.Toast(on ? "Suara pembaca dinyalakan" : "Suara pembaca dimatikan");
         }
 
         /// <summary>Speaker nyala/coret dan tombol Dengarkan ⇄ Berhenti (disembunyikan saat suara pembaca mati).</summary>

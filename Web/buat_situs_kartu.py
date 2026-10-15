@@ -14,6 +14,7 @@ ORGANS = [
     (7, 'jantung', 'Jantung', 'Peredaran Darah'), (8, 'ginjal', 'Ginjal', 'Ekskresi'), (9, 'hati', 'Hati', 'Pencernaan'),
     (10, 'pankreas', 'Pankreas', 'Pencernaan'), (11, 'otak', 'Otak', 'Saraf'), (12, 'tenggorokan', 'Tenggorokan', 'Pernapasan'),
     (13, 'hidung', 'Hidung', 'Pernapasan'), (14, 'mata', 'Mata', 'Indera'), (15, 'rangka', 'Rangka', 'Gerak'),
+    (16, 'reprolaki', 'Reproduksi Laki-laki', 'Reproduksi'), (17, 'reproperempuan', 'Reproduksi Perempuan', 'Reproduksi'),
 ]
 STYLES = [('realistis', 'Realistis', os.path.join(ROOT, 'Assets/Organo/AR/Cards'), os.path.join(ROOT, 'KartuCetak/Realistis')),
           ('kartun', 'Kartun', os.path.join(ROOT, 'Assets/Organo/AR/CardsKartun'), os.path.join(ROOT, 'KartuCetak/Kartun'))]
@@ -53,12 +54,12 @@ html = r'''<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kartu Organo untuk Kelas</title>
-<meta name="description" content="Unduh dan cetak 15 kartu organ Organo, atau tampilkan di layar, untuk dipindai murid dengan aplikasi Organo.">
+<meta name="description" content="Unduh dan cetak 17 kartu organ Organo, atau tampilkan di layar, untuk dipindai murid dengan aplikasi Organo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Tata letak: "meja guru" — kepala berisi tumpukan kartu fisik & unduhan, lalu alur kelas, tips cetak, dan galeri 15 kartu. */
+/* Tata letak: "meja guru" — kepala berisi tumpukan kartu fisik & unduhan, lalu alur kelas, tips cetak, dan galeri 17 kartu. */
 :root {
   --bg: #FAFAFA; --surface: #FFFFFF; --ink: #2E2A4A; --muted: #6B6785; --line: #ECEAF2;
   --teal: #12857A; --teal-soft: #D5F3EF; --purple: #6F52D1; --purple-soft: #E8E2FB; --pink: #D6385E; --pink-soft: #FDE0E7; --sun: #FFD34E;
@@ -239,16 +240,16 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
     <div>
       <div class="eyebrow">Untuk guru &amp; orang tua</div>
       <h1>Cetak kartu organ, lalu biarkan murid memindainya</h1>
-      <p class="lead">15 kartu Organo (mulut sampai rangka) siap dicetak di kertas A4. Murid memindai kartu dengan aplikasi Organo: organnya muncul dalam 3D dan kartunya masuk ke koleksi mereka.</p>
+      <p class="lead">17 kartu Organo (mulut sampai organ reproduksi) siap dicetak di kertas A4. Murid memindai kartu dengan aplikasi Organo: organnya muncul dalam 3D dan kartunya masuk ke koleksi mereka.</p>
       <div class="downloads">
         <a class="dl" href="unduh/Organo_Kartu_Realistis_A4.pdf" download>
           <span class="ico pdf">PDF</span>
-          <span class="txt"><b>Kartu versi Realistis</b><span>A4 · 2 halaman · 15 kartu · __PDF_R__</span></span>
+          <span class="txt"><b>Kartu versi Realistis</b><span>A4 · 2 halaman · 17 kartu · __PDF_R__</span></span>
           <span class="arrow" aria-hidden="true">Unduh</span>
         </a>
         <a class="dl" href="unduh/Organo_Kartu_Kartun_A4.pdf" download>
           <span class="ico pdf2">PDF</span>
-          <span class="txt"><b>Kartu versi Kartun</b><span>A4 · 2 halaman · 15 kartu · __PDF_K__</span></span>
+          <span class="txt"><b>Kartu versi Kartun</b><span>A4 · 2 halaman · 17 kartu · __PDF_K__</span></span>
           <span class="arrow" aria-hidden="true">Unduh</span>
         </a>
       </div>
@@ -269,14 +270,14 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
       <div class="section-head">
         <div class="eyebrow">Alur di kelas</div>
         <h2>Belajar dulu, scan kartu, baru kuis</h2>
-        <p>Kartu menjadi "hadiah" setelah murid mempelajari organnya. Urutan ini membuat kuis terasa sebagai tantangan, bukan hafalan.</p>
+        <p>Memindai kartu membuka kuis organ itu di aplikasi. Setelah semua kuis organ dalam satu sistem selesai, kuis prosesnya (misalnya Proses Pencernaan) ikut terbuka.</p>
       </div>
       <ol class="steps">
         <li><span class="who">Guru</span><h3>Unduh &amp; cetak</h3><p>Cetak PDF di kertas A4 dengan skala 100% (ukuran sebenarnya).</p></li>
         <li><span class="who">Guru</span><h3>Potong &amp; bagikan</h3><p>Potong mengikuti garis tipis. Satu kartu berukuran 6,3 × 8,8 cm.</p></li>
-        <li><span class="who">Murid</span><h3>Belajar di Library</h3><p>Murid membuka organ di aplikasi: model 3D, bagian dalam, dan fakta menarik.</p></li>
+        <li><span class="who">Murid</span><h3>Belajar di Pustaka</h3><p>Murid membuka organ di aplikasi: model 3D, bagian dalam, dan fakta menarik.</p></li>
         <li><span class="who">Murid</span><h3>Scan kartu</h3><p>Buka menu Scan, dekatkan HP sampai kartu memenuhi bingkai (±15 cm). Organ muncul di atas kartu dan kartu masuk koleksi.</p></li>
-        <li><span class="who">Murid</span><h3>Kerjakan kuis</h3><p>Uji pemahaman lewat kuis tempel label dan pilihan ganda, kumpulkan bintang.</p></li>
+        <li><span class="who">Murid</span><h3>Kerjakan kuis</h3><p>Kuis organ terbuka setelah kartunya dipindai. Jawaban yang salah diulang sampai benar, lalu murid mengumpulkan bintang.</p></li>
       </ol>
     </div>
   </section>
@@ -302,7 +303,7 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
     <div class="wrap">
       <div class="section-head">
         <div class="eyebrow">Galeri</div>
-        <h2>15 kartu Organo</h2>
+        <h2>17 kartu Organo</h2>
         <p>Pilih versi yang paling cocok untuk kelasmu. Aplikasi Organo mengenali kedua versi, jadi kartu Realistis dan Kartun boleh dipakai bersamaan.</p>
       </div>
       <div class="toolbar">
@@ -312,7 +313,7 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
         </div>
         <div class="viewer-tools">
           <button type="button" class="btn" data-open-viewer>Scan dari layar</button>
-          <a class="zip-link" id="zip" href="unduh/Organo_Kartu_Realistis_PNG.zip" download>Unduh 15 gambar (ZIP)</a>
+          <a class="zip-link" id="zip" href="unduh/Organo_Kartu_Realistis_PNG.zip" download>Unduh 17 gambar (ZIP)</a>
         </div>
       </div>
       <div class="chips" id="filters" role="group" aria-label="Saring sistem organ"></div>
@@ -324,7 +325,7 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
 <dialog class="viewer" id="viewer" aria-label="Kartu untuk dipindai" tabindex="-1">
   <div class="viewer-in">
     <div class="viewer-top">
-      <div class="viewer-title"><b id="v-name">Mulut</b><span id="v-meta">Kartu 01 dari 15</span></div>
+      <div class="viewer-title"><b id="v-name">Mulut</b><span id="v-meta">Kartu 01 dari 17</span></div>
       <div class="viewer-tools">
         <div class="seg" role="group" aria-label="Versi kartu">
           <button type="button" data-vstyle="realistis" aria-pressed="true">Realistis</button>
@@ -353,7 +354,7 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
 const CARDS = [
 __CARDS__
 ];
-const SYSTEMS = ["Semua", "Pencernaan", "Pernapasan", "Peredaran Darah", "Ekskresi", "Saraf", "Indera", "Gerak"];
+const SYSTEMS = ["Semua", "Pencernaan", "Pernapasan", "Peredaran Darah", "Ekskresi", "Saraf", "Indera", "Gerak", "Reproduksi"];
 let style = "realistis";
 let filter = "Semua";
 try { style = localStorage.getItem("organo-kartu-gaya") || style; } catch (e) {}
