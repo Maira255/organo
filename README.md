@@ -4,7 +4,7 @@
 
 Melalui Organo, anak dapat menjelajahi bentuk dan fungsi organ tubuh menggunakan model 3D yang dapat diputar serta dibedah, memindai **kartu Organo** untuk menghidupkan objek AR secara langsung di atas kartu, dan menguji pemahaman melalui **kuis edukatif bertahap**. Aplikasi ini dirancang **100% offline tanpa registrasi**, memastikan seluruh data progres belajar anak tersimpan secara aman dan privat di perangkat Anda.
 
-| Beranda | Pustaka | Halaman organ | Scan kartu |
+| Beranda | Library | Halaman organ | Scan kartu |
 |:---:|:---:|:---:|:---:|
 | <img src="Dokumen/screenshots/08_beranda.jpg" width="180"> | <img src="Dokumen/screenshots/09_library.jpg" width="180"> | <img src="Dokumen/screenshots/10_detail_mulut.jpg" width="180"> | <img src="Dokumen/screenshots/18_scan.jpg" width="180"> |
 | **Hasil scan** | **Kuis** | **Soal pilihan ganda 3D** | **Koleksi kartu** |
@@ -44,8 +44,8 @@ Melalui Organo, anak dapat menjelajahi bentuk dan fungsi organ tubuh menggunakan
 ### 2. Penggunaan Pertama Kali
 Tampilan *Splash* → Halaman pengenalan → **Form Perkenalan**: Masukkan nama panggilan (opsional) dan pilih avatar tubuh (laki-laki/perempuan) untuk menyesuaikan materi reproduksi → Menu Beranda utama.
 
-### 3. Eksplorasi di Menu Pustaka
-1. Pilih menu **Pustaka**, lalu ketuk area tubuh tertentu (kepala, leher, dada, perut, panggul) atau pilih langsung dari daftar organ.
+### 3. Eksplorasi di Menu Library
+1. Pilih menu **Library**, lalu ketuk area tubuh tertentu (kepala, leher, dada, perut, panggul) atau pilih langsung dari daftar organ.
 2. Di halaman detail organ: usap layar untuk memutar model 3D, cubit untuk memperbesar (*zoom*), dan ketuk titik indikator untuk melihat nama bagian organ.
 3. Gunakan tombol pilihan **Organ / Dalam / Tubuh** untuk berganti perspektif, ketuk kartu bagian untuk menyorotnya, dan tekan **Dengarkan** untuk mendengarkan penjelasan audio.
 4. Akses menu **Info Lengkap** untuk membaca mekanisme kerja, fakta menarik, dan tips kesehatan.
@@ -70,7 +70,7 @@ Tampilan *Splash* → Halaman pengenalan → **Form Perkenalan**: Masukkan nama 
 Ketuk nama panggilan untuk melakukan penyesuaian profil, pantau akumulasi bintang, koleksi kartu, dan lencana. Atur preferensi **Materi Tubuh**, **Suara & Musik**, **Pengaturan Suara Pembaca**, serta **Mode Aksesibilitas**.
 
 ### Alur Belajar yang Disarankan
-**Belajar di Pustaka → Pindai Kartu Organ → Kerjakan Kuis Organ → Selesaikan Kuis Proses.**
+**Belajar di Library → Pindai Kartu Organ → Kerjakan Kuis Organ → Selesaikan Kuis Proses.**
 
 ---
 
