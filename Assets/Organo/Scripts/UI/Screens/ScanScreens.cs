@@ -35,6 +35,29 @@ namespace Organo.Screens
             vignette.pickingMode = PickingMode.Ignore;
             bg.Add(vignette);
 
+#if ORGANO_KAMERA_LAMA
+            // Build "kamera lama" (ORGANO_KAMERA_LAMA): tampilan kamera biasa persis seperti versi sebelum perbaikan HP tanpa AR.
+            var feed = U.Div("fill");
+            feed.pickingMode = PickingMode.Ignore;
+            feed.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Cover);
+            feed.style.display = DisplayStyle.None;
+            bg.Add(feed);
+            bg.schedule.Execute(() =>
+            {
+                var ar = OrganoApp.Instance != null ? OrganoApp.Instance.ar : null;
+                var tex = ar != null ? ar.WebcamImage : null;
+                feed.style.display = tex != null ? DisplayStyle.Flex : DisplayStyle.None;
+                if (tex == null) return;
+                if (feed.resolvedStyle.backgroundImage.renderTexture != tex) feed.style.backgroundImage = Background.FromRenderTexture(tex);
+                int rot = ((ar.WebcamRotation % 360) + 360) % 360;
+                bool sideways = rot == 90 || rot == 270;
+                float w = Mathf.Max(1f, bg.layout.width), h = Mathf.Max(1f, bg.layout.height);
+                float s = sideways ? Mathf.Max(h / w, w / h) : 1f;
+                feed.style.rotate = new Rotate(-rot);
+                feed.style.scale = new Scale(new Vector3(s * (ar.WebcamMirrored ? -1f : 1f), s * (ar.WebcamFlipped ? -1f : 1f), 1f));
+            }).Every(0);
+            return bg;
+#else
             // Gambar kamera asli (webcam / kamera biasa) menutupi latar dekorasi kalau tersedia. Gambar mentah kamera HP
             // biasanya miring (videoRotationAngle 90/270): kotaknya dibuat seukuran gambar mentah lalu diputar SEARAH
             // jarum jam sebesar sudut itu, dengan skala "cover" (memenuhi layar, tengahnya terlihat). Dulu diputar ke arah
@@ -66,6 +89,7 @@ namespace Organo.Screens
                 feed.style.scale = new Scale(new Vector3(ar.WebcamMirrored ? -1f : 1f, ar.WebcamFlipped ? -1f : 1f, 1f));
             }).Every(0);
             return bg;
+#endif
         }
 
         /// <summary>
@@ -87,7 +111,11 @@ namespace Organo.Screens
             if (ar == null) return null;
             if (ar.NoCamera) return "Kamera tidak ditemukan di perangkat ini";
             if (!ar.UsingWebcam) return null;
+#if ORGANO_KAMERA_LAMA
+            if (ar.ArUnsupported) return "HP ini belum mendukung AR · kamera biasa menyala";
+#else
             if (ar.ArUnsupported) return "HP ini belum mendukung AR · kartu tetap bisa di-scan";
+#endif
             return "Kamera laptop (Editor) · ketuk bingkai untuk mencoba";
         }
 
@@ -127,6 +155,62 @@ namespace Organo.Screens
     /// membuat kartu hanya ±8% gambar kamera sehingga hampir tidak pernah terdeteksi. Bingkai ini ±88% lebar layar, jadi
     /// kartu yang mengisinya menutupi ±30–40% gambar kamera. Bagian di luar bingkai digelapkan supaya anak mendekatkan HP.
     /// </summary>
+    /// <summary>
+    /// Kamera biasa (HP tanpa AR): model organ yang mengikuti kartu di gambar kamera. Viewport 3D berukuran tetap yang
+    /// dipindah & diskalakan (tinggi model ±1,1x tinggi kartu di layar: kartu jauh = model kecil), dihaluskan supaya tidak
+    /// bergetar; kartu hilang lebih dari ±0,6 detik = model memudar. Ukuran diatur lewat skala, bukan ukuran elemen,
+    /// supaya tekstur 3D tidak dibuat ulang setiap frame. Dipakai halaman hasil scan & misi scan di kuis.
+    /// </summary>
+    public class CardFollowView
+    {
+        public const float Size = 340f;
+        public readonly OrganViewport Viewport;
+        Vector2 m_Center;
+        float m_Scale = -1f, m_Alpha, m_LostAt = -1f;
+
+        public CardFollowView(OrganViewer3D viewer, OrganInfo organ)
+        {
+            Viewport = new OrganViewport(viewer, organ, false) { FreeRotate = true, IgnoreScale = true, RenderScale = 0.8f };
+            Viewport.style.position = Position.Absolute;
+            Viewport.style.width = Size; Viewport.style.height = Size;
+            Viewport.style.left = 0; Viewport.style.top = 0;
+            Viewport.style.opacity = 0f;
+            Viewport.pickingMode = PickingMode.Ignore;
+        }
+
+        /// <summary>Perbarui letak model. <paramref name="screen"/> = layar kamera (gambar kamera memenuhinya). True = model tampil.</summary>
+        public bool Tick(ARScanController ar, VisualElement screen, OrganInfo organ, float dt)
+        {
+            var layer = Viewport.parent;
+            if (ar == null || layer == null) return false;
+            ar.SetCameraView(new Vector2(screen.layout.width, screen.layout.height));
+            bool visible = ar.WebcamCardVisible && ar.CurrentOrgan == organ;
+            if (visible)
+            {
+                m_LostAt = -1f;
+                var card = ar.WebcamCardRect;
+                var off = screen.worldBound.position - layer.worldBound.position;
+                var center = new Vector2(card.center.x, card.center.y - card.height * 0.12f) + off;
+                float scale = Mathf.Clamp(card.height * 1.1f / Size, 0.2f, 1.25f);
+                float t = m_Scale < 0f ? 1f : 1f - Mathf.Exp(-12f * dt);
+                m_Center = m_Scale < 0f ? center : Vector2.Lerp(m_Center, center, t);
+                m_Scale = m_Scale < 0f ? scale : Mathf.Lerp(m_Scale, scale, t);
+            }
+            else if (m_LostAt < 0f) m_LostAt = Time.unscaledTime;
+            bool show = m_Scale > 0f && (visible || Time.unscaledTime - m_LostAt < 0.6f);
+            m_Alpha = Mathf.MoveTowards(m_Alpha, show ? 1f : 0f, dt * 4f);
+            Viewport.style.opacity = m_Alpha;
+            Viewport.pickingMode = m_Alpha > 0.5f ? PickingMode.Position : PickingMode.Ignore;
+            if (m_Scale > 0f)
+            {
+                Viewport.style.left = m_Center.x - Size / 2f;
+                Viewport.style.top = m_Center.y - Size / 2f;
+                Viewport.style.scale = new Scale(new Vector3(m_Scale, m_Scale, 1f));
+            }
+            return show;
+        }
+    }
+
     public class CardFrame : VisualElement
     {
         public const float CardAspect = 88f / 63f;
@@ -633,8 +717,10 @@ namespace Organo.Screens
             OrganoApp.Overlay sheet = null;
             c.Add(U.Button("Mengerti", () => sheet.Close(), "btn-primary"));
             // HP yang tadinya ditandai tidak mendukung AR (mis. ARCore baru dipasang sendiri): coba AR lagi
+#if !ORGANO_KAMERA_LAMA
             if (Ar != null && Ar.ArUnsupported)
                 c.Add(U.Button("Coba pakai AR lagi", () => { sheet.Close(); Ar.RetryAr(); }, "btn-ghost"));
+#endif
             sheet = App.ShowSheet(c);
         }
 
@@ -736,6 +822,7 @@ namespace Organo.Screens
             m_ArDots.Clear();
             m_ArDotPos.Clear();
             m_ArSel = -1;
+            m_Follow = null;
 
             m_StandIn = ScanParts.CameraStandIn();
             Root.Add(m_StandIn);
@@ -828,6 +915,17 @@ namespace Organo.Screens
                 m_ArCalloutD = U.Text("", "t-muted").FontSize(10.5f);
                 m_ArCallout.Add(m_ArCalloutT); m_ArCallout.Add(m_ArCalloutD);
                 m_ArLayer.Add(m_ArCallout);
+            }
+            else if (Ar != null && Ar.CanRecognizeWithCamera)
+            {
+                // HP tanpa AR (kamera biasa): model mengikuti kartu di gambar kamera (lihat CardFollowView)
+                m_Follow = new CardFollowView(App.Viewer, o);
+                m_ArLayer.Add(m_Follow.Viewport);
+            }
+            else if (Ar != null && Ar.IsCameraLive)
+            {
+                // AR, kartu sudah dikenali tapi posisinya belum pasti: TIDAK ada model diam di tengah layar. Model baru
+                // muncul saat ARCore menempelkannya di atas kartu (layar ini dibangun ulang, lihat Tick).
             }
             else
             {
@@ -1003,6 +1101,19 @@ namespace Organo.Screens
         const string HintWait = "Gerakkan HP pelan di depan kartu supaya organ muncul di atasnya";
         const string HintLost = "Arahkan kamera ke kartu lagi untuk melihat organ";
         bool m_Live, m_ShowRotateHint, m_SheetOpen;
+        // model yang mengikuti kartu (kamera biasa)
+        CardFollowView m_Follow;
+
+        void TickTracked(float dt)
+        {
+            bool show = m_Follow.Tick(Ar, Root, m_Organ, dt);
+            string ht = show ? HintRotate : HintLost;
+            if (m_HintText != null && m_HintText.text != ht)
+            {
+                m_HintText.text = ht;
+                m_HintBox?.Visible(!m_SheetOpen && (ht != HintRotate || m_ShowRotateHint));
+            }
+        }
         Label m_HintText;
         VisualElement m_HintBox;
 
@@ -1010,6 +1121,7 @@ namespace Organo.Screens
         {
             m_StandIn.Visible(!(Ar != null && Ar.IsCameraLive));
             if (m_Sheet != null) m_Sheet.BottomInset = App.BottomInset; // area aman bisa baru diketahui setelah layar dibuka
+            if (m_Follow != null && Ar != null) { TickTracked(dt); return; }
             // model AR baru ditempel (ARCore sudah yakin dengan posisi kartu): ganti dari viewer 3D ke tampilan AR
             if (!m_Live && Ar != null && Ar.IsCameraLive && Ar.HasSpawnedModel && Ar.CurrentOrgan == m_Organ && m_ArLayer != null)
             {

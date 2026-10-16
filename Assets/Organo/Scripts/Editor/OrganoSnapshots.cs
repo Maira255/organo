@@ -102,7 +102,10 @@ namespace Organo.EditorTools
                 ("03b_uji_onboarding_selesai", TestOnboardingEnd, 0.8f),
                 ("07_kenalan", () => a.Go<GenderScreen>(Organo.Data.Gender.Boy, false), 1f),
                 ("07b_uji_tanpa_akun", TestOfflineSave, 0.3f),
-                ("08_beranda", () => { a.Progress.onboarded = true; a.Progress.gender = Organo.Data.Gender.Boy; a.GoTab(NavTab.Beranda); }, 1.2f),
+                // organ di Library terbuka setelah kartunya di-scan: profil uji dianggap sudah memindai semua kartu
+                ("08_beranda", () => { a.Progress.onboarded = true; a.Progress.gender = Organo.Data.Gender.Boy; GiveAllCards(a.Progress); a.GoTab(NavTab.Beranda); }, 1.2f),
+                ("08b_uji_library_terkunci", TestLibraryLock, 0.8f),
+                ("08c_library_terkunci_detail", TestLibraryLockDetail, 1.2f),
                 ("09_library", () => a.GoTab(NavTab.Library), 1f),
                 ("10_library_perut", () => a.Go<LibraryBodyScreen>(Organo.Data.BodyRegion.Perut, false), 1.4f),
                 ("10c_library_dada", () => a.Go<LibraryBodyScreen>(Organo.Data.BodyRegion.Dada, false), 1.6f),
@@ -153,8 +156,8 @@ namespace Organo.EditorTools
                 ("24b_koleksi_dimiliki", () => a.Go<CardCollectionScreen>(1, false), 1f),
                 ("24c_kartu_depan", () => { if (!a.Progress.HasCard("lambung")) a.Progress.AddCard("lambung", 0); a.Go<CardViewerScreen>("lambung", false); }, 1.2f),
                 ("24d_kartu_belakang", () => { var h = a.Current.Root.Q("card-holder"); if (h != null) Tap(h.worldBound.center); }, 1.2f),
-                ("24e_kartu_terkunci", () => a.Go<CardViewerScreen>("otak", false), 1.2f),
-                ("24f_beranda_koleksi", () => { a.GoTab(NavTab.Beranda); Scroll(470); }, 1.4f),
+                ("24e_kartu_terkunci", () => { a.Progress.cards.Remove("otak"); a.Go<CardViewerScreen>("otak", false); }, 1.2f),
+                ("24f_beranda_koleksi", () => { a.Progress.AddCard("otak", 0); a.GoTab(NavTab.Beranda); Scroll(470); }, 1.4f),
                 ("25_lencana", () => a.Go<BadgesScreen>(null, false), 1f),
                 ("26_aksesibilitas", () => a.Go<AccessibilityScreen>(null, false), 1f),
                 ("27_materi", () => a.Go<BodyMaterialScreen>(null, false), 1f),
@@ -209,6 +212,30 @@ namespace Organo.EditorTools
                 ("8b_profil", () => a.GoTab(NavTab.Profil), 1.2f),
                 ("8c_profil_nama", () => (a.Current as ProfileScreen)?.ShowRename(), 1.0f),
                 ("8d_profil_tutup", () => a.CloseTopOverlay(), 0.5f),
+                ("8d1_kelas", TestKelasProfil, 1.0f),
+                ("8d2_kelas_lembar", TestKelasLembar, 0.5f),
+                ("8d3_kelas_tutup", () => a.CloseTopOverlay(), 0.5f),
+                ("8d4_kelas_bergabung", MulaiKelasMustahil, 6.0f),
+                ("8d5_kelas_keluar", TestKelasBergabung, 0.6f),
+                ("8d6_kelas_tutup", () => a.CloseTopOverlay(), 0.5f),
+                ("8e1_kamera_mulai", KamMulai, 1.0f),
+                ("8e2_kamera_tanpa_kartu", KamTanpaKartu, 0.5f),
+                ("8e3_kamera_bingkai", KamSimpanBingkai, 0.1f),
+                ("8e4_kamera_kenali", KamKenali, 1.2f),
+                ("8e5_kamera_hasil", KamHasil, 0.8f),
+                ("8e6_kamera_menjauh", KamMenjauh, 0.8f),
+                ("8e7_kamera_angkat", KamAngkat, 1.0f),
+                ("8e8_kamera_ganti", KamGanti, 1.2f),
+                ("8e9_kamera_ganti_halaman", KamGantiHalaman, 0.3f),
+                ("8e9b_kuis_scan_mulai", KamKuisMulai, 1.0f),
+                ("8e9c_kuis_scan_benar", KamKuisKenali, 1.2f),
+                ("8e9d_kuis_scan_model", KamKuisModel, 1.4f),
+                ("8e9e_kuis_scan_angkat", KamKuisAngkat, 0.3f),
+                ("8e10_kamera_selesai", KamSelesai, 0.3f),
+                ("8e11_kamera_baca_gpu", KamBacaGpu, 0.3f),
+                ("8d7_uji_kelas_server", MulaiUjiKelasServer, 0.5f),
+                ("8d8_kelas_dikeluarkan", () => { if (KelasOnline.Tersedia) (a.Current as ProfileScreen)?.ShowKelas(); }, 1.0f),
+                ("8d9_kelas_tutup", () => { a.CloseTopOverlay(); KelasOnline.Keluar(a.Progress); }, 0.5f),
                 ("8h_repro_peta", () =>
                 {
                     var pr = a.Progress;
@@ -217,7 +244,7 @@ namespace Organo.EditorTools
                     a.Go<LibraryBodyScreen>(Organo.Data.BodyRegion.Perut, false);
                 }, 1.6f),
                 ("8i_repro_daftar", () => a.Go<LibraryListScreen>(Organo.Data.OrganSystem.Reproduksi, false), 1.2f),
-                ("8j_repro_laki", () => a.Go<OrganDetailScreen>("reprolaki|organ", false), 2.2f),
+                ("8j_repro_laki", () => { a.Progress.AddCard(Organo.Data.ReproAccess.Boy, 0); a.Go<OrganDetailScreen>("reprolaki|organ", false); }, 2.2f),
                 ("8k_repro_laki_dalam", () => a.Go<OrganDetailScreen>("reprolaki|dalam", false), 2.2f),
                 ("8l_uji_repro_kunci", TestReproLocked, 1.2f),
                 ("8m_kuis_repro", () => { QuizSession.StartOrgan(Organo.Data.ReproAccess.Boy); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.8f),
@@ -232,7 +259,7 @@ namespace Organo.EditorTools
                 ("8y_kuis_napas_label", () => { QuizSession.StartProcess("napas"); a.Go<QuizPlayScreen>(QuizSession.Current, false); }, 1.2f),
                 ("8y2_uji_label_ulang", TestLabelRetry, 1.6f),
                 ("8z_kuis_hub", () => a.GoTab(NavTab.Quiz), 1.2f),
-                ("8o_repro_perempuan", () => a.Go<OrganDetailScreen>("reproperempuan|organ", false), 2.2f),
+                ("8o_repro_perempuan", () => { a.Progress.AddCard(Organo.Data.ReproAccess.Girl, 0); a.Go<OrganDetailScreen>("reproperempuan|organ", false); }, 2.2f),
                 ("8p_repro_perempuan_dalam", () => a.Go<OrganDetailScreen>("reproperempuan|dalam", false), 2.2f),
                 ("8q_repro_sperma", () => a.Go<OrganDetailScreen>("reprolaki#sperma", false), 2.2f),
                 ("8r_repro_seltelur", () => a.Go<OrganDetailScreen>("reproperempuan#seltelur", false), 2.2f),
@@ -353,6 +380,9 @@ namespace Organo.EditorTools
                 return;
             }
             if (t < wait) return;
+            if (s_WaitUntil != null && t < s_WaitMax && !s_WaitUntil()) return;
+            s_WaitUntil = null;
+            s_WaitMax = 30;
             Capture(name);
             s_ActionDone = false;
             s_Step++;
@@ -361,6 +391,9 @@ namespace Organo.EditorTools
         }
 
         static bool s_ActionDone;
+        /// <summary>Langkah boleh menunggu lebih lama dari waktunya (maks. 30 detik) sampai syarat ini terpenuhi, mis. jawaban server.</summary>
+        static Func<bool> s_WaitUntil;
+        static double s_WaitMax = 30;
 
         // ------------------------------------------------------------ uji interaksi
 
@@ -710,6 +743,7 @@ namespace Organo.EditorTools
             Report("organ reproduksi gender lain tetap terkunci sampai kuis reproduksi sendiri selesai", !Open(Organo.Data.ReproAccess.Girl));
 
             // kuis yang baru terbuka ditampilkan di halaman hasil
+            keep.cards.Remove("tenggorokan"); // kuis Tenggorokan belum terbuka lewat kartunya (profil uji punya semua kartu)
             var s = QuizSession.StartOrgan("hidung");
             int before = keep.history.Count;
             PlayThrough(s);
@@ -719,6 +753,7 @@ namespace Organo.EditorTools
                 "terbuka: " + string.Join(", ", s.opened));
             var again = QuizSession.Restart(keep.history[0]);
             Report("Ulangi kuis dari riwayat memulai kuis yang sama", again != null && again.organId == "hidung");
+            keep.AddCard("tenggorokan", 0);
         }
 
         /// <summary>Tempel label: yang salah kembali ke bawah dan harus dipindah sampai semua tepat; yang tepat terkunci.</summary>

@@ -126,8 +126,38 @@ namespace Organo.UI
             ReproAccess.IsLocked(o, OrganoApp.Instance != null ? OrganoApp.Instance.Progress : null) ? "lock_big"
             : OrganoIcons.Svg.ContainsKey("mini_" + o.id) ? "mini_" + o.id : o.IconKey;
 
-        /// <summary>Organ ini sedang terkunci untuk pemain sekarang (organ reproduksi gender lain).</summary>
-        public static bool Locked(OrganInfo o) => ReproAccess.IsLocked(o, OrganoApp.Instance != null ? OrganoApp.Instance.Progress : null);
+        /// <summary>
+        /// Organ ini masih terkunci di Library: kartunya belum pernah di-scan, atau organ reproduksi gender lain yang belum
+        /// terbuka (<see cref="ReproAccess"/>).
+        /// </summary>
+        public static bool Locked(OrganInfo o)
+        {
+            var p = OrganoApp.Instance != null ? OrganoApp.Instance.Progress : null;
+            return ReproAccess.IsLocked(o, p) || NeedsCard(o, p);
+        }
+
+        /// <summary>Organ dibuka di Library setelah kartunya di-scan.</summary>
+        public static bool NeedsCard(OrganInfo o, PlayerProgress p) => o != null && p != null && !p.HasCard(o.id);
+
+        /// <summary>Lembar "scan kartunya dulu" untuk organ yang kartunya belum pernah di-scan.</summary>
+        public static void ShowCardLock(OrganoApp app, OrganInfo o)
+        {
+            var c = UI.Col(12);
+            var head = UI.Col(8).Align(Align.Center);
+            var badge = OrganBadge(o, 72, 0.62f, true);
+            var lk = UI.Div().Size(26, 26).Radius(13).Bg(UI.Muted).Center().Abs(null, null, -2, -2).Kids(UI.Icon("lock_tiny", 12));
+            badge.Add(lk);
+            head.Add(badge);
+            head.Add(UI.Text(o.displayName + " masih terkunci", "t-h2").TextCenter());
+            var why = UI.Text("Scan kartu " + o.displayName + " untuk membuka organ ini.", "t-small", "t-muted").TextCenter();
+            why.style.whiteSpace = WhiteSpace.Normal;
+            head.Add(why);
+            c.Add(head);
+            OrganoApp.Overlay sh = null;
+            c.Add(UI.Button("Scan kartu " + o.displayName, () => { sh.Close(); app.Go<Organo.Screens.ScanScreen>(o.id); }, "btn-primary"));
+            c.Add(UI.Button("Nanti saja", () => sh.Close(), "btn-ghost"));
+            sh = app.ShowSheet(c);
+        }
 
         /// <summary>
         /// Lembar "masih terkunci" untuk organ reproduksi gender lain: jelaskan aturannya dan arahkan ke organ & kuis milik sendiri.
@@ -161,7 +191,9 @@ namespace Organo.UI
         /// <summary>Buka organ; organ reproduksi yang terkunci menampilkan lembar penjelasan.</summary>
         public static void OpenOrgan(OrganoApp app, OrganInfo o, string suffix = "")
         {
-            if (Locked(o)) { ShowReproLock(app, o); return; }
+            var p = app.Progress;
+            if (ReproAccess.IsLocked(o, p)) { ShowReproLock(app, o); return; }
+            if (NeedsCard(o, p)) { ShowCardLock(app, o); return; }
             app.Go<Organo.Screens.OrganDetailScreen>(o.id + suffix);
         }
 

@@ -269,13 +269,11 @@ namespace Organo.Screens
             var name = U.Text(o.displayName, "t-small").Bold().TextCenter().Fg(locked ? U.C(U.Muted) : U.C(U.Ink));
             name.style.whiteSpace = WhiteSpace.Normal;
             t.Add(name);
-            if (!locked)
-            {
-                var badge = U.Div().Size(22, 22).Radius(11).Abs(null, 8, 8).Center();
-                if (got) { badge.Bg(U.TealDark); badge.Add(U.Icon("check", 12)); }
-                else { badge.Bg("#FFFFFF").Border(1, U.Ink); badge.Add(U.Text("?").FontSize(12).Bold()); }
-                t.Add(badge);
-            }
+            var badge = U.Div().Size(22, 22).Radius(11).Abs(null, 8, 8).Center();
+            if (locked) { badge.Bg(U.Muted); badge.Add(U.Icon("lock_tiny", 10)); }
+            else if (got) { badge.Bg(U.TealDark); badge.Add(U.Icon("check", 12)); }
+            else { badge.Bg("#FFFFFF").Border(1, U.Ink); badge.Add(U.Text("?").FontSize(12).Bold()); }
+            t.Add(badge);
             t.tooltip = o.displayName + (locked ? ", masih terkunci" : got ? ", kartu sudah terkumpul" : ", kartu belum terkumpul");
             t.Tap(() => Parts.OpenOrgan(App, o));
             return t;
@@ -855,9 +853,35 @@ namespace Organo.Screens
             Root.Add(bottom);
         }
 
+        /// <summary>Organ yang kartunya belum di-scan: tidak ada model/penjelasan, hanya jalan ke Scan.</summary>
+        void BuildCardLocked(OrganInfo o)
+        {
+            Root.Add(Parts.TopBar(o.displayName, App.Back));
+            var scroll = U.Scroll();
+            scroll.contentContainer.style.paddingTop = 8;
+            Root.Add(scroll);
+            var c = U.Col(16).Align(Align.Center);
+            scroll.Add(c);
+            var box = U.Col(10).AlignSelf(Align.Stretch).H(230).Radius(16).Bg("#F6F5F9").Center();
+            box.Add(new DashedOutline(U.C("#CFCCDD"), 2f, 16f));
+            var badge = Parts.OrganBadge(o, 96, 0.62f, true);
+            badge.Add(U.Div().Size(32, 32).Radius(16).Bg(U.Muted).Center().Abs(null, null, -2, -2).Kids(U.Icon("lock_tiny", 14)));
+            box.Add(badge);
+            box.Add(U.Text("Masih terkunci", "t-title").Fg(U.Muted));
+            c.Add(box);
+            c.Add(U.Text(o.displayName, "t-h1").TextCenter());
+            var why = U.Text("Scan kartu " + o.displayName + " untuk membuka organ ini.", "t-body").TextCenter();
+            why.style.whiteSpace = WhiteSpace.Normal;
+            c.Add(why);
+            var bottom = U.Col(8).Pad(12, 20, 20, 20).Bg(U.Surface);
+            bottom.Add(U.Button("Scan kartu " + o.displayName, () => App.Go<ScanScreen>(o.id), "btn-primary"));
+            Root.Add(bottom);
+        }
+
         /// <summary>Organ reproduksi gender lain yang belum terbuka: tidak ada model/gambar, hanya penjelasan & jalan ke kuis.</summary>
         void BuildLocked(OrganInfo o)
         {
+            if (!ReproAccess.IsLocked(o, P)) { BuildCardLocked(o); return; }
             Root.Add(Parts.TopBar(o.displayName, App.Back));
             var scroll = U.Scroll();
             scroll.contentContainer.style.paddingTop = 8;

@@ -183,6 +183,19 @@ namespace Organo.EditorTools
             AssetDatabase.SaveAssets();
         }
 
+        /// <summary>Bangun ulang usus halus (model, potongan dalam) dan gambar bagian organ.</summary>
+        public static void RebuildSmallIntestine()
+        {
+            OrganoSetup.EnsureDatabase();
+            OrganModelBuilder.BuildSmallIntestine();
+            SmallIntestine();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            DetailAssetsBuilder.RenderPartImages();
+            AssetDatabase.SaveAssets();
+
+        }
+
         public static void RebuildPancreas()
         {
             OrganModelBuilder.BuildPancreas();

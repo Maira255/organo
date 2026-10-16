@@ -147,6 +147,7 @@ namespace Organo.Screens
                 quizNumber = p.history.Count(h => h.quizId == quizId) + 1,
                 correct = Correct, total = questions.Count, stars = stars,
                 when = "Hari ini, " + System.DateTime.Now.ToString("HH.mm"),
+                waktu = System.DateTime.Now.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
                 answers = new List<QuizAnswer>(answers)
             };
             p.history.Insert(0, result);
@@ -782,6 +783,8 @@ namespace Organo.Screens
         Label m_WrongTitle, m_WrongText;
         CardFrame m_Frame;
         QuizSession S;
+        // jawaban benar di HP tanpa AR: model mengikuti kartu di gambar kamera
+        CardFollowView m_Follow;
 
         protected override void Build(object arg)
         {
@@ -794,6 +797,7 @@ namespace Organo.Screens
             }
             m_State = State.Idle;
             m_WrongToast = null;
+            m_Follow = null;
             var q = S.Q;
             if (App.ar != null)
             {
@@ -855,9 +859,27 @@ namespace Organo.Screens
             if (m_State == State.Right)
             {
                 var organ = Db.Get(q.organId);
-                var vp = new OrganViewport(App.Viewer, organ, false) { ShowHotspots = false, FreeRotate = true };
-                vp.Size(300, 260);
-                m_Stage.Add(vp);
+                var ar = App.ar;
+                if (ar != null && ar.CanRecognizeWithCamera)
+                {
+                    // HP tanpa AR: model muncul di atas kartu yang dipegang dan ikut kartunya (hilang kalau kartu diangkat)
+                    ar.ShowModelOnCard();
+                    m_Follow = new CardFollowView(App.Viewer, organ);
+                    m_Follow.Viewport.ShowHotspots = false;
+                    Root.Insert(1, m_Follow.Viewport);
+                }
+                else if (ar != null && ar.IsCameraLive)
+                {
+                    // AR: model ditempel di atas kartunya (bukan model diam di tengah layar); hilang kalau kartu tidak terlihat
+                    ar.ShowModelOnCard();
+                }
+                else
+                {
+                    // tanpa kamera (Editor): viewer 3D biasa
+                    var vp = new OrganViewport(App.Viewer, organ, false) { ShowHotspots = false, FreeRotate = true };
+                    vp.Size(300, 260);
+                    m_Stage.Add(vp);
+                }
                 var sheet = U.Col(8).Bg("#FFFFFF").Radius(20).Pad(16);
                 var h = U.Row(8);
                 h.Add(U.Div().Size(26, 26).Radius(13).Bg(U.Teal).Center().Kids(U.Icon("check", 13)));
@@ -954,6 +976,7 @@ namespace Organo.Screens
             m_StandIn.Visible(!live);
             m_Frame.Tick(dt);
             ScanParts.TellScanFrame(App.ar, m_StandIn, m_Frame.Box, m_State != State.Right && !live);
+            if (m_Follow != null && App.ar != null) m_Follow.Tick(App.ar, Root, Db.Get(S.Q.organId), dt);
         }
 
         public override void Close()
@@ -961,6 +984,7 @@ namespace Organo.Screens
             if (App.ar == null) return;
             App.ar.CardDetected -= OnCard;
             App.ar.SpawnModels = true;
+            App.ar.TrackCard = false;
             App.ar.PreferOrgan = null;
             App.ar.ClearScanFrame();
         }

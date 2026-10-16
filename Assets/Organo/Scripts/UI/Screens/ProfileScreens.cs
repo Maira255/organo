@@ -100,6 +100,9 @@ namespace Organo.Screens
 
             var list = U.Col(0, "card", "card-lg").Pad(4, 14);
             list.Elev(Elevation.E1);
+            // kelas online (opsional): tidak ada di build full offline
+            if (KelasOnline.Tersedia)
+                list.Add(Setting("kelas", "Kelas", KelasOnline.Tergabung(P) ? P.kelasNama : "Belum bergabung", ShowKelas));
             list.Add(Setting("set_history", "Riwayat Kuis", P.history.Count + " kuis", () => App.Go<QuizHistoryScreen>()));
             list.Add(Setting("set_body", "Materi Tubuh", P.gender == Gender.Girl ? "Perempuan" : "Laki-laki", () => App.Go<BodyMaterialScreen>()));
             list.Add(SoundRow());
@@ -109,6 +112,116 @@ namespace Organo.Screens
             c.Add(list);
 
             c.Add(U.Space(8));
+        }
+
+        /// <summary>
+        /// Kelas online: gabung dengan kode kelas dari guru (hasil belajar dikirim ke guru), lihat status kiriman, atau keluar.
+        /// Tanpa kelas aplikasi tetap offline.
+        /// </summary>
+        public void ShowKelas()
+        {
+            var c = U.Col(12);
+            OrganoApp.Overlay sh = null;
+            sh = App.ShowSheet(c, true, () => KelasOnline.Berubah -= Segarkan);
+            void Segarkan() { if (c.panel != null) IsiKelas(c, () => sh.Close()); }
+            KelasOnline.Berubah += Segarkan;
+            IsiKelas(c, () => sh.Close());
+        }
+
+        void IsiKelas(VisualElement c, System.Action tutup)
+        {
+            c.Clear();
+            if (KelasOnline.Tergabung(P))
+            {
+                c.Add(U.Text("Kelas", "t-h2"));
+                var box = U.Row(12).Pad(12, 14).Radius(14).Bg(U.TealSoft);
+                box.Add(U.Div().Size(44, 44).Radius(22).Bg("#FFFFFF").Center().Kids(U.Icon("kelas", 24)));
+                var t = U.Col(2).Grow();
+                t.Add(U.Text(P.kelasNama, "t-body").Bold());
+                t.Add(U.Text(P.kelasGuru + " · kode " + P.kelasKode, "t-caption"));
+                box.Add(t);
+                c.Add(box);
+                c.Add(U.Text("Namamu di kelas: " + (string.IsNullOrWhiteSpace(P.kelasNamaMurid) ? P.nickname : P.kelasNamaMurid), "t-small"));
+                var st = U.Text(KelasOnline.StatusTeks(P), "t-caption");
+                st.style.whiteSpace = WhiteSpace.Normal;
+                c.Add(st);
+                if (KelasOnline.Status != KelasOnline.Keadaan.KelasHilang)
+                    c.Add(U.Button("Kirim sekarang", () => KelasOnline.KirimSekarang(true), "btn-primary"));
+                var keluar = U.Button("Keluar dari kelas", () => KonfirmasiKeluar(c, tutup), "btn-ghost");
+                if (keluar.Q<Label>() is Label kl) kl.style.color = U.C(U.PinkDark);
+                c.Add(keluar);
+                return;
+            }
+
+            c.Add(U.Text("Gabung Kelas", "t-h2"));
+            if (!string.IsNullOrEmpty(KelasOnline.Pesan))
+            {
+                // mis. "Kamu sudah dikeluarkan dari Kelas 5A oleh guru."
+                var catatan = U.Text(KelasOnline.Pesan, "t-small").Fg(U.PinkDark);
+                catatan.style.whiteSpace = WhiteSpace.Normal;
+                c.Add(catatan);
+            }
+            var info = U.Text("Masukkan kode kelas dari gurumu. Nilai kuis, progres belajar, kartu, dan bintangmu akan terlihat oleh guru.", "t-small", "t-muted");
+            info.style.whiteSpace = WhiteSpace.Normal;
+            c.Add(info);
+            c.Add(Parts.Field("Kode kelas", "kelas", "6 huruf/angka", false, out var kode));
+            kode.maxLength = 9;
+            var err = U.Text("", "t-small").Fg(U.PinkDark);
+            err.style.whiteSpace = WhiteSpace.Normal;
+            err.Visible(false);
+            c.Add(err);
+            VisualElement cek = null;
+            cek = U.Button("Cek Kode", () =>
+            {
+                cek.SetEnabled(false);
+                err.Visible(false);
+                App.StartCoroutine(KelasOnline.Cek(kode.value, (kelas, salah) =>
+                {
+                    cek.SetEnabled(true);
+                    if (salah != null) { err.text = salah; err.Visible(true); OrganoAudio.Wrong(); return; }
+                    KonfirmasiGabung(c, kelas, tutup);
+                }));
+            }, "btn-primary");
+            c.Add(cek);
+            c.Add(U.Button("Nanti saja", tutup, "btn-ghost"));
+        }
+
+        void KonfirmasiGabung(VisualElement c, KelasOnline.InfoKelas kelas, System.Action tutup)
+        {
+            c.Clear();
+            c.Add(U.Text("Gabung ke kelas ini?", "t-h2"));
+            var box = U.Row(12).Pad(12, 14).Radius(14).Bg(U.TealSoft);
+            box.Add(U.Div().Size(44, 44).Radius(22).Bg("#FFFFFF").Center().Kids(U.Icon("kelas", 24)));
+            var t = U.Col(2).Grow();
+            t.Add(U.Text(kelas.namaKelas, "t-body").Bold());
+            t.Add(U.Text(kelas.namaGuru, "t-caption"));
+            box.Add(t);
+            c.Add(box);
+            c.Add(Parts.Field("Namamu (dilihat guru)", "guest", "Nama lengkap atau nama panggilan", false, out var nama));
+            nama.maxLength = 30;
+            nama.value = P.nickname == "Teman" ? "" : P.nickname;
+            c.Add(U.Button("Gabung", () =>
+            {
+                KelasOnline.Gabung(P, kelas, nama.value);
+                OrganoAudio.Success();
+                App.Toast("Kamu bergabung ke " + kelas.namaKelas);
+                tutup();
+                Refresh();
+            }, "btn-primary"));
+            c.Add(U.Button("Batal", () => IsiKelas(c, tutup), "btn-ghost"));
+        }
+
+        void KonfirmasiKeluar(VisualElement c, System.Action tutup)
+        {
+            c.Clear();
+            c.Add(U.Text("Keluar dari " + P.kelasNama + "?", "t-h2"));
+            var d = U.Text("Nilai dan progresmu di kelas ini akan dihapus dari halaman guru. Progres di HP ini tetap tersimpan.", "t-small", "t-muted");
+            d.style.whiteSpace = WhiteSpace.Normal;
+            c.Add(d);
+            var ya = U.Button("Ya, keluar", () => { KelasOnline.Keluar(P); tutup(); Refresh(); }, "btn-primary");
+            ya.Bg(U.PinkDark);
+            c.Add(ya);
+            c.Add(U.Button("Batal", () => IsiKelas(c, tutup), "btn-ghost"));
         }
 
         /// <summary>Ubah nama panggilan (dipakai untuk sapaan di Beranda & Kuis).</summary>
@@ -438,6 +551,13 @@ namespace Organo.Screens
                 App.Back();
             }, "btn-primary"));
             Root.Add(bottom);
+        }
+
+        /// <summary>Keluar dari Aksesibilitas (kembali, Simpan, tombol kembali HP): contoh suara pembaca langsung berhenti.</summary>
+        public override void Close()
+        {
+            OrganoAudio.StopVoice();
+            OrganoSpeech.Stop();
         }
 
         static VisualElement SwitchRow(string title, string hint, bool on, System.Action<bool> changed, bool last)

@@ -126,18 +126,47 @@ namespace Organo.EditorTools
             ile.Add(new Vector4(-0.43f, -0.42f, 0.0f, R));
             sdf.Tube(jej.ToArray(), 1, sub: 2);
             sdf.Tube(ile.ToArray(), 2, sub: 2);
-            // mesenterium: pembuluh darah menyebar di sisi belakang (terlihat dari belakang / saat disorot)
-            var root = new Vector3(0.02f, 0.3f, 0.16f);
-            var ends = new[]
+            // Pembuluh darah mesenterium di sisi belakang: satu batang utama melengkung turun di balik gulungan, bercabang ke
+            // kiri-kanan, dan tiap cabang berakhir dua ranting yang menempel ke dinding usus (lengkungan "arkade").
+            // Arteri (merah) dan vena (biru) berjalan berdampingan. Semuanya tetap di dalam garis luar gulungan, jadi dari
+            // depan tidak ada yang mencuat. (Dulu: batang lurus memancar dari satu titik di atas usus dan melayang di belakangnya.)
+            Vector3 Trunk(float t) => new Vector3(-0.02f + 0.05f * Mathf.Sin(t * Mathf.PI), Mathf.Lerp(0.15f, -0.22f, t), 0.158f);
+            // ujung cabang tetap di dalam garis luar gulungan (supaya tidak terlihat dari depan)
+            Vector3 Inside(Vector3 p) => new Vector3(Mathf.Clamp(p.x, -0.75f * HalfW(p.y), 0.75f * HalfW(p.y)), Mathf.Clamp(p.y, -0.25f, 0.18f), p.z);
+            void Pair(Vector3[] path, float ra, float rv)
             {
-                new Vector3(-0.3f, 0.08f, 0.15f), new Vector3(0.3f, 0.06f, 0.15f), new Vector3(-0.26f, -0.18f, 0.15f),
-                new Vector3(0.26f, -0.2f, 0.15f), new Vector3(0f, -0.3f, 0.15f), new Vector3(-0.1f, 0.14f, 0.16f), new Vector3(0.12f, -0.04f, 0.16f)
-            };
-            foreach (var e in ends)
+                var art = new Vector4[path.Length];
+                var vein = new Vector4[path.Length];
+                for (int i = 0; i < path.Length; i++)
+                {
+                    var dir = path[Mathf.Min(i + 1, path.Length - 1)] - path[Mathf.Max(i - 1, 0)];
+                    var side = new Vector3(-dir.y, dir.x, 0f).normalized * 0.016f;   // tegak lurus arah pembuluh
+                    float k = path.Length > 1 ? i / (float)(path.Length - 1) : 0f;
+                    float shrink = Mathf.Lerp(1f, 0.8f, k);
+                    art[i] = new Vector4(path[i].x - side.x, path[i].y - side.y, path[i].z, ra * shrink);
+                    vein[i] = new Vector4(path[i].x + side.x, path[i].y + side.y, path[i].z + 0.002f, rv * shrink);
+                }
+                sdf.Tube(art, 3, smooth: 0.004f, sub: 3);
+                sdf.Tube(vein, 4, smooth: 0.004f, sub: 3);
+            }
+            var trunk = new Vector3[7];
+            for (int i = 0; i < trunk.Length; i++) trunk[i] = Trunk(i / 6f);
+            Pair(trunk, 0.017f, 0.019f);
+            float[] at = { 0.12f, 0.3f, 0.46f, 0.62f, 0.78f, 0.92f };
+            for (int i = 0; i < at.Length; i++)
             {
-                var mid = Vector3.Lerp(root, e, 0.5f) + new Vector3(0f, 0f, 0.025f);
-                sdf.Tube(new[] { new Vector4(root.x - 0.014f, root.y, root.z, 0.015f), new Vector4(mid.x - 0.014f, mid.y, mid.z, 0.012f), new Vector4(e.x - 0.014f, e.y, e.z, 0.009f) }, 3, smooth: 0.006f);
-                sdf.Tube(new[] { new Vector4(root.x + 0.014f, root.y, root.z, 0.017f), new Vector4(mid.x + 0.014f, mid.y, mid.z, 0.013f), new Vector4(e.x + 0.014f, e.y, e.z, 0.01f) }, 4, smooth: 0.006f);
+                float sgn = i % 2 == 0 ? -1f : 1f;
+                var a = Trunk(at[i]);
+                float reach = 0.2f - 0.05f * Mathf.Abs(at[i] - 0.5f);
+                var end = Inside(new Vector3(a.x + sgn * reach, a.y - 0.04f, 0.145f));
+                var mid = Vector3.Lerp(a, end, 0.5f) + new Vector3(0f, 0.025f, 0.006f);
+                Pair(new[] { a, mid, end }, 0.013f, 0.0145f);
+                // dua ranting menempel ke usus
+                foreach (float dy in new[] { 0.06f, -0.06f })
+                {
+                    var tip = Inside(end + new Vector3(sgn * 0.05f, dy, -0.012f));
+                    Pair(new[] { end, Vector3.Lerp(end, tip, 0.5f) + new Vector3(0f, 0f, 0.004f), tip }, 0.0105f, 0.0115f);
+                }
             }
 
             Build("usushalus", "UsusHalus", sdf, new Bounds(new Vector3(-0.02f, 0.04f, 0.02f), new Vector3(1.0f, 1.08f, 0.5f)), 0.0115f,

@@ -16,6 +16,8 @@ namespace Organo.Data
         public int total;
         public int stars;
         public string when = "";
+        /// <summary>Waktu kuis selesai (ISO 8601), untuk halaman evaluasi guru. Kosong = catatan lama.</summary>
+        public string waktu = "";
         /// <summary>Kuis yang dimainkan: "season:cerna", "latihan:MisiScan", "repro:reprolaki" (kosong = catatan lama).</summary>
         public string quizId = "";
         /// <summary>Judul untuk riwayat, mis. "Sistem Pernapasan" (kosong = catatan lama, pakai "Sistem " + system).</summary>
@@ -36,7 +38,7 @@ namespace Organo.Data
         public bool isCorrect;
     }
 
-    /// <summary>Progres anak, disimpan di HP ini saja (satu profil, tanpa akun dan tanpa internet).</summary>
+    /// <summary>Progres anak, disimpan di HP ini (satu profil, tanpa akun). Kalau bergabung ke kelas, ringkasannya juga dikirim ke guru (KelasOnline).</summary>
     [Serializable]
     public class PlayerProgress
     {
@@ -63,6 +65,19 @@ namespace Organo.Data
         public bool captions = true;
         public bool highContrast;
         public bool reduceMotion;
+
+        // ---- kelas online (opsional, lihat KelasOnline): kosong = belum bergabung, aplikasi sepenuhnya offline
+        public string kelasKode = "";
+        public string kelasNama = "";
+        public string kelasGuru = "";
+        /// <summary>Nama murid yang dilihat guru di daftar kelas.</summary>
+        public string kelasNamaMurid = "";
+        /// <summary>Id acak murid di kelas (32 heksa), dibuat sekali saat bergabung.</summary>
+        public string muridId = "";
+        /// <summary>Kapan ringkasan terakhir berhasil terkirim ke guru (ISO 8601).</summary>
+        public string kelasTerkirim = "";
+        /// <summary>Sidik ringkasan yang terakhir terkirim: ringkasan yang sama tidak dikirim ulang (hemat kuota server).</summary>
+        public string kelasSidik = "";
 
         public event Action Changed;
 

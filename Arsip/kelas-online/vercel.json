@@ -1,0 +1,8 @@
+{
+  "regions": ["sin1"],
+  "cleanUrls": true,
+  "headers": [
+    { "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/guru", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }] }
+  ]
+}

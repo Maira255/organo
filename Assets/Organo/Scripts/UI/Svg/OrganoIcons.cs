@@ -62,6 +62,8 @@ namespace Organo.UI
             Svg["sound_off"] = "<svg viewBox=\"0 0 24 24\"" + Stroke + "><path d=\"M4 9v6h4l5 4V5L8 9z\"/><path d=\"M16.5 9.5l5 5M21.5 9.5l-5 5\"/></svg>";
             Svg["stop"] = "<svg viewBox=\"0 0 24 24\"><rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2.5\" fill=\"#2E2A4A\"/></svg>";
             Svg["play"] = "<svg viewBox=\"0 0 24 24\"><path d=\"M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z\" fill=\"#2E2A4A\"/></svg>";
+            // kelas online: papan tulis
+            Svg["kelas"] = "<svg viewBox=\"0 0 24 24\"" + Stroke + "><rect x=\"3\" y=\"4\" width=\"18\" height=\"12\" rx=\"2\"/><path d=\"M7 8h7M7 11h4M9 20l3-4 3 4\"/></svg>";
             Svg["set_voice"] = "<svg viewBox=\"0 0 24 24\"" + Stroke + "><path d=\"M4 5h16v10H10l-5 4v-4H4z\"/><path d=\"M8 9h8M8 12h5\"/></svg>";
             RegisterKidAndSenses();
         }

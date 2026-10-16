@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evaluasi Kelas Organo</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAFAFA; --surface: #FFFFFF; --ink: #2E2A4A; --muted: #6B6785; --line: #ECEAF2; --soft: #F6F5F9;
+  --teal: #12857A; --teal-soft: #D5F3EF; --purple: #6F52D1; --purple-soft: #E8E2FB; --pink: #D6385E; --pink-soft: #FDE0E7;
+  --sun-soft: #FFF4D6; --font: "Poppins", "Segoe UI", system-ui, -apple-system, sans-serif; --radius: 16px;
+  --shadow: 0 6px 18px rgba(46, 42, 74, 0.08); color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #15131F; --surface: #201D2E; --ink: #F1EFF8; --muted: #B3AECB; --line: #312D44; --soft: #2A2640;
+    --teal-soft: #173D39; --purple-soft: #2D2650; --pink-soft: #4A2030; --sun-soft: #3D3420; color-scheme: dark;
+    --teal: #3CC2B2; --pink: #FF7A9A; }
+  :root:not([data-theme="light"]) .btn:not(.secondary):not(.danger) { color: #0E1B1A; }
+  :root:not([data-theme="light"]) .mid { color: #F2C14E; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.55; }
+a { color: var(--teal); }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; gap: 12px; min-height: 64px; flex-wrap: wrap; }
+.logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--teal), var(--purple)); display: grid; place-items: center; color: #fff; font-weight: 700; }
+.brand { font-weight: 700; font-size: 17px; }
+.brand span { color: var(--muted); font-weight: 500; font-size: 14px; }
+header.top .spacer { flex: 1; }
+h1 { font-size: 26px; line-height: 1.25; margin: 28px 0 6px; }
+h2 { font-size: 18px; margin: 0 0 10px; }
+p.lead { color: var(--muted); margin: 0 0 22px; max-width: 760px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+input[type=text], input[type=password] { width: 100%; font: inherit; padding: 11px 13px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); }
+input:focus { outline: 3px solid var(--teal-soft); border-color: var(--teal); }
+.btn { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 11px 20px; cursor: pointer; background: var(--teal); color: #fff; min-height: 44px; }
+.btn.secondary { background: var(--surface); color: var(--ink); border: 1.5px solid var(--line); }
+.btn.danger { background: var(--surface); color: var(--pink); border: 1.5px solid var(--pink); }
+.btn.small { padding: 6px 14px; min-height: 34px; font-size: 13px; }
+.btn:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.mt { margin-top: 16px; }
+.err { color: var(--pink); font-size: 14px; margin-top: 10px; min-height: 1em; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.note { background: var(--sun-soft); border-radius: 12px; padding: 12px 14px; font-size: 14px; }
+.codebox { display: flex; gap: 14px; flex-wrap: wrap; margin: 14px 0; }
+.codebox div { background: var(--soft); border-radius: 14px; padding: 12px 16px; min-width: 180px; }
+.codebox b { display: block; font-size: 28px; letter-spacing: 3px; font-family: ui-monospace, Consolas, monospace; }
+.saved { margin-top: 14px; display: grid; gap: 8px; }
+.saved button { text-align: left; font: inherit; background: var(--soft); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; color: var(--ink); }
+.saved button small { color: var(--muted); display: block; }
+.saved .item { display: flex; gap: 6px; }
+.saved .item .buka { flex: 1; }
+.saved .item .lupa { flex: none; width: 40px; text-align: center; color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 18px 0; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.stat b { display: block; font-size: 24px; }
+.stat span { font-size: 13px; color: var(--muted); }
+.tabs { display: flex; gap: 6px; background: var(--soft); border-radius: 999px; padding: 4px; width: fit-content; margin: 8px 0 14px; flex-wrap: wrap; }
+.tabs button { font: inherit; font-weight: 600; font-size: 14px; border: 0; background: transparent; padding: 8px 16px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+.tabs button[aria-selected=true] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--soft); white-space: nowrap; }
+tbody tr.click { cursor: pointer; }
+tbody tr.click:hover { background: var(--soft); }
+.pill { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.ok { background: var(--teal-soft); color: var(--teal); }
+.mid { background: var(--sun-soft); color: #8A6400; }
+.low { background: var(--pink-soft); color: var(--pink); }
+.bar { height: 8px; background: var(--soft); border-radius: 99px; overflow: hidden; min-width: 80px; }
+.bar i { display: block; height: 100%; background: var(--teal); }
+dialog { border: 0; border-radius: 20px; padding: 0; width: min(860px, 96vw); max-height: 92vh; background: var(--surface); color: var(--ink); }
+dialog::backdrop { background: rgba(20, 18, 32, .5); }
+.dlg { padding: 22px; }
+.dlg header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.dlg header .spacer { flex: 1; }
+.organs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 8px 0 16px; }
+.organ { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; font-size: 13px; }
+.organ b { display: block; font-size: 13px; }
+.wrong { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.wrong li { margin-bottom: 4px; }
+.empty { padding: 28px; text-align: center; color: var(--muted); }
+.hidden { display: none !important; }
+
+/* ---- kepala kelas */
+.classhead { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 20px; padding: 18px 20px; box-shadow: var(--shadow); margin: 22px 0 14px; }
+.classhead .who { flex: 1; min-width: 200px; }
+.classhead h1 { margin: 0; }
+.classhead .sub { color: var(--muted); font-size: 14px; }
+.codechip { display: flex; align-items: center; gap: 10px; background: var(--teal-soft); color: var(--teal); border-radius: 16px; padding: 8px 10px 8px 16px; }
+.codechip small { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; opacity: .85; }
+.codechip b { font-family: ui-monospace, Consolas, monospace; font-size: 26px; letter-spacing: 4px; line-height: 1.1; }
+.codechip button { font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 999px; padding: 8px 12px; background: var(--surface); color: var(--teal); cursor: pointer; min-height: 38px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.actions .grow { flex: 1; }
+
+/* ---- daftar murid */
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 4px 0 12px; }
+.toolbar input[type=search] { flex: 1; min-width: 180px; font: inherit; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); }
+.toolbar select { font: inherit; font-size: 14px; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); min-height: 42px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: -4px 0 12px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+.cards { display: grid; gap: 10px; }
+.mcard { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; cursor: pointer; display: grid; gap: 8px; }
+.mcard:hover { border-color: var(--teal); }
+.mcard.perhatian { border-left: 5px solid var(--pink); }
+.mcard .top { display: flex; align-items: center; gap: 10px; }
+.mcard .top b { flex: 1; font-size: 16px; }
+.mcard .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.mcard .facts div { background: var(--soft); border-radius: 10px; padding: 6px 8px; font-size: 12px; color: var(--muted); }
+.mcard .facts strong { display: block; font-size: 15px; color: var(--ink); }
+.avatar { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: #fff; background: var(--purple); flex: none; }
+tr.perhatian td:first-child { box-shadow: inset 4px 0 0 var(--pink); }
+.namecell { display: flex; align-items: center; gap: 10px; }
+.big { font-size: 15px; }
+.only-narrow { display: none; }
+
+/* ---- dialog murid */
+.dlg header { position: sticky; top: 0; background: var(--surface); z-index: 1; padding: 6px 0 10px; }
+.hist { display: grid; gap: 8px; }
+.hist .h { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.hist .h .row1 { display: flex; gap: 8px; align-items: center; }
+.hist .h .row1 b { flex: 1; }
+
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .wrap { padding: 0 14px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat { padding: 12px; }
+  h1 { font-size: 22px; }
+  .classhead { padding: 16px; }
+  .codechip { width: 100%; justify-content: space-between; }
+  .actions .btn { flex: 1 1 45%; }
+  .tabs { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 16px; }
+  .tabs button { padding: 10px 6px; border-radius: 12px; font-size: 13px; }
+  .only-wide { display: none !important; }
+  .only-narrow { display: block; }
+  .mcard .facts { grid-template-columns: repeat(2, 1fr); }
+  dialog { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; }
+  .dlg { padding: 0 16px 24px; }
+  .organs { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="logo">O</div><div class="brand">Organo <span>· Evaluasi Kelas</span></div>
+  <div class="spacer"></div>
+  <a href="/" class="small">Kartu Organo</a>
+</div></header>
+
+<main class="wrap">
+<!-- ======================================================= masuk -->
+<section id="v-masuk">
+  <h1>Pantau hasil belajar murid</h1>
+  <p class="lead">Buat kelas, bagikan kodenya ke murid, lalu lihat nilai kuis, progres belajar, dan kartu yang mereka kumpulkan.
+  Murid bergabung dari aplikasi Organo: <b>Profil → Kelas</b>, lalu memasukkan kode kelas. Tanpa kode kelas, aplikasi tetap bisa dipakai offline.</p>
+  <div class="grid2">
+    <div class="card">
+      <h2>Buat kelas baru</h2>
+      <form id="f-buat">
+        <label for="b-kelas">Nama kelas</label><input id="b-kelas" type="text" maxlength="40" placeholder="Contoh: Kelas 5A SDN 1" required>
+        <label for="b-guru">Nama guru</label><input id="b-guru" type="text" maxlength="40" placeholder="Contoh: Bu Sari" required>
+        <div class="row mt"><button class="btn" type="submit">Buat Kelas</button></div>
+        <div class="err" id="b-err" role="alert"></div>
+      </form>
+      <div id="b-hasil" class="hidden">
+        <div class="codebox">
+          <div><span class="small muted">Kode kelas (untuk murid)</span><b id="h-kode"></b></div>
+          <div><span class="small muted">Kunci guru (rahasia)</span><b id="h-kunci"></b></div>
+        </div>
+        <p class="note">Simpan <b>kunci guru</b> baik-baik. Kunci ini dibutuhkan untuk membuka evaluasi dan <b>tidak bisa ditampilkan lagi</b>.
+        Kelas ini juga tersimpan di peramban ini.</p>
+        <div class="row mt"><button class="btn" id="h-buka" type="button">Buka Evaluasi</button><button class="btn secondary" id="h-salin" type="button">Salin kode & kunci</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Buka kelas</h2>
+      <form id="f-buka">
+        <label for="k-kode">Kode kelas</label><input id="k-kode" type="text" maxlength="9" placeholder="K7M2QX" autocomplete="off" required>
+        <label for="k-kunci">Kunci guru</label><input id="k-kunci" type="password" maxlength="12" placeholder="ABCD-EFGH" autocomplete="off" required>
+        <div class="row mt"><button class="btn" type="submit">Lihat Evaluasi</button></div>
+        <div class="err" id="k-err" role="alert"></div>
+      </form>
+      <div class="saved" id="saved"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= evaluasi -->
+<section id="v-eval" class="hidden">
+  <div class="classhead">
+    <div class="who"><h1 id="e-judul"></h1><div class="sub" id="e-sub"></div></div>
+    <div class="codechip"><div><small>Kode kelas untuk murid</small><b id="e-kode"></b></div>
+      <button type="button" id="e-salin">Salin</button></div>
+  </div>
+  <div class="actions">
+    <button class="btn secondary small" id="e-muat" type="button">Muat ulang</button>
+    <button class="btn secondary small" id="e-csv1" type="button">Rekap murid (CSV)</button>
+    <button class="btn secondary small" id="e-csv2" type="button">Semua hasil kuis (CSV)</button>
+    <button class="btn secondary small" id="e-keluar" type="button">Ganti kelas</button>
+  </div>
+  <div class="stats" id="e-stats"></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="murid" aria-selected="true">Murid</button>
+    <button role="tab" data-tab="kuis" aria-selected="false">Rekap per kuis</button>
+    <button role="tab" data-tab="soal" aria-selected="false">Soal sering salah</button>
+  </div>
+  <div id="t-murid"></div>
+  <div id="t-kuis" class="hidden"></div>
+  <div id="t-soal" class="hidden"></div>
+  <p class="small muted mt">Nilai dihitung dari jawaban <b>percobaan pertama</b> (di aplikasi, jawaban yang salah harus diulang sampai benar).
+  Data murid diperbarui setiap kali aplikasi tersambung ke internet.</p>
+  <div class="row mt"><button class="btn danger small" id="e-hapus" type="button">Hapus kelas</button></div>
+</section>
+</main>
+
+<dialog id="dlg"><div class="dlg" id="dlg-isi"></div></dialog>
+
+<script>
+const ORGAN = [
+  ["mulut","Mulut"],["kerongkongan","Kerongkongan"],["lambung","Lambung"],["usushalus","Usus Halus"],["ususbesar","Usus Besar"],
+  ["hati","Hati"],["pankreas","Pankreas"],["hidung","Hidung"],["tenggorokan","Tenggorokan"],["paru","Paru-paru"],["jantung","Jantung"],
+  ["ginjal","Ginjal"],["otak","Otak"],["mata","Mata"],["rangka","Rangka"],["reprolaki","Reproduksi Laki-laki"],["reproperempuan","Reproduksi Perempuan"]];
+const PROSES = [["cerna","Proses Pencernaan"],["napas","Proses Pernapasan"],["darah","Peredaran Darah"],
+  ["ekskresi","Proses Pengeluaran Zat Sisa"],["saraf","Saraf dan Indera"],["tubuh","Letak Organ di Tubuh"]];
+const NAMA_ORGAN = Object.fromEntries(ORGAN);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const persen = (b, t) => t > 0 ? Math.round(100 * b / t) : 0;
+let sesi = null, data = null;
+
+// ---------------------------------------------------------- kelas tersimpan di peramban
+function simpanan() { try { return JSON.parse(localStorage.getItem("organo-kelas-guru") || "[]"); } catch { return []; } }
+function simpan(k) {
+  try {
+    const list = simpanan().filter(x => x.kode !== k.kode);
+    list.unshift(k);
+    localStorage.setItem("organo-kelas-guru", JSON.stringify(list.slice(0, 12)));
+  } catch {}
+  tampilSimpanan();
+}
+function lupakan(kode) {
+  try { localStorage.setItem("organo-kelas-guru", JSON.stringify(simpanan().filter(x => x.kode !== kode))); } catch {}
+  tampilSimpanan();
+}
+function tampilSimpanan() {
+  const list = simpanan();
+  $("saved").innerHTML = list.length ? '<span class="small muted">Kelas tersimpan di peramban ini:</span>' : "";
+  list.forEach(k => {
+    const item = document.createElement("div");
+    item.className = "item";
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "buka";
+    b.innerHTML = `<b>${esc(k.namaKelas || k.kode)}</b><small>Kode ${esc(k.kode)}${k.namaGuru ? " · " + esc(k.namaGuru) : ""}</small>`;
+    b.onclick = () => buka(k.kode, k.kunci);
+    // komputer bersama (mis. di sekolah): kunci guru bisa dihapus dari peramban ini
+    const x = document.createElement("button");
+    x.type = "button"; x.className = "lupa"; x.textContent = "✕";
+    x.title = `Hapus ${k.namaKelas || k.kode} dari peramban ini (kelasnya tidak terhapus)`;
+    x.setAttribute("aria-label", x.title);
+    x.onclick = () => lupakan(k.kode);
+    item.append(b, x);
+    $("saved").appendChild(item);
+  });
+}
+
+async function api(path, body) {
+  let r;
+  try { r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {}); }
+  catch { throw new Error("Tidak bisa tersambung ke server. Periksa koneksi internet, lalu coba lagi."); }
+  let j = {};
+  try { j = await r.json(); } catch {}
+  if (!r.ok) throw new Error(j.error || "Gagal terhubung ke server.");
+  return j;
+}
+
+// ---------------------------------------------------------- buat & buka kelas
+$("f-buat").onsubmit = async e => {
+  e.preventDefault();
+  $("b-err").textContent = "";
+  const btn = e.submitter || $("f-buat").querySelector("button[type=submit]"); btn.disabled = true;
+  try {
+    const k = await api("/api/kelas", { aksi: "buat", namaKelas: $("b-kelas").value, namaGuru: $("b-guru").value });
+    $("h-kode").textContent = k.kode; $("h-kunci").textContent = k.kunci;
+    $("f-buat").classList.add("hidden"); $("b-hasil").classList.remove("hidden");
+    simpan(k);
+    $("h-buka").onclick = () => buka(k.kode, k.kunci);
+    $("h-salin").textContent = "Salin kode & kunci";
+    $("h-salin").onclick = async () => {
+      try { await navigator.clipboard.writeText(`Kelas: ${k.namaKelas}\nKode kelas: ${k.kode}\nKunci guru: ${k.kunci}`); $("h-salin").textContent = "Tersalin ✓"; }
+      catch { $("h-salin").textContent = "Gagal menyalin, catat manual"; }
+    };
+  } catch (err) { $("b-err").textContent = err.message; }
+  btn.disabled = false;
+};
+$("f-buka").onsubmit = e => { e.preventDefault(); buka($("k-kode").value, $("k-kunci").value); };
+
+async function buka(kode, kunci) {
+  $("k-err").textContent = "";
+  const segarkan = !$("v-eval").classList.contains("hidden");
+  try {
+    data = await api("/api/evaluasi", { kode, kunci });
+    sesi = { kode: data.kelas.kode, kunci };
+    simpan({ ...data.kelas, kunci });
+    $("v-masuk").classList.add("hidden"); $("v-eval").classList.remove("hidden");
+    render();
+  } catch (err) {
+    // muat ulang gagal (mis. internet putus): tetap di halaman evaluasi dengan data terakhir
+    if (segarkan && data) { alert(err.message); return; }
+    $("k-err").textContent = err.message; $("v-eval").classList.add("hidden"); $("v-masuk").classList.remove("hidden");
+  }
+}
+$("e-muat").onclick = () => buka(sesi.kode, sesi.kunci);
+$("e-keluar").onclick = () => { sesi = data = null; $("v-eval").classList.add("hidden"); $("v-masuk").classList.remove("hidden"); };
+$("e-hapus").onclick = async () => {
+  if (!confirm(`Hapus kelas "${data.kelas.namaKelas}" beserta semua data muridnya? Tindakan ini tidak bisa dibatalkan.`)) return;
+  try {
+    await api("/api/kelas", { aksi: "hapus", kode: sesi.kode, kunci: sesi.kunci });
+    try { localStorage.setItem("organo-kelas-guru", JSON.stringify(simpanan().filter(x => x.kode !== sesi.kode))); } catch {}
+    tampilSimpanan(); $("e-keluar").onclick();
+  } catch (err) { alert(err.message); }
+};
+
+// ---------------------------------------------------------- hitung
+function ringkas(m) {
+  const r = m.riwayat || [];
+  const benar = r.reduce((a, x) => a + (x.correct || 0), 0), total = r.reduce((a, x) => a + (x.total || 0), 0);
+  return { kuis: r.length, nilai: persen(benar, total), adaNilai: total > 0,
+           organ: (m.kuisOrgan || []).length, proses: (m.kuisProses || []).length, kartu: (m.kartu || []).length };
+}
+function waktuTeks(iso) {
+  if (!iso) return "-";
+  const d = new Date(iso); if (isNaN(d)) return esc(iso);
+  return d.toLocaleString("id-ID", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+function kelasNilai(n) { return n >= 80 ? "ok" : n >= 60 ? "mid" : "low"; }
+
+function render() {
+  const k = data.kelas, ms = data.murid;
+  if (sesi && render.kode !== sesi.kode) { cari = ""; urut = "nama"; $("t-murid").innerHTML = ""; render.kode = sesi.kode; }
+  $("e-judul").textContent = k.namaKelas;
+  $("e-sub").textContent = k.namaGuru + " · " + ms.length + " murid · bagikan kode ke murid: Profil → Kelas di aplikasi Organo";
+  $("e-kode").textContent = k.kode;
+  $("e-salin").textContent = "Salin";
+  $("e-salin").onclick = async () => {
+    try { await navigator.clipboard.writeText(k.kode); $("e-salin").textContent = "Tersalin ✓"; } catch { $("e-salin").textContent = k.kode; }
+  };
+  const all = ms.flatMap(m => m.riwayat || []);
+  const b = all.reduce((a, x) => a + x.correct, 0), t = all.reduce((a, x) => a + x.total, 0);
+  const kartu = ms.length ? (ms.reduce((a, m) => a + (m.kartu || []).length, 0) / ms.length) : 0;
+  const perlu = ms.filter(m => { const s = ringkas(m); return s.adaNilai && s.nilai < 60; }).length;
+  $("e-stats").innerHTML = [
+    [ms.length, "Murid bergabung"], [t ? persen(b, t) + "%" : "-", "Rata-rata benar"],
+    [all.length, "Kuis diselesaikan"], [perlu ? perlu : "-", "Perlu perhatian (nilai < 60%)"]]
+    .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  renderMurid(); renderKuis(); renderSoal();
+}
+
+let cari = "", urut = "nama";
+function inisial(n) { return esc(String(n || "?").trim().split(/\s+/).slice(0, 2).map(x => x[0] || "").join("").toUpperCase() || "?"); }
+const WARNA = ["#6F52D1", "#12857A", "#D6385E", "#B07D00", "#2F6FD6", "#8A3FB3"];
+function warna(id) { let h = 0; for (const c of String(id)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return WARNA[h % WARNA.length]; }
+
+function renderMurid() {
+  const semua = data.murid;
+  if (!semua.length) { render.kode = null; $("t-murid").innerHTML = `<div class="tablewrap"><div class="empty">Belum ada murid. Bagikan kode kelas <b>${esc(data.kelas.kode)}</b> ke murid.</div></div>`; return; }
+  const q = cari.trim().toLowerCase();
+  const ms = semua.filter(m => !q || String(m.nama).toLowerCase().includes(q)).map(m => ({ m, s: ringkas(m) }));
+  if (urut === "nilai") ms.sort((a, b) => (a.s.adaNilai ? a.s.nilai : 999) - (b.s.adaNilai ? b.s.nilai : 999));
+  else if (urut === "aktif") ms.sort((a, b) => String(b.m.diperbarui).localeCompare(String(a.m.diperbarui)));
+  else if (urut === "kuis") ms.sort((a, b) => b.s.organ + b.s.proses - (a.s.organ + a.s.proses));
+  const nilai = s => s.adaNilai ? `<span class="pill ${kelasNilai(s.nilai)}">${s.nilai}%</span>` : '<span class="muted">-</span>';
+  const perlu = s => s.adaNilai && s.nilai < 60 ? " perhatian" : "";
+  const rows = ms.map(({ m, s }, i) => `<tr class="click${perlu(s)}" data-i="${i}">
+      <td><div class="namecell"><div class="avatar" style="background:${warna(m.muridId)}">${inisial(m.nama)}</div><b class="big">${esc(m.nama)}</b></div></td>
+      <td>${s.organ} / 17<div class="bar"><i style="width:${persen(s.organ, 17)}%"></i></div></td>
+      <td>${s.proses} / 6</td><td>${nilai(s)}</td><td>${s.kuis}</td><td>${m.bintang || 0}</td><td>${s.kartu} / 17</td>
+      <td class="small">${waktuTeks(m.diperbarui)}</td></tr>`).join("");
+  const cards = ms.map(({ m, s }, i) => `<div class="mcard${perlu(s)}" data-i="${i}" role="button" tabindex="0">
+      <div class="top"><div class="avatar" style="background:${warna(m.muridId)}">${inisial(m.nama)}</div><b>${esc(m.nama)}</b>${nilai(s)}</div>
+      <div class="bar"><i style="width:${persen(s.organ, 17)}%"></i></div>
+      <div class="facts"><div><strong>${s.organ}/17</strong>kuis organ</div><div><strong>${s.proses}/6</strong>kuis proses</div>
+        <div><strong>${s.kartu}/17</strong>kartu</div><div><strong>${m.bintang || 0}</strong>bintang</div></div>
+      <div class="small muted">Terakhir aktif ${waktuTeks(m.diperbarui)} · ${s.kuis} kuis dikerjakan</div></div>`).join("");
+  if (!$("m-cari")) {
+    $("t-murid").innerHTML = `
+    <div class="toolbar"><input type="search" id="m-cari" placeholder="Cari nama murid" aria-label="Cari nama murid">
+      <select id="m-urut" aria-label="Urutkan murid">
+        <option value="nama">Urut: nama</option><option value="nilai">Urut: nilai terendah</option>
+        <option value="kuis">Urut: kuis terbanyak</option><option value="aktif">Urut: terakhir aktif</option></select></div>
+    <div class="legend"><span style="--c:var(--teal)">≥ 80% benar</span><span style="--c:#E7B53C">60–79%</span><span style="--c:var(--pink)">&lt; 60% (perlu perhatian)</span></div>
+    <div id="m-list"></div>`;
+    $("m-cari").value = cari;
+    $("m-urut").value = urut;
+    $("m-urut").onchange = e => { urut = e.target.value; renderMurid(); };
+    $("m-cari").oninput = e => { cari = e.target.value; renderMurid(); };
+  }
+  $("m-list").innerHTML = `
+    ${ms.length ? "" : '<div class="tablewrap"><div class="empty">Tidak ada murid dengan nama itu.</div></div>'}
+    <div class="tablewrap only-wide${ms.length ? "" : " hidden"}"><table><thead><tr><th>Nama</th><th>Kuis organ</th><th>Kuis proses</th><th>Rata-rata benar</th>
+    <th>Kuis dikerjakan</th><th>Bintang</th><th>Kartu</th><th>Terakhir aktif</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="cards only-narrow">${cards}</div>`;
+  $("m-list").querySelectorAll("[data-i]").forEach(el => {
+    el.onclick = () => detail(ms[+el.dataset.i].m);
+    el.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); detail(ms[+el.dataset.i].m); } };
+  });
+}
+
+function renderKuis() {
+  const per = {};
+  data.murid.forEach(m => {
+    const best = {};
+    (m.riwayat || []).forEach(r => { if (!best[r.quizId] || r.correct > best[r.quizId].correct) best[r.quizId] = r; });
+    Object.values(best).forEach(r => {
+      const q = per[r.quizId] || (per[r.quizId] = { title: r.title, skor: [], total: r.total });
+      q.skor.push(r.correct);
+    });
+  });
+  const urutan = [...ORGAN.map(([id]) => "organ:" + id), ...PROSES.map(([id]) => "season:" + id)];
+  const ids = Object.keys(per).sort((a, b) => (urutan.indexOf(a) + 1 || 999) - (urutan.indexOf(b) + 1 || 999));
+  if (!ids.length) { $("t-kuis").innerHTML = '<div class="tablewrap"><div class="empty">Belum ada kuis yang diselesaikan.</div></div>'; return; }
+  const n = data.murid.length;
+  const isi = ids.map(id => {
+    const q = per[id], avg = q.skor.reduce((a, x) => a + x, 0) / q.skor.length;
+    return { id, q, avg, p: persen(avg, q.total), jenis: id.startsWith("season:") ? "Kuis proses" : "Kuis organ" };
+  });
+  const rows = isi.map(({ q, avg, p, jenis }) => `<tr><td><b>${esc(q.title)}</b><div class="small muted">${jenis}</div></td>
+      <td>${q.skor.length} / ${n}</td><td><span class="pill ${kelasNilai(p)}">${avg.toFixed(1).replace(".", ",")} / ${q.total}</span></td>
+      <td>${Math.min(...q.skor)} / ${q.total}</td><td>${Math.max(...q.skor)} / ${q.total}</td></tr>`).join("");
+  const cards = isi.map(({ q, avg, p, jenis }) => `<div class="mcard" style="cursor:default">
+      <div class="top"><b>${esc(q.title)}</b><span class="pill ${kelasNilai(p)}">${avg.toFixed(1).replace(".", ",")} / ${q.total}</span></div>
+      <div class="small muted">${jenis} · ${q.skor.length} dari ${n} murid selesai · terendah ${Math.min(...q.skor)}, tertinggi ${Math.max(...q.skor)}</div></div>`).join("");
+  $("t-kuis").innerHTML = `<div class="tablewrap only-wide"><table><thead><tr><th>Kuis</th><th>Murid selesai</th><th>Rata-rata nilai terbaik</th><th>Terendah</th><th>Tertinggi</th></tr></thead>
+    <tbody>${rows}</tbody></table></div><div class="cards only-narrow">${cards}</div>`;
+}
+
+function renderSoal() {
+  const per = {};
+  data.murid.forEach(m => (m.riwayat || []).forEach(r => (r.answers || []).forEach(a => {
+    const key = r.quizId + "|" + a.question;
+    const q = per[key] || (per[key] = { quiz: r.title, soal: a.question, benar: a.right, n: 0, salah: 0, jawabSalah: {} });
+    q.n++;
+    if (!a.isCorrect) { q.salah++; q.jawabSalah[a.yours] = (q.jawabSalah[a.yours] || 0) + 1; }
+  })));
+  const list = Object.values(per).filter(q => q.salah > 0).sort((a, b) => b.salah / b.n - a.salah / a.n || b.salah - a.salah).slice(0, 20);
+  if (!list.length) { $("t-soal").innerHTML = '<div class="tablewrap"><div class="empty">Belum ada soal yang dijawab salah. Hebat!</div></div>'; return; }
+  const top = q => Object.entries(q.jawabSalah).sort((a, b) => b[1] - a[1])[0];
+  const rows = list.map(q => {
+    const t = top(q);
+    return `<tr><td><b>${esc(q.soal)}</b><div class="small muted">${esc(q.quiz)}</div></td>
+      <td><span class="pill ${kelasNilai(100 - persen(q.salah, q.n))}">${q.salah} dari ${q.n}</span></td>
+      <td>${esc(q.benar)}</td><td>${t ? esc(t[0]) + ` <span class="muted small">(${t[1]}×)</span>` : "-"}</td></tr>`;
+  }).join("");
+  const cards = list.map(q => {
+    const t = top(q);
+    return `<div class="mcard" style="cursor:default"><div class="top"><b>${esc(q.soal)}</b>
+      <span class="pill ${kelasNilai(100 - persen(q.salah, q.n))}">${q.salah}/${q.n} salah</span></div>
+      <div class="small muted">${esc(q.quiz)}</div>
+      <div class="small">Jawaban benar: <b>${esc(q.benar)}</b>${t ? `<br>Paling sering dijawab: ${esc(t[0])} (${t[1]}×)` : ""}</div></div>`;
+  }).join("");
+  $("t-soal").innerHTML = `<div class="tablewrap only-wide"><table><thead><tr><th>Soal</th><th>Salah</th><th>Jawaban benar</th><th>Jawaban salah terbanyak</th></tr></thead>
+    <tbody>${rows}</tbody></table></div><div class="cards only-narrow">${cards}</div>`;
+}
+
+function detail(m) {
+  const s = ringkas(m);
+  const organ = new Set(m.kuisOrgan || []), kartu = new Set(m.kartu || []), belajar = new Set(m.dipelajari || []), proses = new Set(m.kuisProses || []);
+  const grid = ORGAN.map(([id, nama]) => {
+    const st = organ.has(id) ? '<span class="pill ok">Kuis selesai</span>' : '<span class="pill mid">Belum kuis</span>';
+    return `<div class="organ"><b>${esc(nama)}</b>${st}<div class="small muted">${kartu.has(id) ? "Kartu discan ✓" : "Kartu belum discan"} · ${belajar.has(id) ? "Dipelajari ✓" : "Belum dipelajari"}</div></div>`;
+  }).join("");
+  const pros = PROSES.map(([id, nama]) => `<span class="pill ${proses.has(id) ? "ok" : "mid"}" style="margin:0 6px 6px 0">${esc(nama)}${proses.has(id) ? " ✓" : ""}</span>`).join("");
+  const hist = (m.riwayat || []).map(r => {
+    const salah = (r.answers || []).filter(a => !a.isCorrect);
+    return `<div class="h"><div class="row1"><b>${esc(r.title)}</b><span class="pill ${kelasNilai(persen(r.correct, r.total))}">${r.correct} / ${r.total}</span>
+      <span class="small muted">+${r.stars} bintang</span></div>
+      <div class="small muted">${waktuTeks(r.waktu) !== "-" ? waktuTeks(r.waktu) : esc(r.when)}</div>
+      ${salah.length ? `<ul class="wrong">${salah.map(a => `<li>${esc(a.question)}<br><span class="muted">Jawaban: ${esc(a.yours)} · Benar: ${esc(a.right)}</span></li>`).join("")}</ul>` : ""}</div>`;
+  }).join("");
+  $("dlg-isi").innerHTML = `<header><div><h2 style="margin:0">${esc(m.nama)}</h2>
+      <div class="small muted">Terakhir aktif ${waktuTeks(m.diperbarui)} · ${m.bintang || 0} bintang · ${s.kartu} kartu · rata-rata benar ${s.adaNilai ? s.nilai + "%" : "-"}</div></div>
+      <div class="spacer"></div><button class="btn secondary small" id="d-tutup" type="button">Tutup</button></header>
+    <h2 class="mt">Kuis organ (${s.organ}/17)</h2><div class="organs">${grid}</div>
+    <h2>Kuis proses (${s.proses}/6)</h2><div>${pros}</div>
+    <h2 class="mt">Riwayat kuis</h2>
+    <p class="small muted" style="margin-top:-4px">Soal yang salah pada percobaan pertama</p>
+    ${hist ? `<div class="hist">${hist}</div>` : '<div class="empty">Belum ada kuis yang diselesaikan.</div>'}
+    <div class="row mt"><button class="btn danger small" id="d-hapus" type="button">Keluarkan dari kelas</button></div>`;
+  $("d-tutup").onclick = () => $("dlg").close();
+  $("d-hapus").onclick = async () => {
+    if (!confirm(`Keluarkan ${m.nama} dari kelas? Data belajarnya di kelas ini akan dihapus.`)) return;
+    try { await api("/api/evaluasi", { aksi: "hapus-murid", kode: sesi.kode, kunci: sesi.kunci, muridId: m.muridId }); $("dlg").close(); buka(sesi.kode, sesi.kunci); }
+    catch (err) { alert(err.message); }
+  };
+  $("dlg").showModal();
+}
+
+// ---------------------------------------------------------- tab & CSV
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", String(x === b)));
+  ["murid", "kuis", "soal"].forEach(t => $("t-" + t).classList.toggle("hidden", t !== b.dataset.tab));
+});
+function unduhCsv(nama, rows) {
+  const sel = v => {
+    let s = String(v ?? "");
+    // teks dari murid yang diawali = + - @ bisa dijalankan Excel sebagai rumus: jadikan teks biasa
+    if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return /[;"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const csv = "﻿" + rows.map(r => r.map(sel).join(";")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = nama; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+$("e-csv1").onclick = () => unduhCsv(`Organo_${data.kelas.kode}_rekap_murid.csv`,
+  [["Nama", "Kuis organ selesai", "Kuis proses selesai", "Rata-rata benar (%)", "Kuis dikerjakan", "Bintang", "Kartu", "Terakhir aktif"],
+   ...data.murid.map(m => { const s = ringkas(m); return [m.nama, s.organ, s.proses, s.adaNilai ? s.nilai : "", s.kuis, m.bintang || 0, s.kartu, m.diperbarui || ""]; })]);
+$("e-csv2").onclick = () => unduhCsv(`Organo_${data.kelas.kode}_hasil_kuis.csv`,
+  [["Nama", "Kuis", "Benar", "Jumlah soal", "Bintang", "Waktu", "Soal yang salah (percobaan pertama)"],
+   ...data.murid.flatMap(m => (m.riwayat || []).map(r => [m.nama, r.title, r.correct, r.total, r.stars, r.waktu || r.when,
+     (r.answers || []).filter(a => !a.isCorrect).map(a => a.question).join(" | ")]))]);
+
+tampilSimpanan();
+</script>
+</body>
+</html>

@@ -57,6 +57,7 @@ namespace Organo.EditorTools
                 Screen("08_beranda", () =>
                 {
                     a.Progress.onboarded = true; a.Progress.gender = Organo.Data.Gender.Boy;
+                    GiveAllCards(a.Progress);
                     a.GoTab(NavTab.Beranda);
                 });
                 Screen("09_library", () => a.GoTab(NavTab.Library));
@@ -99,6 +100,7 @@ namespace Organo.EditorTools
                 Screen("21_koleksi", () => a.Go<CardCollectionScreen>(null, false));
                 Screen("22_kartu", () => a.Go<CardViewerScreen>("mulut", false));
                 Screen("23_profil", () => a.GoTab(NavTab.Profil));
+                if (KelasOnline.Tersedia) Screen("23b_kelas", () => (a.Current as ProfileScreen)?.ShowKelas(), 1.0f);
                 Screen("24_aksesibilitas", () => a.Go<AccessibilityScreen>(null, false));
             }
             list.Add(("L_99_selesai", () => SetDevice(Devices[0], false), 0.4f));
