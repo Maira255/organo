@@ -8,7 +8,10 @@ namespace Organo.EditorTools
 {
     /// <summary>
     /// Ciri kartu untuk pengenal kartu tanpa ARCore (<see cref="CardMatcher"/>): dibuat dari gambar kartu kedua gaya
-    /// (AR/Cards & AR/CardsKartun) dan disimpan di Resources/OrganoCardSignatures.bytes (±330 KB).
+    /// (AR/Cards & AR/CardsKartun) yang dibuat "seperti terlihat kamera" (diperkecil ke tinggi 240 piksel & dikaburkan),
+    /// masing-masing tegak dan miring ±5°, lalu disimpan di Resources/OrganoCardSignatures.bytes (±1 MB).
+    /// Uji buatan (MatcherSynthEval.EvaluateSigs): dibanding ciri dari gambar kartu yang tajam, kartu yang memenuhi bingkai
+    /// lebih sering dikenali (±50% → ±70% per gambar) tanpa gambar bukan-kartu ikut dikenali.
     /// Dibuat ulang otomatis setiap build APK dan setiap gambar kartu dipasang ulang.
     /// </summary>
     public static class CardSignatureBuilder
@@ -18,24 +21,16 @@ namespace Organo.EditorTools
         [MenuItem("Organo/Kartu AR/Buat Ciri Kartu (HP tanpa AR)", priority = 25)]
         public static int Build()
         {
-            var db = OrganoSetup.EnsureDatabase();
             var m = new CardMatcher();
             var desc = new float[CardMatcher.Size];
-            foreach (var o in db.organs.Where(x => x != null).OrderBy(x => x.cardNumber))
-                foreach (var dir in new[] { OrganoCards.CardDir, OrganoCards.CartoonDir })
+            foreach (var card in MatcherSynth.LoadCards())
+                foreach (float deg in new[] { 0f, -5f, 5f })
                 {
-                    var path = dir + "/" + o.id + ".png";
-                    if (!File.Exists(path)) continue;
-                    var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false);
-                    tex.LoadImage(File.ReadAllBytes(path));
-                    var raw = tex.GetPixels32();
-                    int w = tex.width, h = tex.height;
-                    // GetPixels32: baris bawah dulu → baris atas dulu (sama seperti gambar kamera yang sudah ditegakkan)
-                    var top = new Color32[raw.Length];
-                    for (int y = 0; y < h; y++) System.Array.Copy(raw, (h - 1 - y) * w, top, y * w, w);
-                    Object.DestroyImmediate(tex);
-                    CardMatcher.Describe(top, w, h, new Rect(0, 0, w, h), desc, 6);
-                    m.Add(o.id, (float[])desc.Clone());
+                    var px = MatcherSynthEval.CameraLike(card, 240, deg, out int w, out int h);
+                    CardMatcher.Describe(px, w, h, new Rect(0, 0, w, h), desc, 2);
+                    // nama ciri: "lambung" (realistis) / "lambung@k" (kartun), "~5" = dimiringkan 5°
+                    string name = card.id + (card.cartoon ? "@k" : "");
+                    m.Add(deg == 0f ? name : name + "~" + deg.ToString("0"), (float[])desc.Clone());
                 }
             Directory.CreateDirectory(Path.GetDirectoryName(OutPath));
             File.WriteAllBytes(OutPath, m.ToBytes());

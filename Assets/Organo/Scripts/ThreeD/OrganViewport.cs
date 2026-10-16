@@ -64,6 +64,15 @@ namespace Organo.ThreeD
         /// <summary>Model bisa diputar 360° ke segala arah (hasil scan), lihat <see cref="OrganViewer3D.FreeRotate"/>.</summary>
         public bool FreeRotate { get; set; }
 
+        /// <summary>
+        /// Ukuran gambar 3D mengikuti ukuran tata letak (bukan ukuran setelah <c>style.scale</c>): viewport yang diperbesar /
+        /// diperkecil terus-menerus (model mengikuti kartu di kamera biasa) tidak membuat ulang tekstur render setiap frame.
+        /// </summary>
+        public bool IgnoreScale { get; set; }
+
+        /// <summary>Pengali resolusi gambar 3D (mis. 0,75 di layar kamera supaya HP tidak cepat panas).</summary>
+        public float RenderScale { get; set; } = 1f;
+
         /// <summary>Viewport anak 3D untuk halaman awal Library.</summary>
         public static OrganViewport Library(OrganViewer3D viewer, Color backdrop) =>
             new OrganViewport(viewer, backdrop);
@@ -164,10 +173,10 @@ namespace Organo.ThreeD
         void Tick()
         {
             if (panel == null || m_Viewer == null) return;
-            var r = worldBound;
-            if (r.width < 2 || r.height < 2) return;
+            var r = IgnoreScale ? new Rect(worldBound.position, layout.size) : worldBound;
+            if (r.width < 2 || r.height < 2 || float.IsNaN(r.width)) return;
             float panelW = panel.visualTree.worldBound.width;
-            float ratio = panelW > 0 ? UnityEngine.Screen.width / panelW : 2f;
+            float ratio = (panelW > 0 ? UnityEngine.Screen.width / panelW : 2f) * RenderScale;
             m_Viewer.Resize(Mathf.RoundToInt(r.width * ratio), Mathf.RoundToInt(r.height * ratio));
             var tex = m_Viewer.Texture;
             if (tex != null && m_Image.resolvedStyle.backgroundImage.renderTexture != tex)

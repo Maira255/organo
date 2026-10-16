@@ -1,9 +1,10 @@
-"""Membuat situs unduhan kartu untuk guru (Web/kartu-guru) dari kartu & halaman cetak proyek.
+"""Membuat situs Organo (Web/kartu-guru): Beranda, Kartu (unduh & scan dari layar), dan Unduh Aplikasi (installer APK).
 
 Jalankan dari mana saja:  python Web/buat_situs_kartu.py   (butuh Pillow: pip install pillow)
-Sumber: Assets/Organo/AR/Cards, Assets/Organo/AR/CardsKartun, KartuCetak/Realistis, KartuCetak/Kartun.
+Sumber: Assets/Organo/AR/Cards, Assets/Organo/AR/CardsKartun, KartuCetak/Realistis, KartuCetak/Kartun,
+Dokumen/screenshots (tangkapan layar aplikasi), dan Builds/Android/Organo.apk (APK yang diunduh dari halaman Aplikasi).
 """
-import os, shutil, zipfile
+import os, shutil, zipfile, datetime
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,7 +29,7 @@ for name in os.listdir(SITE):
 os.makedirs(os.path.join(SITE, 'unduh'))
 sizes = {}
 for key, label, cards, pages in STYLES:
-    out = os.path.join(SITE, 'kartu', key)
+    out = os.path.join(SITE, 'img', 'kartu', key)
     os.makedirs(out)
     zpath = os.path.join(SITE, 'unduh', f'Organo_Kartu_{label}_PNG.zip')
     with zipfile.ZipFile(zpath, 'w', zipfile.ZIP_DEFLATED) as z:
@@ -53,7 +54,7 @@ html = r'''<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kartu Organo untuk Kelas</title>
+<title>Kartu Organo · Cetak &amp; Scan</title>
 <meta name="description" content="Unduh dan cetak 17 kartu organ Organo, atau tampilkan di layar, untuk dipindai murid dengan aplikasi Organo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,10 +92,7 @@ p { margin: 0; max-width: 62ch; }
 a { color: var(--teal); }
 :focus-visible { outline: 3px solid var(--purple); outline-offset: 3px; border-radius: 10px; }
 
-header.top { padding-block: 18px; }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
-.brand .dot { width: 34px; height: 34px; border-radius: 11px; background: var(--teal); display: grid; place-items: center; color: #fff; font-weight: 800; }
-.brand small { color: var(--muted); font-weight: 500; font-size: 13px; }
+__NAV_CSS__
 
 .hero { display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; padding-block: 24px 56px; }
 .hero > * { min-width: 0; }
@@ -197,7 +195,6 @@ body.viewer-open { overflow: hidden; }
 .viewer-hint { font-size: 13px; line-height: 1.45; color: #3E3A5A; text-align: center; flex: 1 1 auto; min-width: 0; max-width: 60ch; }
 .viewer-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 
-footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; display: grid; gap: 8px; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; gap: 12px; }
@@ -231,9 +228,7 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
 </style>
 </head>
 <body>
-<header class="top wrap">
-  <div class="brand"><span class="dot" aria-hidden="true">O</span><span>Organo <small>· Kartu untuk Kelas</small></span></div>
-</header>
+__HEADER_KARTU__
 
 <main>
   <div class="hero wrap">
@@ -259,9 +254,9 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
       </div>
     </div>
     <div class="fan" aria-hidden="true">
-      <img src="kartu/realistis/jantung.png" alt="">
-      <img src="kartu/realistis/paru.png" alt="">
-      <img src="kartu/kartun/otak.png" alt="">
+      <img src="img/kartu/realistis/jantung.png" alt="">
+      <img src="img/kartu/realistis/paru.png" alt="">
+      <img src="img/kartu/kartun/otak.png" alt="">
     </div>
   </div>
 
@@ -345,10 +340,7 @@ footer { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var
   </div>
 </dialog>
 
-<footer class="wrap">
-  <p><b>Organo</b> · aplikasi belajar organ tubuh untuk anak SD lewat kartu, AR, dan kuis.</p>
-  <p>Kartu boleh dicetak ulang untuk keperluan belajar di kelas dan di rumah. Kamera aplikasi hanya dipakai saat scan; gambarnya tidak disimpan.</p>
-</footer>
+__FOOTER__
 
 <script>
 const CARDS = [
@@ -369,7 +361,7 @@ function render() {
   CARDS.filter(c => filter === "Semua" || c.sys === filter).forEach(c => {
     const el = document.createElement("article");
     el.className = "card";
-    const src = `kartu/${style}/${c.id}.png`;
+    const src = `img/kartu/${style}/${c.id}.png`;
     el.innerHTML = `<img src="${src}" alt="Kartu Organo ${c.name}, sistem ${c.sys}" loading="lazy" width="780" height="1090">
       <div class="meta"><b>${c.name}</b><span>No. ${String(c.n).padStart(2, "0")}</span></div>
       <div class="actions"><button type="button" class="link" data-scan="${c.id}">Scan dari layar</button>
@@ -414,12 +406,12 @@ function setStyle(s) {
 function showCard(i) {
   vIndex = (i + CARDS.length) % CARDS.length;
   const c = CARDS[vIndex];
-  vImg.src = `kartu/${style}/${c.id}.png`;
+  vImg.src = `img/kartu/${style}/${c.id}.png`;
   vImg.alt = `Kartu Organo ${c.name}`;
   document.getElementById("v-name").textContent = c.name;
   document.getElementById("v-meta").textContent = `Kartu ${String(c.n).padStart(2, "0")} dari ${CARDS.length} · ${c.sys}`;
   const next = CARDS[(vIndex + 1) % CARDS.length];
-  new Image().src = `kartu/${style}/${next.id}.png`;
+  new Image().src = `img/kartu/${style}/${next.id}.png`;
 }
 // Dibuka sebagai lapisan biasa (show, bukan showModal): browser menolak membuat dialog modal menjadi layar penuh,
 // itu sebabnya tombol "Layar penuh" dulu tidak berbuat apa-apa.
@@ -504,16 +496,421 @@ if (location.hash === "#scan") openViewer(CARDS[0].id);
 '''
 html = html.replace('__CARDS__', cards_js)
 html = html.replace('__PDF_R__', mb(sizes['realistis'][0])).replace('__PDF_K__', mb(sizes['kartun'][0]))
-open(os.path.join(SITE, 'index.html'), 'w', encoding='utf8').write(html)
 
-readme = '''# Kartu Organo untuk Kelas (situs unduhan guru)
+# ================================================================ bagian bersama semua halaman
+NAV_CSS = r"""
+/* ---- header bersama: tombol "Unduh Aplikasi" selalu terlihat di kanan atas */
+header.top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px);
+             border-bottom: 1px solid var(--line); }
+header.top .wrap { display: flex; align-items: center; gap: 14px; min-height: 66px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--ink); text-decoration: none; }
+.brand .dot { width: 36px; height: 36px; border-radius: 11px; background: var(--teal); display: grid; place-items: center; color: #fff; font-weight: 800; }
+.navlinks { display: flex; gap: 4px; margin-left: auto; align-items: center; }
+.navlinks a { color: var(--muted); text-decoration: none; font-weight: 600; font-size: 15px; padding: 8px 12px; border-radius: 999px; }
+.navlinks a:hover { color: var(--ink); background: var(--line); }
+.navlinks a[aria-current="page"] { color: var(--ink); background: var(--surface); box-shadow: var(--shadow); }
+.navlinks a.get { background: var(--pink); color: #fff; padding: 9px 16px; display: inline-flex; gap: 8px; align-items: center; box-shadow: 0 6px 16px rgba(214, 56, 94, .28); }
+.navlinks a.get:hover { filter: brightness(1.06); background: var(--pink); color: #fff; }
+.navlinks a.get[aria-current="page"] { outline: 3px solid var(--pink-soft); }
+.navlinks a.get svg { width: 18px; height: 18px; }
+footer.site { padding-block: 36px 48px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; display: grid; gap: 8px; }
+footer.site nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+footer.site nav a { color: var(--ink); font-weight: 600; text-decoration: none; }
+.eyebrow { text-transform: uppercase; letter-spacing: 1.4px; font-size: 12px; font-weight: 700; color: var(--purple); }
+.btn-main { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: inherit; font-weight: 700; font-size: 17px; text-decoration: none;
+            border-radius: 999px; padding: 15px 26px; background: var(--pink); color: #fff; box-shadow: 0 10px 24px rgba(214, 56, 94, .3); }
+.btn-main:hover { filter: brightness(1.06); }
+.btn-main svg { width: 22px; height: 22px; }
+.btn-alt { display: inline-flex; align-items: center; justify-content: center; font-weight: 600; text-decoration: none; border-radius: 999px; padding: 14px 22px;
+           border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn-alt:hover { border-color: var(--teal); }
+@media (max-width: 640px) {
+  header.top .wrap { min-height: 58px; gap: 8px; }
+  .brand span.name { display: none; }
+  .navlinks a { padding: 7px 9px; font-size: 14px; }
+  .navlinks a.get { padding: 8px 12px; }
+  .navlinks a.get .long { display: none; }
+}
+"""
 
-Situs statis: buka `index.html`, atau unggah seluruh folder ini ke hosting statis.
+DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>'
+
+
+def header(active):
+    def link(href, key, label):
+        cur = ' aria-current="page"' if key == active else ''
+        return f'<a href="{href}"{cur}>{label}</a>'
+    get_cur = ' aria-current="page"' if active == 'aplikasi' else ''
+    return f"""<header class="top"><div class="wrap">
+  <a class="brand" href="/"><span class="dot" aria-hidden="true">O</span><span class="name">Organo</span></a>
+  <nav class="navlinks" aria-label="Menu">
+    {link('/', 'home', 'Beranda')}
+    {link('/kartu', 'kartu', 'Kartu')}
+    <a class="get" href="/aplikasi"{get_cur}>{DL_ICON}<span>Unduh<span class="long"> Aplikasi</span></span></a>
+  </nav>
+</div></header>"""
+
+
+FOOTER = """<footer class="site wrap">
+  <nav aria-label="Menu bawah"><a href="/">Beranda</a><a href="/kartu">Kartu</a><a href="/aplikasi">Unduh Aplikasi</a></nav>
+  <p><b>Organo</b> · aplikasi belajar organ tubuh untuk anak SD lewat kartu, AR, dan kuis. Bisa dipakai sepenuhnya offline, tanpa akun.</p>
+  <p>Kartu boleh dicetak ulang untuk keperluan belajar di kelas dan di rumah. Kamera aplikasi hanya dipakai saat scan; gambarnya tidak disimpan.</p>
+</footer>"""
+
+html = html.replace('__NAV_CSS__', NAV_CSS).replace('__HEADER_KARTU__', header('kartu')).replace('__FOOTER__', FOOTER)
+open(os.path.join(SITE, 'kartu.html'), 'w', encoding='utf8').write(html)
+
+# gaya dasar (warna, huruf, tema gelap) diambil dari halaman kartu supaya ketiga halaman seragam
+BASE_CSS = html[html.index('<style>') + 7:html.index('.hero {')]
+
+# ================================================================ APK
+APK_SRC = os.path.join(ROOT, 'Builds', 'Android', 'Organo.apk')
+if not os.path.exists(APK_SRC):
+    raise SystemExit('APK belum ada: build dulu (Organo > Build > APK Android) → ' + APK_SRC)
+shutil.copy(APK_SRC, os.path.join(SITE, 'unduh', 'Organo.apk'))
+apk_size = mb(os.path.getsize(APK_SRC))
+apk_date = datetime.date.fromtimestamp(os.path.getmtime(APK_SRC))
+BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+apk_date_txt = f'{apk_date.day} {BULAN[apk_date.month - 1]} {apk_date.year}'
+APK_VERSION = '1.0.0'
+
+# tangkapan layar aplikasi
+shots = os.path.join(SITE, 'img', 'app')
+os.makedirs(shots)
+for f in ('08_beranda', '09_library', '10_detail_mulut', '14_kuis_hub', '18_scan', '20_scan_hasil_baru', '21_koleksi'):
+    shutil.copy(os.path.join(ROOT, 'Dokumen', 'screenshots', f + '.jpg'), os.path.join(shots, f + '.jpg'))
+
+
+def page(title, desc, active, css, body, script=''):
+    return f"""<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+{BASE_CSS}
+{NAV_CSS}
+section {{ padding-block: 52px; border-top: 1px solid var(--line); }}
+.section-head {{ display: grid; gap: 8px; margin-bottom: 26px; }}
+.section-head p {{ color: var(--muted); }}
+{css}
+</style>
+</head>
+<body>
+{header(active)}
+<main>
+{body}
+</main>
+{FOOTER}
+{script}
+</body>
+</html>
+"""
+
+
+# ================================================================ Beranda
+home_css = r"""
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; padding-block: 40px 60px; }
+.hero > * { min-width: 0; }
+.hero .lead { color: var(--muted); font-size: 18px; margin-top: 16px; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.badges span { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--teal-soft); color: var(--ink); }
+.badges span:nth-child(2) { background: var(--purple-soft); } .badges span:nth-child(3) { background: var(--pink-soft); }
+.stage { position: relative; height: 470px; }
+.phone { position: absolute; left: 50%; top: 0; transform: translateX(-30%); width: 230px; border-radius: 34px; padding: 10px; background: #1E1B2E;
+         box-shadow: 0 24px 50px rgba(46, 42, 74, .3); }
+.phone img { display: block; width: 100%; border-radius: 26px; }
+.stage .card-a, .stage .card-b { position: absolute; width: 150px; border-radius: 12px; box-shadow: 0 14px 30px rgba(46, 42, 74, .25); }
+.stage .card-a { left: 4%; top: 120px; transform: rotate(-12deg); }
+.stage .card-b { left: 18%; top: 250px; transform: rotate(6deg); }
+.features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.feature { background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; display: grid; grid-template-rows: auto 1fr; }
+.feature .shot { background: var(--teal-soft); padding: 16px 16px 0; height: 200px; overflow: hidden; }
+.feature:nth-child(2) .shot { background: var(--purple-soft); } .feature:nth-child(3) .shot { background: var(--pink-soft); } .feature:nth-child(4) .shot { background: #FFF4D6; }
+.feature .shot img { display: block; width: 72%; margin: 0 auto; border-radius: 14px 14px 0 0; box-shadow: var(--shadow); }
+.feature .txt { padding: 14px 16px 18px; display: grid; gap: 6px; align-content: start; }
+.feature .txt p { color: var(--muted); font-size: 14px; }
+.how { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: s; }
+.how li { counter-increment: s; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 8px; align-content: start; }
+.how li::before { content: counter(s); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; background: var(--teal); }
+.how li:nth-child(2)::before { background: var(--purple); } .how li:nth-child(3)::before { background: var(--pink); }
+.how li p { color: var(--muted); font-size: 15px; }
+.how li a { font-weight: 600; text-decoration: none; }
+.offline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.offline div { padding: 18px; border-radius: var(--radius); background: var(--teal-soft); display: grid; gap: 6px; }
+.offline div:nth-child(2) { background: var(--purple-soft); } .offline div:nth-child(3) { background: var(--pink-soft); }
+.offline p { font-size: 14px; }
+.band { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 26px; border-radius: 24px;
+        background: linear-gradient(135deg, var(--teal), var(--purple)); color: #fff; }
+.band p { color: #fff; opacity: .9; }
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; padding-block: 24px 40px; }
+  .stage { height: 380px; order: -1; }
+  .phone { width: 190px; }
+  .stage .card-a, .stage .card-b { width: 120px; }
+  .features { grid-template-columns: 1fr 1fr; }
+  .how, .offline { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .wrap { padding-inline: 16px; }
+  .hero .lead { font-size: 16px; }
+  .cta a { flex: 1 1 100%; }
+  .stage { height: 330px; }
+  .phone { width: 165px; transform: translateX(-25%); }
+  .stage .card-a { left: 0; width: 100px; top: 90px; } .stage .card-b { left: 6%; width: 100px; top: 200px; }
+  .features { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .feature .shot { height: 150px; padding: 10px 10px 0; }
+  .feature .txt { padding: 10px 12px 14px; }
+  .feature .txt h3 { font-size: 15px; }
+  .feature .txt p { font-size: 13px; }
+  section { padding-block: 36px; }
+}
+"""
+home_body = f"""
+  <div class="hero wrap">
+    <div>
+      <div class="eyebrow">Aplikasi belajar organ tubuh untuk anak SD</div>
+      <h1>Kenali organ tubuh lewat kartu, 3D, dan kuis</h1>
+      <p class="lead">Organo mengajak anak menjelajahi 17 organ tubuh: memutar model 3D, memindai kartu supaya organnya muncul di atas kartu, lalu menguji pemahaman lewat kuis bertahap.</p>
+      <div class="cta">
+        <a class="btn-main" href="/aplikasi">{DL_ICON}Unduh untuk Android</a>
+        <a class="btn-alt" href="/kartu">Lihat &amp; cetak kartu</a>
+      </div>
+      <div class="badges"><span>Gratis</span><span>Tanpa akun</span><span>Bisa offline</span></div>
+    </div>
+    <div class="stage" aria-hidden="true">
+      <img class="card-a" src="img/kartu/realistis/jantung.png" alt="">
+      <img class="card-b" src="img/kartu/kartun/otak.png" alt="">
+      <div class="phone"><img src="img/app/20_scan_hasil_baru.jpg" alt=""></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Isi aplikasi</div><h2>Belajar sambil bermain</h2></div>
+      <div class="features">
+        <article class="feature"><div class="shot"><img src="img/app/10_detail_mulut.jpg" alt="Halaman organ Mulut dengan model 3D" loading="lazy"></div>
+          <div class="txt"><h3>Library 3D</h3><p>17 organ dari 8 sistem tubuh. Putar, perbesar, lihat bagian dalam, dan dengarkan penjelasannya.</p></div></article>
+        <article class="feature"><div class="shot"><img src="img/app/18_scan.jpg" alt="Layar scan kartu" loading="lazy"></div>
+          <div class="txt"><h3>Scan kartu</h3><p>Arahkan HP ke kartu Organo: organnya muncul di atas kartu dan kartu masuk koleksi.</p></div></article>
+        <article class="feature"><div class="shot"><img src="img/app/14_kuis_hub.jpg" alt="Daftar kuis" loading="lazy"></div>
+          <div class="txt"><h3>Kuis bertahap</h3><p>17 kuis organ dan 6 kuis proses. Kuis terbuka setelah kartunya dipindai.</p></div></article>
+        <article class="feature"><div class="shot"><img src="img/app/21_koleksi.jpg" alt="Koleksi kartu" loading="lazy"></div>
+          <div class="txt"><h3>Koleksi &amp; bintang</h3><p>Kumpulkan kartu, bintang, dan lencana sambil belajar.</p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Mulai dalam 3 langkah</div><h2>Cara memakai Organo</h2></div>
+      <ol class="how">
+        <li><h3>Pasang aplikasinya</h3><p>Unduh APK Organo untuk Android dan pasang di HP.</p><a href="/aplikasi">Unduh aplikasi →</a></li>
+        <li><h3>Siapkan kartunya</h3><p>Cetak 17 kartu di kertas A4, atau tampilkan kartu di layar laptop/tablet.</p><a href="/kartu">Buka halaman kartu →</a></li>
+        <li><h3>Scan &amp; kerjakan kuis</h3><p>Buka menu Scan, dekatkan HP sampai kartu memenuhi bingkai, lalu kerjakan kuis organnya.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Aman untuk anak</div><h2>Offline &amp; tanpa akun</h2></div>
+      <div class="offline">
+        <div><h3>Tanpa internet</h3><p>Setelah dipasang, semua fitur bisa dipakai tanpa kuota.</p></div>
+        <div><h3>Tanpa akun</h3><p>Tidak ada pendaftaran atau kata sandi. Progres tersimpan di HP anak.</p></div>
+        <div><h3>Kamera hanya untuk scan</h3><p>Gambar kamera tidak direkam, disimpan, atau dikirim ke mana pun.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="band">
+        <div><h2>Siap mencoba Organo?</h2><p>Gratis untuk Android 7.1 ke atas · {apk_size}</p></div>
+        <a class="btn-main" href="/aplikasi" style="background:#fff;color:#2E2A4A">{DL_ICON}Unduh Aplikasi</a>
+      </div>
+    </div>
+  </section>
+"""
+# tautan lama dari aplikasi ("situs kartu" + #scan) tetap membuka layar scan kartu
+home_script = """<script>if (location.hash === "#scan") location.replace("/kartu#scan");</script>"""
+open(os.path.join(SITE, 'index.html'), 'w', encoding='utf8').write(page(
+    'Organo · Belajar organ tubuh dengan kartu, 3D & kuis',
+    'Organo: aplikasi belajar organ tubuh untuk anak SD dengan model 3D, scan kartu AR, dan kuis. Gratis, tanpa akun, bisa offline.',
+    'home', home_css, home_body, home_script))
+
+# ================================================================ Unduh Aplikasi (installer)
+app_css = r"""
+.dlhero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 36px; align-items: center; padding-block: 40px 56px; }
+.dlhero > * { min-width: 0; }
+.dlhero .lead { color: var(--muted); font-size: 17px; margin-top: 14px; }
+.dlbox { margin-top: 26px; display: grid; gap: 12px; justify-items: start; }
+.dlbox .meta { color: var(--muted); font-size: 14px; }
+.qr { background: var(--surface); border: 1.5px solid var(--line); border-radius: 24px; padding: 22px; display: grid; justify-items: center; gap: 10px; text-align: center; box-shadow: var(--shadow); }
+.qr .code { width: 200px; height: 200px; background: #fff; border-radius: 12px; padding: 10px; display: grid; place-items: center; }
+.qr .code img, .qr .code svg { width: 100%; height: 100%; image-rendering: pixelated; }
+.qr p { color: var(--muted); font-size: 14px; }
+.os { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.os article { background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 10px; align-content: start; }
+.os article.ready { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft); }
+.os .head { display: flex; align-items: center; gap: 12px; }
+.os .logo { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; background: var(--teal-soft); color: var(--teal); }
+.os .logo svg { width: 26px; height: 26px; }
+.os article.soon .logo { background: var(--line); color: var(--muted); }
+.os .status { margin-left: auto; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 999px; }
+.os .ready .status { background: var(--teal-soft); color: var(--teal); }
+.os .soon .status { background: var(--line); color: var(--muted); }
+.os p { color: var(--muted); font-size: 15px; }
+.req { width: 100%; border-collapse: collapse; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.req th, .req td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 15px; }
+.req tr:last-child th, .req tr:last-child td { border-bottom: 0; }
+.req th { width: 34%; font-weight: 600; background: color-mix(in srgb, var(--teal-soft) 45%, var(--surface)); }
+.req td small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+.steps2 { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+.steps2 li { counter-increment: s; background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 18px; display: grid; gap: 6px; align-content: start; }
+.steps2 li::before { content: counter(s); width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; background: var(--pink); }
+.steps2 li p { color: var(--muted); font-size: 14px; }
+.faq { display: grid; gap: 10px; }
+.faq details { background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+.faq summary { font-weight: 600; cursor: pointer; }
+.faq p { color: var(--muted); margin-top: 8px; font-size: 15px; }
+@media (max-width: 900px) {
+  .dlhero { grid-template-columns: 1fr; padding-block: 24px 40px; }
+  .qr { display: none; }
+  .steps2 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .wrap { padding-inline: 16px; }
+  .dlbox, .dlbox .btn-main { width: 100%; justify-items: stretch; }
+  .os { grid-template-columns: 1fr; }
+  .req th, .req td { display: block; width: 100%; padding: 10px 14px; }
+  .req th { border-bottom: 0; padding-bottom: 2px; background: none; color: var(--muted); font-size: 13px; }
+  .steps2 { grid-template-columns: 1fr; }
+  section { padding-block: 36px; }
+}
+"""
+ANDROID = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.6 9.5 19.4 6.4a.5.5 0 0 0-.9-.5l-1.8 3.1A10.9 10.9 0 0 0 12 8a10.9 10.9 0 0 0-4.7 1L5.5 5.9a.5.5 0 0 0-.9.5l1.8 3.1A9.8 9.8 0 0 0 2 17h20a9.8 9.8 0 0 0-4.4-7.5ZM7 14.3a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Zm10 0a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z"/></svg>'
+APPLE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7a4.6 4.6 0 0 0-3.6-1.9c-1.5-.2-3 .9-3.7.9-.8 0-2-.9-3.2-.9a4.8 4.8 0 0 0-4 2.4c-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4a10 10 0 0 0 1.3-2.8 4.3 4.3 0 0 1-2.4-3.8ZM14 5.4a4.4 4.4 0 0 0 1-3.2 4.5 4.5 0 0 0-2.9 1.5 4.2 4.2 0 0 0-1.1 3.1A3.7 3.7 0 0 0 14 5.4Z"/></svg>'
+app_body = f"""
+  <div class="dlhero wrap">
+    <div>
+      <div class="eyebrow">Unduh aplikasi</div>
+      <h1>Pasang Organo di HP Android</h1>
+      <p class="lead">Satu file APK, gratis, dan langsung bisa dipakai tanpa internet. Setelah terpasang, buka menu Scan untuk memindai kartu Organo.</p>
+      <div class="dlbox">
+        <a class="btn-main" href="/unduh/Organo.apk" download="Organo.apk">{DL_ICON}Unduh Organo untuk Android</a>
+        <span class="meta">APK · versi {APK_VERSION} · {apk_size} · diperbarui {apk_date_txt}</span>
+      </div>
+    </div>
+    <div class="qr" id="qr" hidden>
+      <div class="code" id="qr-code" aria-label="Kode QR halaman unduh"></div>
+      <b>Buka di HP</b>
+      <p>Scan kode ini dengan kamera HP Android untuk membuka halaman unduh langsung di HP.</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Sistem operasi</div><h2>Bisa dipasang di mana?</h2></div>
+      <div class="os">
+        <article class="ready"><div class="head"><span class="logo">{ANDROID}</span><h3>Android</h3><span class="status">Tersedia</span></div>
+          <p>Android 7.1 (Nougat) atau lebih baru, HP 64-bit. Unduh file APK di atas lalu pasang.</p></article>
+        <article class="soon"><div class="head"><span class="logo">{APPLE}</span><h3>iPhone &amp; iPad (iOS)</h3><span class="status">Belum tersedia</span></div>
+          <p>Versi iOS belum bisa diunduh. Untuk sekarang Organo hanya untuk HP dan tablet Android.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Persyaratan</div><h2>Spesifikasi HP yang dibutuhkan</h2>
+        <p>Cek dulu sebelum mengunduh supaya aplikasi berjalan lancar.</p></div>
+      <table class="req">
+        <tr><th>Sistem operasi</th><td>Android 7.1 (Nougat) atau lebih baru</td></tr>
+        <tr><th>Prosesor</th><td>64-bit (ARM64)<small>Hampir semua HP Android keluaran 2017 ke atas.</small></td></tr>
+        <tr><th>Ruang penyimpanan</th><td>Minimal 300 MB kosong<small>File APK {apk_size}, ditambah ruang untuk aplikasi setelah dipasang.</small></td></tr>
+        <tr><th>RAM</th><td>3 GB atau lebih (disarankan)</td></tr>
+        <tr><th>Kamera</th><td>Kamera belakang<small>Untuk memindai kartu. Gambar kamera tidak disimpan.</small></td></tr>
+        <tr><th>AR (augmented reality)</th><td>Opsional<small>HP yang mendukung Google Play Services for AR menampilkan organ menempel di atas kartu. HP lain tetap bisa memindai kartu dengan kamera biasa. <a href="https://developers.google.com/ar/devices" target="_blank" rel="noopener">Cek daftar HP pendukung AR</a>.</small></td></tr>
+        <tr><th>Internet</th><td>Hanya untuk mengunduh<small>Setelah terpasang, Organo bisa dipakai sepenuhnya offline.</small></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Cara memasang</div><h2>4 langkah memasang APK</h2></div>
+      <ol class="steps2">
+        <li><h3>Unduh</h3><p>Tekan tombol <b>Unduh Organo untuk Android</b> di HP. File <b>Organo.apk</b> tersimpan di folder Download.</p></li>
+        <li><h3>Buka file</h3><p>Buka notifikasi unduhan atau aplikasi File, lalu ketuk <b>Organo.apk</b>.</p></li>
+        <li><h3>Izinkan pemasangan</h3><p>Kalau diminta, izinkan <b>Instal aplikasi tidak dikenal</b> untuk browser atau aplikasi File, lalu kembali dan ketuk <b>Instal</b>.</p></li>
+        <li><h3>Buka Organo</h3><p>Izinkan akses <b>kamera</b> saat pertama kali memakai Scan. Selesai!</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="section-head"><div class="eyebrow">Pertanyaan</div><h2>Yang sering ditanyakan</h2></div>
+      <div class="faq">
+        <details><summary>Muncul peringatan "aplikasi tidak dikenal" atau Play Protect. Aman?</summary>
+          <p>Peringatan ini muncul untuk semua aplikasi yang dipasang di luar Play Store. Organo tidak meminta akun, tidak mengirim data, dan hanya memakai kamera saat scan. Pilih <b>Tetap instal</b> / <b>Instal saja</b>.</p></details>
+        <details><summary>HP diminta memasang "Google Play Services for AR"?</summary>
+          <p>Pasang kalau tersedia supaya organ menempel di atas kartu dalam mode AR. Kalau HP tidak mendukungnya, Organo otomatis memakai kamera biasa dan kartu tetap bisa dipindai.</p></details>
+        <details><summary>Bagaimana memperbarui ke versi baru?</summary>
+          <p>Unduh APK terbaru dari halaman ini lalu pasang di atas versi lama. Progres belajar (bintang, kartu, kuis) tetap tersimpan.</p></details>
+        <details><summary>Kartunya diunduh di mana?</summary>
+          <p>Di halaman <a href="/kartu">Kartu</a>: PDF siap cetak A4 atau tampilkan kartu langsung di layar.</p></details>
+      </div>
+    </div>
+  </section>
+"""
+# kode QR (hanya di layar lebar): dibuat di peramban dari alamat halaman ini; kalau gagal dimuat, kotaknya tetap tersembunyi
+app_script = """<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+try {
+  if (window.qrcode) {
+    const q = qrcode(0, "M");
+    q.addData(location.origin + "/aplikasi");
+    q.make();
+    document.getElementById("qr-code").innerHTML = q.createSvgTag({ cellSize: 6, margin: 0, scalable: true });
+    document.getElementById("qr").hidden = false;
+  }
+} catch (e) {}
+</script>"""
+open(os.path.join(SITE, 'aplikasi.html'), 'w', encoding='utf8').write(page(
+    'Unduh Organo untuk Android',
+    'Unduh aplikasi Organo (APK) untuk Android 7.1 ke atas. Persyaratan HP, cara memasang, dan pertanyaan yang sering ditanyakan.',
+    'aplikasi', app_css, app_body, app_script))
+
+# Vercel: alamat tanpa .html (/kartu, /aplikasi), APK diunduh sebagai file Android
+VERCEL_JSON = """{
+  "cleanUrls": true,
+  "headers": [
+    { "source": "/unduh/(.*)\\\\.apk", "headers": [
+      { "key": "Content-Type", "value": "application/vnd.android.package-archive" },
+      { "key": "Content-Disposition", "value": "attachment; filename=\\"Organo.apk\\"" } ] }
+  ],
+  "redirects": [{ "source": "/guru", "destination": "/", "permanent": false }]
+}
+"""
+open(os.path.join(SITE, 'vercel.json'), 'w', encoding='utf8').write(VERCEL_JSON)
+
+readme = '''# Situs Organo
+
+Situs statis: Beranda (`index.html`), Kartu (`kartu.html`, unduh & scan dari layar), dan Unduh Aplikasi (`aplikasi.html`,
+APK di `unduh/Organo.apk`). Buka `index.html`, atau unggah seluruh folder ini ke hosting statis.
 Saat ini dionlinekan di Vercel: `npx vercel deploy --prod` dari folder ini.
-Tambahkan `#scan` di akhir alamat untuk langsung membuka layar scan.
+Tambahkan `#scan` di akhir alamat halaman Kartu (`/kartu#scan`) untuk langsung membuka layar scan.
 
 - `unduh/` : PDF A4 300 dpi siap cetak (Realistis & Kartun) dan ZIP gambar kartu.
-- `kartu/` : gambar tiap kartu (780 x 1090 px). Tombol "Scan dari layar" menampilkannya besar
+- `img/kartu/` : gambar tiap kartu (780 x 1090 px). Tombol "Scan dari layar" menampilkannya besar
   supaya bisa langsung dipindai aplikasi tanpa dicetak.
 
 Buat ulang dari proyek Unity: render kartu (OrganoSnapshots.RunCardsAndQuit),
@@ -521,6 +918,8 @@ Buat ulang dari proyek Unity: render kartu (OrganoSnapshots.RunCardsAndQuit),
 '''
 open(os.path.join(SITE, 'README.md'), 'w', encoding='utf8').write(readme)
 # yang tidak ikut diunggah saat deploy Vercel
-open(os.path.join(SITE, '.vercelignore'), 'w', encoding='utf8').write('README.md\n.env*\n')
+open(os.path.join(SITE, '.vercelignore'), 'w', encoding='utf8').write('README.md\n.env*\nnode_modules\n')
+
 print('situs:', SITE)
 for k, (p, z) in sizes.items(): print(k, 'pdf', mb(p), 'zip', mb(z))
+print('apk', apk_size, apk_date_txt)

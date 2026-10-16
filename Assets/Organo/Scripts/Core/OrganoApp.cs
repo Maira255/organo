@@ -48,7 +48,7 @@ namespace Organo
 
         [Header("Kartu")]
         [Tooltip("Alamat situs unduhan kartu untuk guru/orang tua (folder Web/kartu-guru, dionlinekan di Vercel). Kosong = tautan tidak ditampilkan.")]
-        public string cardsWebsiteUrl = "https://organo-kartu.vercel.app";
+        public string cardsWebsiteUrl = "https://organo-kartu.vercel.app/kartu";
 
         [Header("Suara (opsional)")]
         public AudioClip clickSound;
@@ -87,6 +87,7 @@ namespace Organo
             database.EnsureComplete();
             Progress = PlayerProgress.Load();
             OrganoAudio.Init(gameObject, clickSound, successSound, wrongSound);
+            KelasOnline.Mulai(Progress); // kelas online (opsional): kirim ringkasan yang mungkin tertunda
             OrganoAudio.Enabled = Progress.sound;
             OrganoAudio.NarrationEnabled = Progress.narration;
             OrganoAudio.SetVoiceSpeed(Progress.voiceSpeed);
@@ -114,6 +115,13 @@ namespace Organo
         {
             m_Started = true;
             Boot();
+        }
+
+        /// <summary>Aplikasi dibuka lagi dari latar belakang: kirim nilai yang tertunda ke kelas (kalau bergabung).</summary>
+        void OnApplicationFocus(bool focus)
+        {
+            // kembali ke aplikasi: kirim kalau ada yang belum terkirim (ringkasan yang sama tidak dikirim ulang)
+            if (focus && Progress != null && KelasOnline.Tergabung(Progress)) KelasOnline.KirimSekarang();
         }
 
         void OnEnable()
@@ -272,6 +280,8 @@ namespace Organo
 
             bool camera = next.UsesCamera;
             m_Root.EnableInClassList("ar-mode", camera);
+            // layar kamera: ARScanController memilih 60 fps (AR) atau 30 fps (kamera biasa); layar lain 60 fps
+            if (!camera) Application.targetFrameRate = 60;
             if (ar != null)
             {
                 if (camera && !ar.IsRunning) ar.Begin();
@@ -400,8 +410,10 @@ namespace Organo
         void Update()
         {
             OrganoAudio.Pump();
+            KelasOnline.Tick(Time.unscaledDeltaTime);
             m_Current?.Tick(Time.unscaledDeltaTime);
             ApplySafeArea();
+            AvoidKeyboard();
 #if ENABLE_INPUT_SYSTEM
             var kb = UnityEngine.InputSystem.Keyboard.current;
             if (kb != null && kb.escapeKey.wasPressedThisFrame) Back();
@@ -441,6 +453,96 @@ namespace Organo
         }
 
         float m_TopInset, m_BottomInset;
+        float m_KeyboardLift = -1f, m_HostLift = -1f, m_KbPoll, m_KbPx = -1f;
+
+        /// <summary>
+        /// Tinggi keyboard layar (piksel) menurut Android: WindowInsets IME (Android 11+), atau bagian layar yang tertutup
+        /// (Android lama). -1 = tidak bisa dibaca.
+        /// </summary>
+        static float KeyboardHeightPx()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
+            {
+                using (var unity = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
+                using (var activity = unity.GetStatic<AndroidJavaObject>("currentActivity"))
+                using (var window = activity.Call<AndroidJavaObject>("getWindow"))
+                using (var decor = window.Call<AndroidJavaObject>("getDecorView"))
+                using (var version = new AndroidJavaClass("android.os.Build$VERSION"))
+                {
+                    int sdk = version.GetStatic<int>("SDK_INT");
+                    if (sdk >= 30)
+                    {
+                        using (var insets = decor.Call<AndroidJavaObject>("getRootWindowInsets"))
+                        using (var type = new AndroidJavaClass("android.view.WindowInsets$Type"))
+                        {
+                            if (insets == null) return -1f;
+                            int ime = type.CallStatic<int>("ime");
+                            if (!insets.Call<bool>("isVisible", ime)) return 0f;
+                            using (var r = insets.Call<AndroidJavaObject>("getInsets", ime)) return r.Get<int>("bottom");
+                        }
+                    }
+                    using (var rect = new AndroidJavaObject("android.graphics.Rect"))
+                    {
+                        decor.Call("getWindowVisibleDisplayFrame", rect);
+                        int hidden = decor.Call<int>("getHeight") - rect.Get<int>("bottom");
+                        // bilah navigasi (±5%) bukan keyboard
+                        return hidden > UnityEngine.Screen.height * 0.12f ? hidden : -1f;
+                    }
+                }
+            }
+            catch (Exception e) { Debug.LogWarning("[Organo] tinggi keyboard: " + e.Message); return -1f; }
+#else
+            return -1f;
+#endif
+        }
+
+        /// <summary>
+        /// Keyboard HP menutupi bagian bawah layar: lembar (sheet) yang berisi kolom ketik diangkat setinggi keyboard, dan
+        /// layar biasa digeser ke atas secukupnya, supaya kolom yang sedang diketik dan isinya selalu terlihat.
+        /// Tinggi keyboard dibaca dari Android (WindowInsets IME); di aplikasi GameActivity, TouchScreenKeyboard tidak
+        /// melaporkan keyboard sehingga pengangkatan dulu tidak pernah terjadi. Kalau tinggi keyboard tidak bisa dibaca,
+        /// selama kolom ketik aktif lembar tetap diangkat ±42% layar (perkiraan tinggi keyboard).
+        /// </summary>
+        void AvoidKeyboard()
+        {
+            if (m_Root == null || m_Root.panel == null || m_Overlay == null) return;
+            float panelH = m_Root.panel.visualTree.worldBound.height;
+            if (panelH <= 0f || UnityEngine.Screen.height <= 0) return;
+            var focused = m_Root.panel.focusController?.focusedElement as VisualElement;
+            var field = focused as TextField ?? focused?.GetFirstAncestorOfType<TextField>();
+            float kb = 0f;
+            if (field != null && Application.isMobilePlatform)
+            {
+                m_KbPoll -= Time.unscaledDeltaTime;
+                if (m_KbPoll <= 0f) { m_KbPoll = 0.15f; m_KbPx = KeyboardHeightPx(); }
+                float px = m_KbPx;
+                if (px < 0f) px = TouchScreenKeyboard.visible && TouchScreenKeyboard.area.height > 1f ? TouchScreenKeyboard.area.height : UnityEngine.Screen.height * 0.42f;
+                kb = px * panelH / UnityEngine.Screen.height;
+            }
+            else if (field != null && TouchScreenKeyboard.isSupported && TouchScreenKeyboard.visible)
+                kb = Mathf.Max(1f, TouchScreenKeyboard.area.height) * panelH / UnityEngine.Screen.height;
+            else m_KbPoll = 0f;
+            bool inOverlay = field != null && m_Overlay.Contains(field);
+            float sheetLift = inOverlay ? kb : 0f;
+            float hostLift = 0f;
+            if (!inOverlay && kb > 0f)
+            {
+                // worldBound sudah ikut tergeser oleh pengangkatan sebelumnya
+                float bottom = field.worldBound.yMax + Mathf.Max(0f, m_HostLift) + 16f;
+                hostLift = Mathf.Clamp(bottom - (panelH - kb), 0f, kb);
+            }
+            if (!Mathf.Approximately(sheetLift, m_KeyboardLift))
+            {
+                m_KeyboardLift = sheetLift;
+                m_Overlay.style.paddingBottom = sheetLift;
+            }
+            if (!Mathf.Approximately(hostLift, m_HostLift))
+            {
+                m_HostLift = hostLift;
+                m_Host.style.translate = new Translate(0, -hostLift);
+            }
+        }
 
         void ApplyInsets()
         {

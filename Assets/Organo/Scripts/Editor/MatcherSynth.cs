@@ -23,7 +23,7 @@ namespace Organo.EditorTools
             }
         }
 
-        public struct Card { public string id; public Color32[] px; public int w, h; }
+        public struct Card { public string id; public Color32[] px; public int w, h; public bool cartoon; }
 
         public static List<Card> LoadCards()
         {
@@ -41,7 +41,7 @@ namespace Organo.EditorTools
                     Object.DestroyImmediate(tex);
                     var top = new Color32[raw.Length];
                     for (int y = 0; y < h; y++) System.Array.Copy(raw, (h - 1 - y) * w, top, y * w, w);
-                    list.Add(new Card { id = o.id, px = top, w = w, h = h });
+                    list.Add(new Card { id = o.id, px = top, w = w, h = h, cartoon = dir == OrganoCards.CartoonDir });
                 }
             return list;
         }

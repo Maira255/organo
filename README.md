@@ -35,7 +35,7 @@ Melalui Organo, anak dapat menjelajahi bentuk dan fungsi organ tubuh menggunakan
 ## Panduan Penggunaan Aplikasi
 
 ### 1. Instalasi Aplikasi (Android)
-1. Salin dan pasang file `Organo.apk` ke perangkat Android Anda (minimal Android 7.1).
+1. Unduh `Organo.apk` dari halaman **Unduh Aplikasi** di **https://organo-kartu.vercel.app/aplikasi** (tombol *Unduh* di kanan atas situs), lalu pasang di perangkat Android Anda (minimal Android 7.1, 64-bit). Halaman itu juga memuat persyaratan HP dan langkah pemasangan.
 2. Berikan izin instalasi dari sumber tidak dikenal apabila diminta sistem.
 3. Buka aplikasi **Organo** dan berikan izin akses **kamera** (digunakan eksklusif untuk pemindaian kartu; gambar tidak pernah direkam atau disimpan).
 
@@ -45,7 +45,7 @@ Melalui Organo, anak dapat menjelajahi bentuk dan fungsi organ tubuh menggunakan
 Tampilan *Splash* → Halaman pengenalan → **Form Perkenalan**: Masukkan nama panggilan (opsional) dan pilih avatar tubuh (laki-laki/perempuan) untuk menyesuaikan materi reproduksi → Menu Beranda utama.
 
 ### 3. Eksplorasi di Menu Library
-1. Pilih menu **Library**, lalu ketuk area tubuh tertentu (kepala, leher, dada, perut, panggul) atau pilih langsung dari daftar organ.
+1. Pilih menu **Library**, lalu ketuk area tubuh tertentu (kepala, leher, dada, perut, panggul) atau pilih langsung dari daftar organ. Organ terbuka setelah kartunya dipindai; organ yang masih terkunci menampilkan tombol **Scan kartu**.
 2. Di halaman detail organ: usap layar untuk memutar model 3D, cubit untuk memperbesar (*zoom*), dan ketuk titik indikator untuk melihat nama bagian organ.
 3. Gunakan tombol pilihan **Organ / Dalam / Tubuh** untuk berganti perspektif, ketuk kartu bagian untuk menyorotnya, dan tekan **Dengarkan** untuk mendengarkan penjelasan audio.
 4. Akses menu **Info Lengkap** untuk membaca mekanisme kerja, fakta menarik, dan tips kesehatan.
@@ -70,14 +70,14 @@ Tampilan *Splash* → Halaman pengenalan → **Form Perkenalan**: Masukkan nama 
 Ketuk nama panggilan untuk melakukan penyesuaian profil, pantau akumulasi bintang, koleksi kartu, dan lencana. Atur preferensi **Materi Tubuh**, **Suara & Musik**, **Pengaturan Suara Pembaca**, serta **Mode Aksesibilitas**.
 
 ### Alur Belajar yang Disarankan
-**Belajar di Library → Pindai Kartu Organ → Kerjakan Kuis Organ → Selesaikan Kuis Proses.**
+**Pindai Kartu Organ → Belajar di Library → Kerjakan Kuis Organ → Selesaikan Kuis Proses.**
 
 ---
 
 ## Kartu Organo
 
 - Terdiri dari 17 kartu bernomor (ukuran standar kartu remi 63×88 mm) yang tersedia dalam dua gaya visual: **Realistis** dan **Kartun**. Keduanya didukung penuh oleh sistem aplikasi dan dapat digunakan secara bersamaan.
-- Portal akses kartu untuk guru dan orang tua: **https://organo-kartu.vercel.app**
+- Situs Organo untuk guru dan orang tua: **https://organo-kartu.vercel.app** (halaman **Kartu** untuk unduh & scan dari layar, halaman **Unduh Aplikasi** untuk APK Android)
   - **Dokumen PDF A4 Siap Cetak**: Cetak dengan pengaturan skala **100%** (*actual size*) lalu potong mengikuti garis panduan.
   - **Scan Langsung dari Layar**: Tampilkan kartu digital berukuran besar melalui laptop, tablet, atau layar monitor tanpa perlu mencetak fisik.
 

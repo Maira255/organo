@@ -1,0 +1,6 @@
+{
+  "name": "organo-kartu",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "24.x" }
+}

@@ -120,7 +120,10 @@ Poppins SemiBold (600) sesuai style guide. Untuk scene lama, jalankan **Organo >
   kamera hanya 0–8% dikenali, 25% → 87–100%, 40% → ±100%; tidak pernah tertukar dengan kartu lain.
 - **APK Android**: **Organo > Build > APK Android** → `Builds/Android/Organo.apk` (paket `com.organo.belajarorgan`,
   ARM64, minSdk 25, ARCore opsional, depth ARCore opsional). Ringkasan di
-  `Library/OrganoPreview/build_android.txt`.
+  `Library/OrganoPreview/build_android.txt`. **Organo > Build > 3 Versi APK** → `Builds/Android/Organo_3-Versi/`:
+  A = salinan arsip APK full offline 15 Okt 2026, B = perbaikan kamera HP tanpa AR + kelas online, C = kamera lama
+  (simbol `ORGANO_KAMERA_LAMA`) + kelas online (keduanya arsip). APK yang dipakai sekarang: **APK Android** (offline).
+  `python Web/buat_situs_kartu.py` menyalinnya ke situs (`/unduh/Organo.apk`, halaman `/aplikasi`).
 - **Tata letak di semua HP** (desain asli untuk iPhone 390×844 dengan area aman notch/home bar): area aman minimum
   `OrganoApp.MinTopInset/MinBottomInset` (28/14) untuk HP Android yang melaporkan 0; `AppScreen.KeepBarsFixed` membuat
   hanya area gulir yang boleh mengecil (bar bawah tidak lagi dimampatkan sehingga tombol keluar layar / teks keluar kotak);
@@ -184,6 +187,15 @@ Poppins SemiBold (600) sesuai style guide. Untuk scene lama, jalankan **Organo >
   dengan mengetuk nama di Profil. Progres dari versi yang masih memakai akun (profil terakhir dipakai) dipindahkan
   otomatis sekali. Kode akun lama disimpan di folder proyek `Arsip/akun-lokal` (di luar Assets, tidak ikut build).
   Scan demo tanpa kamera (ketuk bingkai = kartu didapat) hanya ada di Editor / Development Build.
+- **Library terkunci**: organ di Library (dan halaman organnya) terbuka setelah kartunya di-scan (`Parts.Locked`/`NeedsCard`);
+  organ terkunci menampilkan ajakan "Scan kartu ..." yang membuka layar Scan. Organ reproduksi tetap mengikuti `ReproAccess`.
+- **Kamera biasa (HP tanpa AR)**: kartu dikenali dua langkah — letak kartu dicari dengan templat kartu, lalu kartunya ditentukan
+  dengan ciri pembeda (templat dibuang), diterima kalau 3 dari 4 pemeriksaan sepakat (`CardMatcher.Recognize`). Di halaman hasil
+  scan kartu dilacak sehingga model mengikuti kartu & mengecil saat kartu menjauh, dan kartu lain langsung mengganti organ.
+  Gambar kamera diperkecil & dibaca lewat GPU (urutan baris dicek otomatis). Layar kamera dibatasi 30 fps; bayangan AR dimatikan.
+  Uji buatan: `Organo.EditorTools.MatcherSynthEval.EvalNow`.
+- **Offline sepenuhnya**: fitur kelas online (16 Okt 2026) dinonaktifkan lagi. Kode aplikasinya (`Core/KelasOnline.cs`) hanya
+  aktif bila dibuild dengan simbol `ORGANO_ONLINE`; server & halaman guru diarsipkan di `Arsip/kelas-online` (tidak dideploy).
 - **Suara**: efek klik/benar/salah disintesis bila slot audio kosong; narasi organ memakai rekaman (slot *Narration*)
   atau text-to-speech HP berbahasa Indonesia (`Core/OrganoSpeech.cs`, `Plugins/iOS/OrganoSpeech.mm`).
 - **Build HP**: menu **Organo > Terapkan Pengaturan Build HP** (Android min API 25, teks izin kamera iOS).

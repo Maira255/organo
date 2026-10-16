@@ -137,6 +137,9 @@ namespace Organo.AR
             if (cameraManager != null) cameraManager.requestedLightEstimation = LightEstimation.AmbientIntensity;
             if (imageManager != null) imageManager.trackablesChanged.AddListener(OnTrackablesChanged);
             if (cameraManager != null) cameraManager.frameReceived += OnFrame;
+            // model AR melayang di atas kartu tanpa lantai penerima bayangan: bayangan hanya menambah kerja GPU (HP panas)
+            if (arCamera != null && arCamera.TryGetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>(out var urp))
+                urp.renderShadows = false;
             SetRunning(false);
         }
 
@@ -160,7 +163,11 @@ namespace Organo.AR
             }
 #endif
             // HP yang sudah ketahuan tidak bisa memakai ARCore: langsung kamera biasa (tidak diminta memasang ARCore lagi)
+#if ORGANO_KAMERA_LAMA
+            if (ArUnsupported)      // build "kamera lama": ARCore selalu dicek / ditawarkan lagi seperti versi sebelumnya
+#else
             if (ArUnsupported || PlayerPrefs.GetInt(ArUnavailableKey, 0) == 1)
+#endif
             {
                 ArUnsupported = true;
                 IsRunning = true;
@@ -168,15 +175,19 @@ namespace Organo.AR
                 return;
             }
             SetRunning(true);
+            // AR: 60 fps seperti sebelumnya. Dengan 30 fps kartu lebih lambat dikenali ARCore (laporan uji 16 Okt 2026).
+            Application.targetFrameRate = 60;
             StartCoroutine(EnsureArAvailable());
         }
 
         const string ArUnavailableKey = "organo.ar.unavailable";
+        const string ArInstallFailKey = "organo.ar.installfail";
 
         /// <summary>Coba lagi memakai AR (mis. setelah ARCore dipasang sendiri dari Play Store).</summary>
         public void RetryAr()
         {
             PlayerPrefs.DeleteKey(ArUnavailableKey);
+            PlayerPrefs.DeleteKey(ArInstallFailKey);
             PlayerPrefs.Save();
             ArUnsupported = false;
             End();
@@ -202,10 +213,16 @@ namespace Organo.AR
             if (ARSession.state == ARSessionState.Unsupported || ARSession.state == ARSessionState.NeedsInstall)
             {
                 // Mis. HP yang tidak lagi didukung Google: toko aplikasi menolak memasang "Google Play Services for AR".
-                // Diingat, jadi aplikasi tidak menyuruh memasangnya lagi setiap kali Scan dibuka.
+                // HP yang memang tidak didukung diingat, jadi aplikasi tidak menyuruh memasang ARCore setiap kali Scan dibuka.
+                // Pemasangan yang dibatalkan / gagal baru diingat setelah 2 kali (dulu langsung diingat selamanya, jadi HP yang
+                // sebenarnya mendukung AR tetap memakai kamera biasa hanya karena sekali menekan "batal").
                 Debug.Log("[Organo] AR tidak didukung (" + ARSession.state + "), pakai kamera biasa.");
-                PlayerPrefs.SetInt(ArUnavailableKey, 1);
+#if !ORGANO_KAMERA_LAMA
+                int fails = PlayerPrefs.GetInt(ArInstallFailKey, 0) + 1;
+                PlayerPrefs.SetInt(ArInstallFailKey, fails);
+                if (ARSession.state == ARSessionState.Unsupported || fails >= 2) PlayerPrefs.SetInt(ArUnavailableKey, 1);
                 PlayerPrefs.Save();
+#endif
                 ArUnsupported = true;
                 SetRunning(false);
                 IsRunning = true;
@@ -215,6 +232,8 @@ namespace Organo.AR
 
         void StartWebcam()
         {
+            // kamera biasa: 30 fps sudah sama dengan kecepatan kamera (HP lebih dingin)
+            Application.targetFrameRate = 30;
             if (m_Webcam != null) return;
             var devices = WebCamTexture.devices;
             if (devices.Length == 0) { NoCamera = true; return; }
@@ -230,16 +249,15 @@ namespace Organo.AR
             if (m_Webcam != null) { m_Webcam.Stop(); Destroy(m_Webcam); m_Webcam = null; }
             if (m_WebcamRT != null) { m_WebcamRT.Release(); Destroy(m_WebcamRT); m_WebcamRT = null; }
             if (m_Probe != null) { m_Probe.Release(); Destroy(m_Probe); m_Probe = null; }
+            if (m_Half != null) { m_Half.Release(); Destroy(m_Half); m_Half = null; }
+            if (m_Small != null) { m_Small.Release(); Destroy(m_Small); m_Small = null; }
+            m_ReadbackPending = false;
             NativeTorch.Set(false);
         }
 
         // ---------------- pengenal kartu dengan kamera biasa (HP tanpa AR)
         CardMatcher m_Matcher;
         bool m_MatcherLoaded;
-        Color32[] m_Pixels;
-        float m_MatchTimer;
-        string m_MatchLast;
-        int m_MatchStreak;
         Rect m_ScanFrame;
         Vector2 m_ScanView;
         bool m_HasScanFrame;
@@ -255,10 +273,14 @@ namespace Organo.AR
             m_HasScanFrame = frame.width > 1f && frame.height > 1f && view.x > 1f && view.y > 1f;
         }
 
-        public void ClearScanFrame() { m_HasScanFrame = false; m_MatchStreak = 0; m_MatchLast = null; }
+        public void ClearScanFrame() { m_HasScanFrame = false; ClearVotes(); }
 
         /// <summary>Kartu bisa dikenali dengan kamera biasa (ciri kartu ada & kamera biasa menyala).</summary>
-        public bool CanRecognizeWithCamera => UsingWebcam && Matcher != null && Matcher.Count > 0;
+#if ORGANO_KAMERA_LAMA
+        public bool CanRecognizeWithCamera => false;   // build "kamera lama": kartu hanya dikenali ARCore
+#else
+        public bool CanRecognizeWithCamera => (UsingWebcam || TestCamera) && Matcher != null && Matcher.Count > 0;
+#endif
 
         CardMatcher Matcher
         {
@@ -269,40 +291,297 @@ namespace Organo.AR
             }
         }
 
-        /// <summary>
-        /// Kamera biasa: ±3 kali per detik isi bingkai dicocokkan ke semua kartu. Kartu dianggap dikenali kalau organ yang
-        /// sama menang dua kali berturut-turut (satu gambar buram tidak langsung dianggap kartu).
-        /// </summary>
-        void RecognizeWithCamera()
+        // ---------------- gambar kamera kecil untuk pengenal (diperkecil di GPU, dibaca tanpa menahan CPU)
+        RenderTexture m_Half, m_Small;
+        bool m_ReadbackPending;
+        // Urutan baris hasil baca GPU bisa berbeda antar HP (Vulkan / GLES): dicek sekali dengan gambar uji 2x2 yang
+        // melewati jalur yang sama (3 kali Blit). 1 = baris bawah dulu (seperti GetPixels32), -1 = baris atas dulu.
+        int m_RowOrder;
+        bool m_Calibrating;
+
+        void CalibrateReadback()
         {
-            if (!m_HasScanFrame || m_CurrentId != null || m_PendingOrgan != null || !CanRecognizeWithCamera) return;
-            m_MatchTimer -= Time.unscaledDeltaTime;
-            if (m_MatchTimer > 0f) return;
-            m_MatchTimer = 0.3f;
+            m_Calibrating = true;
+            var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            var red = new Color32(255, 0, 0, 255); var blue = new Color32(0, 0, 255, 255);
+            tex.SetPixels32(new[] { red, red, blue, blue }); // baris 0 = bawah: bawah merah, atas biru
+            tex.Apply();
+            var a = RenderTexture.GetTemporary(2, 2, 0, RenderTextureFormat.ARGB32);
+            var b = RenderTexture.GetTemporary(2, 2, 0, RenderTextureFormat.ARGB32);
+            var c = RenderTexture.GetTemporary(2, 2, 0, RenderTextureFormat.ARGB32);
+            a.filterMode = b.filterMode = c.filterMode = FilterMode.Point;
+            Graphics.Blit(tex, a); Graphics.Blit(a, b); Graphics.Blit(b, c);
+            AsyncGPUReadback.Request(c, 0, TextureFormat.RGBA32, req =>
+            {
+                m_Calibrating = false;
+                if (!req.hasError)
+                {
+                    var d = req.GetData<Color32>();
+                    m_RowOrder = d.Length >= 4 && d[0].b > d[0].r ? -1 : 1;
+                }
+                else m_RowOrder = 1;
+                Debug.Log("[Organo][AR] urutan baris baca GPU: " + (m_RowOrder > 0 ? "bawah dulu" : "atas dulu (dibalik)"));
+                RenderTexture.ReleaseTemporary(a); RenderTexture.ReleaseTemporary(b); RenderTexture.ReleaseTemporary(c);
+                Destroy(tex);
+            });
+        }
+
+        /// <summary>
+        /// Uji Editor: gambar 64x36 (separuh ATAS merah) lewat jalur kamera biasa (3 kali Blit, baca GPU, dibalik sesuai
+        /// cek urutan baris) harus sama dengan GetPixels32 (baris bawah dulu: baris terakhir merah).
+        /// </summary>
+        public IEnumerator TestReadbackPath(Action<bool, string> done)
+        {
+            m_RowOrder = 0;
+            CalibrateReadback();
+            while (m_Calibrating) yield return null;
+            var tex = new Texture2D(64, 36, TextureFormat.RGBA32, false);
+            var px = new Color32[64 * 36];
+            for (int y = 0; y < 36; y++)
+                for (int x = 0; x < 64; x++) px[y * 64 + x] = y >= 18 ? new Color32(255, 0, 0, 255) : new Color32(0, 0, 255, 255);
+            tex.SetPixels32(px); tex.Apply();
+            var a = new RenderTexture(64, 36, 0, RenderTextureFormat.ARGB32);
+            var b = new RenderTexture(32, 18, 0, RenderTextureFormat.ARGB32);
+            var c = new RenderTexture(16, 9, 0, RenderTextureFormat.ARGB32);
+            Graphics.Blit(tex, a); Graphics.Blit(a, b); Graphics.Blit(b, c);
+            bool finished = false; Color32[] got = null;
+            AsyncGPUReadback.Request(c, 0, TextureFormat.RGBA32, req =>
+            {
+                if (!req.hasError) { got = req.GetData<Color32>().ToArray(); if (m_RowOrder < 0) FlipRows(got, 16, 9); }
+                finished = true;
+            });
+            while (!finished) yield return null;
+            bool ok = got != null && got[8 * 16 + 8].r > 200 && got[8 * 16 + 8].b < 60 && got[0].b > 200 && got[0].r < 60;
+            done(ok, (m_RowOrder > 0 ? "bawah dulu" : "atas dulu") + (got != null ? ", baris pertama " + got[0] + ", terakhir " + got[8 * 16 + 8] : ", gagal dibaca"));
+            a.Release(); b.Release(); c.Release();
+            Destroy(a); Destroy(b); Destroy(c); Destroy(tex);
+            m_RowOrder = 0;
+        }
+
+        static void FlipRows(Color32[] px, int w, int h)
+        {
+            var row = new Color32[w];
+            for (int y = 0; y < h / 2; y++)
+            {
+                System.Array.Copy(px, y * w, row, 0, w);
+                System.Array.Copy(px, (h - 1 - y) * w, px, y * w, w);
+                System.Array.Copy(row, 0, px, (h - 1 - y) * w, w);
+            }
+        }
+        float m_ProcessTimer;
+        Color32[] m_Raw, m_Up;
+        int m_SmallW, m_SmallH;
+
+        // ---------------- pengambilan suara: kartu baru dianggap dikenali kalau 3 dari 4 pemeriksaan terakhir sepakat
+        readonly string[] m_Votes = new string[4];
+        int m_VoteAt;
+        Rect m_VoteRect;
+
+        // ---------------- pelacak kartu (kamera biasa): letak kartu di gambar tegak kecil
+        bool m_TrkActive;
+        Rect m_TrkRect;
+        int m_TrkMiss, m_TrkTick;
+        float m_TrkLost = -1f;
+        int m_ImgW, m_ImgH;
+        Vector2 m_ViewSize;
+
+        /// <summary>Kartu sedang terlacak di gambar kamera biasa (model di halaman hasil scan mengikuti kartu).</summary>
+        public bool WebcamCardVisible => (UsingWebcam || TestCamera) && m_TrkActive && CurrentOrgan != null;
+
+        /// <summary>Uji Editor: jalur kamera biasa dijalankan dengan gambar buatan (<see cref="AnalyzeForTest"/>).</summary>
+        public bool TestCamera { get; set; }
+
+        /// <summary>Uji Editor: satu gambar kamera buatan (baris ATAS dulu, tegak) untuk pengenal / pelacak kamera biasa.</summary>
+        public void AnalyzeForTest(Color32[] topFirst, int w, int h)
+        {
+            var raw = new Color32[w * h];
+            for (int y = 0; y < h; y++) System.Array.Copy(topFirst, (h - 1 - y) * w, raw, y * w, w);
+            Analyze(raw, w, h, 1);
+        }
+
+        /// <summary>Ukuran tampilan kamera (unit UI) di halaman yang memakai pelacak, untuk <see cref="WebcamCardRect"/>.</summary>
+        public void SetCameraView(Vector2 view) { if (view.x > 1f && view.y > 1f) m_ViewSize = view; }
+
+        /// <summary>Letak kartu di tampilan kamera (unit UI, kiri atas tampilan) — berlaku bila <see cref="WebcamCardVisible"/>.</summary>
+        public Rect WebcamCardRect =>
+            m_ImgW > 0 && m_ViewSize.x > 1f ? CardMatcher.ImageToScreen(m_TrkRect, m_ViewSize.x, m_ViewSize.y, m_ImgW, m_ImgH) : default;
+
+        void ClearVotes()
+        {
+            for (int i = 0; i < m_Votes.Length; i++) m_Votes[i] = null;
+        }
+
+        /// <summary>Catat hasil satu pemeriksaan; kembalikan organ yang sudah disepakati (null kalau belum).</summary>
+        string Vote(string organId)
+        {
+            m_Votes[m_VoteAt] = organId;
+            m_VoteAt = (m_VoteAt + 1) % m_Votes.Length;
+            if (organId == null) return null;
+            int n = 0;
+            foreach (var v in m_Votes) if (v == organId) n++;
+            return n >= 3 ? organId : null;
+        }
+
+        static bool Sure(CardMatcher.Result r) =>
+            r.organId != null && r.score >= CardMatcher.RecognizeMin && r.margin >= CardMatcher.RecognizeMargin;
+
+        /// <summary>
+        /// Kamera biasa (HP tanpa AR). Gambar kamera diperkecil di GPU (±320 piksel) lalu dibaca tanpa menunggu, ±4 kali per
+        /// detik saat mencari kartu dan ±6 kali per detik saat melacak:
+        /// - belum ada kartu: isi bingkai scan dikenali (<see cref="CardMatcher.Recognize"/>); kartu dianggap ada kalau 3 dari 4
+        ///   pemeriksaan sepakat (±1 detik), supaya meja/buku/layar tidak tiba-tiba memunculkan organ;
+        /// - halaman hasil scan: kartu dilacak (letak & ukuran, untuk model yang mengikuti kartu), kartu lain yang diarahkan ke
+        ///   kamera membuat organ berganti, dan kartu yang hilang dicari lagi.
+        /// </summary>
+        void ProcessCamera()
+        {
+            if (!CanRecognizeWithCamera) return;
+            bool tracking = m_CurrentId != null && (SwitchEnabled || TrackCard);
+            bool detecting = m_CurrentId == null && m_PendingOrgan == null && m_HasScanFrame;
+            if (!tracking && !detecting) { m_TrkActive = m_TrkActive && m_CurrentId != null; return; }
+            m_ProcessTimer -= Time.unscaledDeltaTime;
+            if (m_ProcessTimer > 0f || m_ReadbackPending) return;
+            m_ProcessTimer = tracking ? 0.15f : 0.25f;
+
+            if (SystemInfo.supportsAsyncGPUReadback && m_WebcamRT != null)
+            {
+                if (m_RowOrder == 0) { if (!m_Calibrating) CalibrateReadback(); return; }
+                // 1280x720 → 640x360 → 320x180 (dua kali diperkecil = rata-rata yang cukup halus)
+                int sw = Mathf.Max(32, m_WebcamRT.width / 4), sh = Mathf.Max(32, m_WebcamRT.height / 4);
+                if (m_Small == null || m_Small.width != sw || m_Small.height != sh)
+                {
+                    if (m_Half != null) { m_Half.Release(); Destroy(m_Half); }
+                    if (m_Small != null) { m_Small.Release(); Destroy(m_Small); }
+                    m_Half = new RenderTexture(sw * 2, sh * 2, 0, RenderTextureFormat.ARGB32) { filterMode = FilterMode.Bilinear };
+                    m_Small = new RenderTexture(sw, sh, 0, RenderTextureFormat.ARGB32) { filterMode = FilterMode.Bilinear };
+                    m_Half.Create(); m_Small.Create();
+                }
+                Graphics.Blit(m_WebcamRT, m_Half);
+                Graphics.Blit(m_Half, m_Small);
+                m_ReadbackPending = true;
+                AsyncGPUReadback.Request(m_Small, 0, TextureFormat.RGBA32, req =>
+                {
+                    m_ReadbackPending = false;
+                    if (req.hasError || !UsingWebcam) return;
+                    var data = req.GetData<Color32>();
+                    if (m_Raw == null || m_Raw.Length != data.Length) m_Raw = new Color32[data.Length];
+                    data.CopyTo(m_Raw);
+                    m_SmallW = req.width; m_SmallH = req.height;
+                    // samakan dengan GetPixels32 (baris bawah dulu) sesuai hasil cek gambar uji
+                    if (m_RowOrder < 0) FlipRows(m_Raw, m_SmallW, m_SmallH);
+                    Analyze(m_Raw, m_SmallW, m_SmallH, 1);
+                });
+                return;
+            }
+            // cadangan (HP tanpa baca GPU): ambil piksel webcam langsung
             int w = m_Webcam.width, h = m_Webcam.height;
-            if (m_Pixels == null || m_Pixels.Length != w * h) m_Pixels = new Color32[w * h];
-            m_Webcam.GetPixels32(m_Pixels);
-            int step = Mathf.Max(1, Mathf.Max(w, h) / 256);
-            var img = CardMatcher.Upright(m_Pixels, w, h, step, WebcamRotation, WebcamMirrored, WebcamFlipped, out int uw, out int uh);
+            if (m_Raw == null || m_Raw.Length != w * h) m_Raw = new Color32[w * h];
+            m_Webcam.GetPixels32(m_Raw);
+            Analyze(m_Raw, w, h, Mathf.Max(1, Mathf.Max(w, h) / 320));
+        }
+
+        void Analyze(Color32[] raw, int w, int h, int step)
+        {
+            if (!CanRecognizeWithCamera) return;
+            m_Up = CardMatcher.Upright(raw, w, h, step, WebcamRotation, WebcamMirrored, WebcamFlipped, out int uw, out int uh, m_Up);
+            m_ImgW = uw; m_ImgH = uh;
+            if (m_CurrentId == null) Detect(m_Up, uw, uh);
+            else if (SwitchEnabled || TrackCard) Track(m_Up, uw, uh);
+        }
+
+        void Detect(Color32[] img, int uw, int uh)
+        {
+            if (!m_HasScanFrame || m_PendingOrgan != null) return;
             var frame = CardMatcher.ScreenToImage(m_ScanFrame, m_ScanView.x, m_ScanView.y, uw, uh);
-            var res = Matcher.Match(img, uw, uh, frame);
-            var organ = res.Confident ? m_Db.Get(res.organId) : null;
-            if (organ == null || Ignored(organ.id)) { m_MatchStreak = 0; m_MatchLast = null; return; }
-            m_MatchStreak = organ.id == m_MatchLast ? m_MatchStreak + 1 : 1;
-            m_MatchLast = organ.id;
-            if (m_MatchStreak < 2) return;
-            m_MatchStreak = 0;
-            m_MatchLast = null;
-            LastSeen = organ.id + " (kamera biasa, cocok " + res.score.ToString("0.00") + ")";
+            var res = Matcher.Recognize(img, uw, uh, frame);
+            var organ = Sure(res) ? m_Db.Get(res.organId) : null;
+            if (organ != null && Ignored(organ.id)) organ = null;
+            var agreed = Vote(organ != null ? organ.id : null);
+            if (organ != null) m_VoteRect = res.crop;
+            if (agreed == null) return;
+            ClearVotes();
+            LastSeen = organ.id + " (kamera biasa, cocok " + res.score.ToString("0.00") + ", selisih " + res.margin.ToString("0.00") + ")";
             LastSeenTime = Time.unscaledTime;
             Debug.Log("[Organo][AR] kartu dikenali kamera biasa: " + LastSeen);
+            m_TrkRect = m_VoteRect;
+            m_TrkActive = true;
+            m_TrkMiss = 0;
+            m_TrkLost = -1f;
             Confirm(null, organ, false);
+        }
+
+        /// <summary>Bingkai tengah (seperti bingkai scan) di gambar tegak: tempat kartu dicari lagi saat hilang.</summary>
+        static Rect CenterFrame(int uw, int uh)
+        {
+            float h = Mathf.Min(uh * 0.62f, uw * 0.86f / CardMatcher.Aspect);
+            return CardMatcher.Window(uw / 2f, uh * 0.48f, h);
+        }
+
+        void Track(Color32[] img, int uw, int uh)
+        {
+            m_TrkTick++;
+            if (m_TrkActive)
+            {
+                float sc = Matcher.Track(img, uw, uh, m_TrkRect, m_CurrentId, out var r);
+                if (sc >= CardMatcher.TrackKeep)
+                {
+                    // dihaluskan sedikit supaya model tidak bergetar
+                    m_TrkRect = new Rect(Vector2.Lerp(m_TrkRect.position, r.position, 0.7f), Vector2.Lerp(m_TrkRect.size, r.size, 0.7f));
+                    m_TrkMiss = 0;
+                }
+                else if (++m_TrkMiss >= 3) { m_TrkActive = false; m_TrkLost = Time.unscaledTime; ClearVotes(); }
+                // kartu lain di tempat yang sama (mis. kartu di layar laptop diganti): organ berganti
+                if (SwitchEnabled && m_TrkActive && m_TrkTick % 2 == 0)
+                {
+                    var other = Matcher.MatchWindow(img, uw, uh, m_TrkRect, 2);
+                    // Sure: unggul jelas atas organ kedua (bisa organ yang sedang dipakai) dengan ciri pembeda
+                    bool another = Sure(other) && other.organId != m_CurrentId;
+                    var agreed = Vote(another ? other.organId : null);
+                    if (agreed != null) SwitchWebcam(agreed, other.crop);
+                }
+                return;
+            }
+            // kartu hilang: cari lagi di tengah (kartu apa pun), sesekali juga kartu yang sama di seluruh gambar
+            var res = Matcher.Recognize(img, uw, uh, CenterFrame(uw, uh));
+            if (!SwitchEnabled && Sure(res) && res.organId != m_CurrentId) res.organId = null; // misi scan: hanya kartu itu
+            if (Sure(res))
+            {
+                var agreed = Vote(res.organId);
+                if (agreed == m_CurrentId || (agreed == null && res.organId == m_CurrentId && res.score >= CardMatcher.RecognizeMin + 0.04f))
+                {
+                    m_TrkRect = res.crop; m_TrkActive = true; m_TrkMiss = 0; ClearVotes();
+                    return;
+                }
+                if (agreed != null) { SwitchWebcam(agreed, res.crop); return; }
+            }
+            else Vote(null);
+            if (m_TrkTick % 4 == 0)
+            {
+                var again = Matcher.Search(img, uw, uh, m_CurrentId);
+                if (again.score >= CardMatcher.SearchMin) { m_TrkRect = again.crop; m_TrkActive = true; m_TrkMiss = 0; ClearVotes(); }
+            }
+        }
+
+        void SwitchWebcam(string organId, Rect where)
+        {
+            var organ = m_Db.Get(organId);
+            ClearVotes();
+            if (organ == null || !CanSpawn(organ) || Ignored(organ.id)) return;
+            bool changed = organ != CurrentOrgan;
+            m_CurrentId = organ.id;
+            CurrentOrgan = organ;
+            m_TrkRect = where;
+            m_TrkActive = true;
+            m_TrkMiss = 0;
+            LastSeen = organ.id + " (kamera biasa, ganti kartu)";
+            LastSeenTime = Time.unscaledTime;
+            Debug.Log("[Organo][AR] kamera biasa: ganti ke kartu " + organ.id);
+            if (changed) CardSwitched?.Invoke(organ);
         }
 
         void UpdateWebcam()
         {
             if (!UsingWebcam || !m_Webcam.didUpdateThisFrame || m_Webcam.width <= 16) return;
-            RecognizeWithCamera();
             if (m_WebcamRT == null || m_WebcamRT.width != m_Webcam.width || m_WebcamRT.height != m_Webcam.height)
             {
                 if (m_WebcamRT != null) { m_WebcamRT.Release(); Destroy(m_WebcamRT); }
@@ -310,6 +589,7 @@ namespace Organo.AR
                 m_WebcamRT.Create();
             }
             Graphics.Blit(m_Webcam, m_WebcamRT);
+            ProcessCamera();
 
             // terang/gelap dari gambar kamera (pengganti estimasi cahaya AR)
             m_ProbeTimer -= Time.unscaledDeltaTime;
@@ -325,6 +605,7 @@ namespace Organo.AR
                 foreach (var c in data) sum += (0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b) / 255f;
                 SetBrightness(sum / Mathf.Max(1, data.Length));
             });
+            // (pengenal kartu memakai gambar kecil sendiri: lihat ProcessCamera)
         }
 
         void SetBrightness(float b)
@@ -362,8 +643,10 @@ namespace Organo.AR
             m_Placed = false;
             m_WatchImage = null;
             m_SwitchTo = null;
-            m_MatchStreak = 0;
-            m_MatchLast = null;
+            ClearVotes();
+            m_TrkActive = false;
+            m_TrkMiss = 0;
+            TrackCard = false;
             m_SpawnHotspots.Clear();
         }
 
@@ -561,6 +844,7 @@ namespace Organo.AR
         float m_NormalSign = 1f;
         Quaternion m_ModelBase = Quaternion.identity;
         bool m_Snap = true;
+        float m_LastTracked = -1f;
 
         /// <summary>Transform model AR yang diputar (untuk uji).</summary>
         public Transform ModelTransform => m_SpawnNorm;
@@ -673,8 +957,11 @@ namespace Organo.AR
             if (m_Spawned == null || m_SpawnNorm == null || arCamera == null) return;
             // Kartu terlalu jauh / keluar layar: ARCore memakai posisi terakhir kartu yang tetap di dunia, jadi model tetap
             // di sana (mengecil kalau HP menjauh). Hanya disembunyikan kalau ARCore kehilangan kartu sama sekali.
+            // Model hanya tampil selama kartunya terlihat kamera (Tracking); kartu keluar layar / ditutup = model hilang
+            // (permintaan 16 Okt 2026: "kalau tidak scan kartunya, organnya hilang"). Jeda 0,35 detik supaya tidak berkedip.
             var state = m_SpawnImage != null ? m_SpawnImage.trackingState : TrackingState.Tracking;
-            bool show = state == TrackingState.Tracking || (state == TrackingState.Limited && m_Placed);
+            if (state == TrackingState.Tracking) m_LastTracked = Time.unscaledTime;
+            bool show = state == TrackingState.Tracking || (m_Placed && Time.unscaledTime - m_LastTracked < 0.35f);
             if (m_Spawned.activeSelf != show) { m_Spawned.SetActive(show); m_Snap = true; }
             if (!show) return;
 
@@ -739,7 +1026,8 @@ namespace Organo.AR
         /// </summary>
         void UpdateSwitch()
         {
-            if (!SwitchEnabled || m_Db == null || imageManager == null || arCamera == null || CurrentOrgan == null || m_PendingOrgan != null)
+            // pelacak gambar mati (kamera biasa): daftar kartu ARCore lama tidak dipakai untuk berganti kartu
+            if (!SwitchEnabled || m_Db == null || imageManager == null || !imageManager.enabled || arCamera == null || CurrentOrgan == null || m_PendingOrgan != null)
             {
                 m_SwitchTo = null;
                 return;
@@ -780,6 +1068,33 @@ namespace Organo.AR
             var vp = arCamera.WorldToViewportPoint(img.transform.position);
             if (vp.z <= 0f || vp.x < 0f || vp.x > 1f || vp.y < 0f || vp.y > 1f) return float.MaxValue;
             return new Vector2(vp.x - 0.5f, vp.y - 0.5f).magnitude;
+        }
+
+        /// <summary>
+        /// Lacak kartu yang sudah dikenali kamera biasa walau tidak sedang di halaman hasil scan (misi scan di kuis), tanpa
+        /// berganti ke kartu lain.
+        /// </summary>
+        public bool TrackCard { get; set; }
+
+        /// <summary>
+        /// Misi scan dijawab benar: tampilkan model organ itu di atas kartunya (AR), atau lacak kartunya (kamera biasa),
+        /// seperti hasil scan — bukan model diam di tengah layar.
+        /// </summary>
+        public void ShowModelOnCard()
+        {
+            SpawnModels = true;
+            if (CurrentOrgan == null) return;
+            if (UsingWebcam || TestCamera) { TrackCard = true; return; }
+            if (m_Spawned != null || imageManager == null || m_Db == null) return;
+            ARTrackedImage best = null;
+            foreach (var img in imageManager.trackables)
+            {
+                if (img == null || m_Db.FindByReferenceImage(img.referenceImage.name) != CurrentOrgan) continue;
+                if (best == null || (img.trackingState == TrackingState.Tracking && best.trackingState != TrackingState.Tracking)) best = img;
+            }
+            if (best == null) return;
+            if (best.trackingState == TrackingState.Tracking) SpawnOn(best, CurrentOrgan);
+            else m_WatchImage = best;
         }
 
         /// <summary>Simulasi hasil scan (Editor / sebelum gambar kartu dipasang).</summary>
